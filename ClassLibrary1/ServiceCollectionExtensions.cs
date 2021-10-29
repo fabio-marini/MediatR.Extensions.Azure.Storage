@@ -19,7 +19,7 @@ namespace ClassLibrary1
         // - add behavior and context unit tests + test both commands and queries + validate scopes!
         // - add abstract generic post processors for table/blob/queue storage
 
-        // TODO: blob options - remove container + replace blob name with blob client? Check in first!
+        // TODO: replace all opt.invocations with verify get and verify set?
 
         public static IServiceCollection AddPipelines(this IServiceCollection services)
         {
@@ -54,8 +54,13 @@ namespace ClassLibrary1
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
 
-                opt.Container = new BlobContainerClient("UseDevelopmentStorage=true", "messages");
-                opt.Container.CreateIfNotExists();
+                opt.BlobClient = (req, ctx) =>
+                {
+                    var container = new BlobContainerClient("UseDevelopmentStorage=true", "messages");
+                    container.CreateIfNotExists();
+
+                    return container.GetBlobClient(Guid.NewGuid().ToString() + ".xml");
+                };
             });
             services.AddOptions<InsertEntityOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
@@ -81,10 +86,14 @@ namespace ClassLibrary1
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
 
-                opt.Container = new BlobContainerClient("UseDevelopmentStorage=true", "messages2");
-                opt.Container.CreateIfNotExists();
+                opt.BlobClient = (req, ctx) =>
+                {
+                    var container = new BlobContainerClient("UseDevelopmentStorage=true", "messages2");
+                    container.CreateIfNotExists();
 
-                opt.BlobName = (req, ctx) => Guid.NewGuid().ToString() + ".xml";
+                    return container.GetBlobClient(Guid.NewGuid().ToString() + ".xml");
+                };
+
                 opt.BlobContent = (req, ctx) =>
                 {
                     var xml = new XmlSerializer(typeof(TargetCustomerCommand));

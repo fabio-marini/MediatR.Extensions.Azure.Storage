@@ -44,10 +44,10 @@ namespace MediatR.Extensions.Azure.Storage
                 return await next();
             }
 
-            if (opt.Value.Container == null)
+            if (opt.Value.BlobClient == null)
             {
-                // no container configured - skip
-                log.LogError("Behavior {Behavior} requires a valid BlobContainerclient", this.GetType().Name);
+                // no BlobClient configured - skip
+                log.LogError("Behavior {Behavior} requires a valid BlobClient", this.GetType().Name);
 
                 return await next();
             }
@@ -64,14 +64,6 @@ namespace MediatR.Extensions.Azure.Storage
                     return BinaryData.FromString(json);
                 };
 
-                if (opt.Value.BlobName == null)
-                {
-                    // behavior is enabled, but no BlobName func specified - use default
-                    log.LogDebug("Behavior {Behavior} is using the default BlobName delegate", this.GetType().Name);
-
-                    opt.Value.BlobName = (req, ctx) => Guid.NewGuid().ToString() + ".json";
-                }
-
                 if (opt.Value.BlobHeaders == null)
                 {
                     // behavior is enabled, but no BlobHeaders func specified - use default
@@ -81,22 +73,10 @@ namespace MediatR.Extensions.Azure.Storage
                 }
             }
 
-            if (opt.Value.BlobName == null)
-            {
-                // behavior is enabled, but no BlobName func specified - use default
-                log.LogDebug("Behavior {Behavior} is using the default BlobName delegate", this.GetType().Name);
-
-                opt.Value.BlobName = (req, ctx) => Guid.NewGuid().ToString();
-            }
-
             try
             {
-                // get blob name and client - will use default if not specified
-                var blobName = opt.Value.BlobName(request, ctx);
+                var blobClient = opt.Value.BlobClient(request, ctx);
 
-                var blobClient = opt.Value.Container.GetBlobClient(blobName);
-
-                // get blob content and upload - will use default if not specified
                 var blobContent = opt.Value.BlobContent(request, ctx);
 
                 await blobClient.UploadAsync(blobContent, cancellationToken);
