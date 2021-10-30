@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace MediatR.Extensions.Azure.Storage
 {
-    public class UploadBlobBehavior<TRequest> : UploadBlobBehavior<TRequest, Unit> where TRequest : IRequest
+    public class UploadBlobBehavior<TRequest> : UploadBlobBehavior<TRequest, Unit> where TRequest : IRequest<Unit>
     {
         public UploadBlobBehavior(IOptions<UploadBlobOptions<TRequest>> opt, PipelineContext ctx, ILogger log = null)
             : base(opt, ctx, log)
@@ -17,13 +17,13 @@ namespace MediatR.Extensions.Azure.Storage
         }
     }
 
-    public class UploadBlobBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest
+    public class UploadBlobBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
     {
         private readonly ILogger log;
-        private readonly IOptions<UploadBlobOptions<TRequest>> opt;
+        private readonly IOptions<UploadBlobOptions<TRequest, TResponse>> opt;
         private readonly PipelineContext ctx;
 
-        public UploadBlobBehavior(IOptions<UploadBlobOptions<TRequest>> opt, PipelineContext ctx, ILogger log = null)
+        public UploadBlobBehavior(IOptions<UploadBlobOptions<TRequest, TResponse>> opt, PipelineContext ctx, ILogger log = null)
         {
             // this parameter is required: if an instance is not supplied, it will be created using the default ctor
             // (which will set IsEnabled = false) - no additional validation is required...
