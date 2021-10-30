@@ -50,9 +50,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             _ = await med.Send(cmd);
 
-            opt.Verify(m => m.IsEnabled, Times.Once);
-            opt.Verify(m => m.QueueClient, Times.Never);
-            opt.Verify(m => m.QueueMessage, Times.Never);
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.QueueClient, Times.Never);
+            opt.VerifyGet(m => m.QueueMessage, Times.Never);
         }
 
         [Fact(DisplayName = "QueueClient is not specified")]
@@ -64,9 +64,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             _ = await med.Send(cmd);
 
-            opt.Verify(m => m.IsEnabled, Times.Once);
-            opt.Verify(m => m.QueueClient, Times.Once);
-            opt.Verify(m => m.QueueMessage, Times.Never);
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.QueueClient, Times.Once);
+            opt.VerifyGet(m => m.QueueMessage, Times.Never);
         }
 
         [Fact(DisplayName = "Behavior uses default QueueMessage")]
@@ -80,12 +80,13 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             _ = await med.Send(cmd);
 
-            opt.Verify(m => m.IsEnabled, Times.Once);
-            opt.Verify(m => m.QueueClient, Times.Exactly(2));
-            opt.Verify(m => m.QueueClient.SendMessageAsync(It.IsAny<BinaryData>(), opt.Object.Visibility, opt.Object.TimeToLive, CancellationToken.None), Times.Once);
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.QueueClient, Times.Exactly(2));
+            opt.VerifyGet(m => m.QueueMessage, Times.Exactly(2));
 
-            opt.Invocations.Where(i => i.Method.Name == "get_QueueMessage").Should().HaveCount(2);
-            opt.Invocations.Where(i => i.Method.Name == "set_QueueMessage").Should().HaveCount(1);
+            opt.VerifySet(m => m.QueueMessage = It.IsAny<Func<TestCommand, PipelineContext, BinaryData>>(), Times.Once);
+
+            opt.Verify(m => m.QueueClient.SendMessageAsync(It.IsAny<BinaryData>(), opt.Object.Visibility, opt.Object.TimeToLive, CancellationToken.None), Times.Once);
         }
 
         [Fact(DisplayName = "Behavior uses specified QueueMessage")]
@@ -99,12 +100,13 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             _ = await med.Send(cmd);
 
-            opt.Verify(m => m.IsEnabled, Times.Once);
-            opt.Verify(m => m.QueueClient, Times.Exactly(2));
-            opt.Verify(m => m.QueueClient.SendMessageAsync(It.IsAny<BinaryData>(), opt.Object.Visibility, opt.Object.TimeToLive, CancellationToken.None), Times.Once);
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.QueueClient, Times.Exactly(2));
+            opt.VerifyGet(m => m.QueueMessage, Times.Exactly(2));
 
-            opt.Invocations.Where(i => i.Method.Name == "get_QueueMessage").Should().HaveCount(2);
-            opt.Invocations.Where(i => i.Method.Name == "set_QueueMessage").Should().HaveCount(0);
+            opt.VerifySet(m => m.QueueMessage = It.IsAny<Func<TestCommand, PipelineContext, BinaryData>>(), Times.Never);
+
+            opt.Verify(m => m.QueueClient.SendMessageAsync(It.IsAny<BinaryData>(), opt.Object.Visibility, opt.Object.TimeToLive, CancellationToken.None), Times.Once);
         }
 
         [Fact(DisplayName = "Exceptions are logged")]
@@ -114,23 +116,24 @@ namespace MediatR.Extensions.Azure.Storage.Tests
             opt.SetupProperty(m => m.QueueClient, que.Object);
             opt.SetupProperty(m => m.QueueMessage, (cmd, ctx) => BinaryData.FromString("Hello world"));
 
-            que.Setup(m => m.SendMessageAsync(It.IsAny<BinaryData>(), opt.Object.Visibility, opt.Object.TimeToLive, CancellationToken.None)).Throws(new Exception("Failed ! :("));
+            que.Setup(m => m.SendMessageAsync(It.IsAny<BinaryData>(), opt.Object.Visibility, opt.Object.TimeToLive, CancellationToken.None)).Throws(new Exception("Failed! :("));
 
             var cmd = new TestCommand { Message = "Hello! :)" };
 
             _ = await med.Send(cmd);
 
-            opt.Verify(m => m.IsEnabled, Times.Once);
-            opt.Verify(m => m.QueueClient, Times.Exactly(2));
-            opt.Verify(m => m.QueueClient.SendMessageAsync(It.IsAny<BinaryData>(), opt.Object.Visibility, opt.Object.TimeToLive, CancellationToken.None), Times.Once);
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.QueueClient, Times.Exactly(2));
+            opt.VerifyGet(m => m.QueueMessage, Times.Exactly(2));
 
-            opt.Invocations.Where(i => i.Method.Name == "get_QueueMessage").Should().HaveCount(2);
-            opt.Invocations.Where(i => i.Method.Name == "set_QueueMessage").Should().HaveCount(0);
+            opt.VerifySet(m => m.QueueMessage = It.IsAny<Func<TestCommand, PipelineContext, BinaryData>>(), Times.Never);
+
+            opt.Verify(m => m.QueueClient.SendMessageAsync(It.IsAny<BinaryData>(), opt.Object.Visibility, opt.Object.TimeToLive, CancellationToken.None), Times.Once);
 
             var logInvocation = log.Invocations.Where(i => i.Method.Name == "Log").Single();
 
             logInvocation.Arguments.OfType<LogLevel>().Single().Should().Be(LogLevel.Error);
-            logInvocation.Arguments.OfType<Exception>().Single();
+            logInvocation.Arguments.OfType<Exception>().Single().Message.Should().Be("Failed! :(");
         }
     }
 }

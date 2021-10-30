@@ -52,11 +52,11 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             _ = await med.Send(cmd);
 
-            opt.Verify(m => m.IsEnabled, Times.Once);
-            opt.Verify(m => m.BlobClient, Times.Never);
-            opt.Verify(m => m.BlobContent, Times.Never);
-            opt.Verify(m => m.BlobHeaders, Times.Never);
-            opt.Verify(m => m.Metadata, Times.Never);
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.BlobClient, Times.Never);
+            opt.VerifyGet(m => m.BlobContent, Times.Never);
+            opt.VerifyGet(m => m.BlobHeaders, Times.Never);
+            opt.VerifyGet(m => m.Metadata, Times.Never);
         }
 
         [Fact(DisplayName = "BlobClient is not specified")]
@@ -68,11 +68,11 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             _ = await med.Send(cmd);
 
-            opt.Verify(m => m.IsEnabled, Times.Once);
-            opt.Verify(m => m.BlobClient, Times.Once);
-            opt.Verify(m => m.BlobContent, Times.Never);
-            opt.Verify(m => m.BlobHeaders, Times.Never);
-            opt.Verify(m => m.Metadata, Times.Never);
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.BlobClient, Times.Once);
+            opt.VerifyGet(m => m.BlobContent, Times.Never);
+            opt.VerifyGet(m => m.BlobHeaders, Times.Never);
+            opt.VerifyGet(m => m.Metadata, Times.Never);
         }
 
         [Fact(DisplayName = "Behavior uses default BlobContent and BlobHeaders")]
@@ -88,19 +88,18 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             _ = await med.Send(cmd);
 
-            opt.Verify(m => m.IsEnabled, Times.Once);
-            opt.Verify(m => m.BlobClient, Times.Exactly(2));
-            opt.Verify(m => m.Metadata, Times.Once);
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.BlobClient, Times.Exactly(2));
+            opt.VerifyGet(m => m.Metadata, Times.Once);
+            opt.VerifyGet(m => m.BlobContent, Times.Exactly(2));
+            opt.VerifyGet(m => m.BlobHeaders, Times.Exactly(3));
+
+            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<TestCommand, PipelineContext, BinaryData>>(), Times.Once);
+            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<TestCommand, PipelineContext, BlobHttpHeaders>>(), Times.Once);
 
             blb.Verify(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None), Times.Once);
             blb.Verify(m => m.SetHttpHeadersAsync(It.IsAny<BlobHttpHeaders>(), null, CancellationToken.None), Times.Once);
             blb.Verify(m => m.SetMetadataAsync(It.IsAny<IDictionary<string, string>>(), null, CancellationToken.None), Times.Never);
-
-            opt.Invocations.Where(i => i.Method.Name == "get_BlobContent").Should().HaveCount(2);
-            opt.Invocations.Where(i => i.Method.Name == "set_BlobContent").Should().HaveCount(1);
-
-            opt.Invocations.Where(i => i.Method.Name == "get_BlobHeaders").Should().HaveCount(3);
-            opt.Invocations.Where(i => i.Method.Name == "set_BlobHeaders").Should().HaveCount(1);
         }
 
         [Fact(DisplayName = "Behavior uses specified BlobContent")]
@@ -116,19 +115,18 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             _ = await med.Send(cmd);
 
-            opt.Verify(m => m.IsEnabled, Times.Once);
-            opt.Verify(m => m.BlobClient, Times.Exactly(2));
-            opt.Verify(m => m.Metadata, Times.Once);
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.BlobClient, Times.Exactly(2));
+            opt.VerifyGet(m => m.Metadata, Times.Once);
+            opt.VerifyGet(m => m.BlobContent, Times.Exactly(2));
+            opt.VerifyGet(m => m.BlobHeaders, Times.Exactly(1));
+
+            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<TestCommand, PipelineContext, BinaryData>>(), Times.Never);
+            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<TestCommand, PipelineContext, BlobHttpHeaders>>(), Times.Never);
 
             blb.Verify(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None), Times.Once);
             blb.Verify(m => m.SetHttpHeadersAsync(It.IsAny<BlobHttpHeaders>(), null, CancellationToken.None), Times.Never);
             blb.Verify(m => m.SetMetadataAsync(It.IsAny<IDictionary<string, string>>(), null, CancellationToken.None), Times.Never);
-
-            opt.Invocations.Where(i => i.Method.Name == "get_BlobContent").Should().HaveCount(2);
-            opt.Invocations.Where(i => i.Method.Name == "set_BlobContent").Should().HaveCount(0);
-
-            opt.Invocations.Where(i => i.Method.Name == "get_BlobHeaders").Should().HaveCount(1);
-            opt.Invocations.Where(i => i.Method.Name == "set_BlobHeaders").Should().HaveCount(0);
         }
 
         [Fact(DisplayName = "Behavior uses specified BlobHeaders")]
@@ -144,19 +142,18 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             _ = await med.Send(cmd);
 
-            opt.Verify(m => m.IsEnabled, Times.Once);
-            opt.Verify(m => m.BlobClient, Times.Exactly(2));
-            opt.Verify(m => m.Metadata, Times.Once);
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.BlobClient, Times.Exactly(2));
+            opt.VerifyGet(m => m.Metadata, Times.Once);
+            opt.VerifyGet(m => m.BlobContent, Times.Exactly(2));
+            opt.VerifyGet(m => m.BlobHeaders, Times.Exactly(3));
+
+            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<TestCommand, PipelineContext, BinaryData>>(), Times.Once);
+            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<TestCommand, PipelineContext, BlobHttpHeaders>>(), Times.Never);
 
             blb.Verify(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None), Times.Once);
             blb.Verify(m => m.SetHttpHeadersAsync(It.IsAny<BlobHttpHeaders>(), null, CancellationToken.None), Times.Once);
             blb.Verify(m => m.SetMetadataAsync(It.IsAny<IDictionary<string, string>>(), null, CancellationToken.None), Times.Never);
-
-            opt.Invocations.Where(i => i.Method.Name == "get_BlobContent").Should().HaveCount(2);
-            opt.Invocations.Where(i => i.Method.Name == "set_BlobContent").Should().HaveCount(1);
-
-            opt.Invocations.Where(i => i.Method.Name == "get_BlobHeaders").Should().HaveCount(3);
-            opt.Invocations.Where(i => i.Method.Name == "set_BlobHeaders").Should().HaveCount(0);
         }
 
         [Fact(DisplayName = "Behavior uses specified BlobContent and BlobHeaders")]
@@ -172,19 +169,18 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             _ = await med.Send(cmd);
 
-            opt.Verify(m => m.IsEnabled, Times.Once);
-            opt.Verify(m => m.BlobClient, Times.Exactly(2));
-            opt.Verify(m => m.Metadata, Times.Once);
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.BlobClient, Times.Exactly(2));
+            opt.VerifyGet(m => m.Metadata, Times.Once);
+            opt.VerifyGet(m => m.BlobContent, Times.Exactly(2));
+            opt.VerifyGet(m => m.BlobHeaders, Times.Exactly(2));
+
+            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<TestCommand, PipelineContext, BinaryData>>(), Times.Never);
+            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<TestCommand, PipelineContext, BlobHttpHeaders>>(), Times.Never);
 
             blb.Verify(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None), Times.Once);
             blb.Verify(m => m.SetHttpHeadersAsync(It.IsAny<BlobHttpHeaders>(), null, CancellationToken.None), Times.Once);
             blb.Verify(m => m.SetMetadataAsync(It.IsAny<IDictionary<string, string>>(), null, CancellationToken.None), Times.Never);
-
-            opt.Invocations.Where(i => i.Method.Name == "get_BlobContent").Should().HaveCount(2);
-            opt.Invocations.Where(i => i.Method.Name == "set_BlobContent").Should().HaveCount(0);
-
-            opt.Invocations.Where(i => i.Method.Name == "get_BlobHeaders").Should().HaveCount(2);
-            opt.Invocations.Where(i => i.Method.Name == "set_BlobHeaders").Should().HaveCount(0);
         }
 
         [Fact(DisplayName = "Behavior uses specified Metadata")]
@@ -200,19 +196,18 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             _ = await med.Send(cmd);
 
-            opt.Verify(m => m.IsEnabled, Times.Once);
-            opt.Verify(m => m.BlobClient, Times.Exactly(2));
-            opt.Verify(m => m.Metadata, Times.Exactly(2));
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.BlobClient, Times.Exactly(2));
+            opt.VerifyGet(m => m.Metadata, Times.Exactly(2));
+            opt.VerifyGet(m => m.BlobContent, Times.Exactly(2));
+            opt.VerifyGet(m => m.BlobHeaders, Times.Exactly(2));
+
+            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<TestCommand, PipelineContext, BinaryData>>(), Times.Never);
+            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<TestCommand, PipelineContext, BlobHttpHeaders>>(), Times.Never);
 
             blb.Verify(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None), Times.Once);
             blb.Verify(m => m.SetHttpHeadersAsync(It.IsAny<BlobHttpHeaders>(), null, CancellationToken.None), Times.Once);
             blb.Verify(m => m.SetMetadataAsync(It.IsAny<IDictionary<string, string>>(), null, CancellationToken.None), Times.Once);
-
-            opt.Invocations.Where(i => i.Method.Name == "get_BlobContent").Should().HaveCount(2);
-            opt.Invocations.Where(i => i.Method.Name == "set_BlobContent").Should().HaveCount(0);
-
-            opt.Invocations.Where(i => i.Method.Name == "get_BlobHeaders").Should().HaveCount(2);
-            opt.Invocations.Where(i => i.Method.Name == "set_BlobHeaders").Should().HaveCount(0);
         }
 
         [Fact(DisplayName = "Exceptions are logged")]
@@ -230,25 +225,23 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             _ = await med.Send(cmd);
 
-            opt.Verify(m => m.IsEnabled, Times.Once);
-            opt.Verify(m => m.BlobClient, Times.Exactly(2));
-            opt.Verify(m => m.Metadata, Times.Exactly(0));
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.BlobClient, Times.Exactly(2));
+            opt.VerifyGet(m => m.Metadata, Times.Exactly(0));
+            opt.VerifyGet(m => m.BlobContent, Times.Exactly(2));
+            opt.VerifyGet(m => m.BlobHeaders, Times.Never);
+
+            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<TestCommand, PipelineContext, BinaryData>>(), Times.Never);
+            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<TestCommand, PipelineContext, BlobHttpHeaders>>(), Times.Never);
 
             blb.Verify(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None), Times.Once);
             blb.Verify(m => m.SetHttpHeadersAsync(It.IsAny<BlobHttpHeaders>(), null, CancellationToken.None), Times.Never);
             blb.Verify(m => m.SetMetadataAsync(It.IsAny<IDictionary<string, string>>(), null, CancellationToken.None), Times.Never);
 
-            opt.Invocations.Where(i => i.Method.Name == "get_BlobContent").Should().HaveCount(2);
-            opt.Invocations.Where(i => i.Method.Name == "set_BlobContent").Should().HaveCount(0);
-
-            opt.Invocations.Where(i => i.Method.Name == "get_BlobHeaders").Should().HaveCount(0);
-            opt.Invocations.Where(i => i.Method.Name == "set_BlobHeaders").Should().HaveCount(0);
-
             var logInvocation = log.Invocations.Where(i => i.Method.Name == "Log").Single();
 
             logInvocation.Arguments.OfType<LogLevel>().Single().Should().Be(LogLevel.Error);
-            logInvocation.Arguments.OfType<Exception>().Single();
+            logInvocation.Arguments.OfType<Exception>().Single().Message.Should().Be("Failed! :(");
         }
-
     }
 }

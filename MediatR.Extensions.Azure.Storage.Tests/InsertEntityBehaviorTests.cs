@@ -51,9 +51,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             _ = await med.Send(cmd);
 
-            opt.Verify(m => m.IsEnabled, Times.Once);
-            opt.Verify(m => m.CloudTable, Times.Never);
-            opt.Verify(m => m.TableEntity, Times.Never);
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.CloudTable, Times.Never);
+            opt.VerifyGet(m => m.TableEntity, Times.Never);
         }
 
         [Fact(DisplayName = "CloudTable is not specified")]
@@ -65,9 +65,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             _ = await med.Send(cmd);
 
-            opt.Verify(m => m.IsEnabled, Times.Once);
-            opt.Verify(m => m.CloudTable, Times.Once);
-            opt.Verify(m => m.TableEntity, Times.Never);
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.CloudTable, Times.Once);
+            opt.VerifyGet(m => m.TableEntity, Times.Never);
         }
 
         [Fact(DisplayName = "Behavior uses default TableEntity")]
@@ -83,15 +83,16 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             var tableOperations = new List<TableOperation>();
 
-            opt.Verify(m => m.IsEnabled, Times.Once);
-            opt.Verify(m => m.CloudTable, Times.Exactly(2));
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.CloudTable, Times.Exactly(2));
+            opt.VerifyGet(m => m.TableEntity, Times.Exactly(2));
+
+            opt.VerifySet(m => m.TableEntity = It.IsAny<Func<TestCommand, PipelineContext, ITableEntity>>(), Times.Once);
+
             opt.Verify(m => m.CloudTable.ExecuteAsync(Capture.In(tableOperations), CancellationToken.None), Times.Once);
 
             tableOperations.Should().HaveCount(1);
             tableOperations.Single().OperationType.Should().Be(TableOperationType.Insert);
-
-            opt.Invocations.Where(i => i.Method.Name == "get_TableEntity").Should().HaveCount(2);
-            opt.Invocations.Where(i => i.Method.Name == "set_TableEntity").Should().HaveCount(1);
         }
 
         [Fact(DisplayName = "Behavior uses specified TableEntity")]
@@ -107,15 +108,16 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             var tableOperations = new List<TableOperation>();
 
-            opt.Verify(m => m.IsEnabled, Times.Once);
-            opt.Verify(m => m.CloudTable, Times.Exactly(2));
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.CloudTable, Times.Exactly(2));
+            opt.VerifyGet(m => m.TableEntity, Times.Exactly(2));
+
+            opt.VerifySet(m => m.TableEntity = It.IsAny<Func<TestCommand, PipelineContext, ITableEntity>>(), Times.Never);
+
             opt.Verify(m => m.CloudTable.ExecuteAsync(Capture.In(tableOperations), CancellationToken.None), Times.Once);
 
             tableOperations.Should().HaveCount(1);
             tableOperations.Single().OperationType.Should().Be(TableOperationType.Insert);
-
-            opt.Invocations.Where(i => i.Method.Name == "get_TableEntity").Should().HaveCount(2);
-            opt.Invocations.Where(i => i.Method.Name == "set_TableEntity").Should().HaveCount(0);
         }
 
         [Fact(DisplayName = "Exceptions are logged")]
@@ -125,7 +127,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests
             opt.SetupProperty(m => m.CloudTable, tbl.Object);
             opt.SetupProperty(m => m.TableEntity, (cmd, ctx) => new DynamicTableEntity("PK1", "RK1"));
 
-            tbl.Setup(m => m.ExecuteAsync(It.IsAny<TableOperation>(), CancellationToken.None)).Throws(new Exception("Failed ! :("));
+            tbl.Setup(m => m.ExecuteAsync(It.IsAny<TableOperation>(), CancellationToken.None)).Throws(new Exception("Failed! :("));
 
             var cmd = new TestCommand { Message = "Hello! :)" };
 
@@ -133,20 +135,21 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             var tableOperations = new List<TableOperation>();
 
-            opt.Verify(m => m.IsEnabled, Times.Once);
-            opt.Verify(m => m.CloudTable, Times.Exactly(2));
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.CloudTable, Times.Exactly(2));
+            opt.VerifyGet(m => m.TableEntity, Times.Exactly(2));
+
+            opt.VerifySet(m => m.TableEntity = It.IsAny<Func<TestCommand, PipelineContext, ITableEntity>>(), Times.Never);
+
             opt.Verify(m => m.CloudTable.ExecuteAsync(Capture.In(tableOperations), CancellationToken.None), Times.Once);
 
             tableOperations.Should().HaveCount(1);
             tableOperations.Single().OperationType.Should().Be(TableOperationType.Insert);
 
-            opt.Invocations.Where(i => i.Method.Name == "get_TableEntity").Should().HaveCount(2);
-            opt.Invocations.Where(i => i.Method.Name == "set_TableEntity").Should().HaveCount(0);
-
             var logInvocation = log.Invocations.Where(i => i.Method.Name == "Log").Single();
 
             logInvocation.Arguments.OfType<LogLevel>().Single().Should().Be(LogLevel.Error);
-            logInvocation.Arguments.OfType<Exception>().Single();
+            logInvocation.Arguments.OfType<Exception>().Single().Message.Should().Be("Failed! :(");
         }
     }
 }
