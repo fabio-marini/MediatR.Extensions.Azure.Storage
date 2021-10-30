@@ -8,21 +8,24 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace MediatR.Extensions.Azure.Storage.Tests
 {
-    public class SendMessageBehaviorTests
+    public class SendMessageBehaviorFixture<TRequest> : SendMessageBehaviorFixture<TRequest, Unit> where TRequest : IRequest<Unit>
+    {
+    }
+
+    public class SendMessageBehaviorFixture<TRequest, TResponse> where TRequest : IRequest<TResponse>
     {
         private readonly IServiceProvider svc;
-        private readonly Mock<SendMessageOptions<TestCommand>> opt;
+        private readonly Mock<SendMessageOptions<TRequest, TResponse>> opt;
         private readonly IMediator med;
         private readonly Mock<QueueClient> que;
         private readonly Mock<ILogger> log;
 
-        public SendMessageBehaviorTests()
+        public SendMessageBehaviorFixture()
         {
-            opt = new Mock<SendMessageOptions<TestCommand>>();
+            opt = new Mock<SendMessageOptions<TRequest, TResponse>>();
             que = new Mock<QueueClient>("UseDevelopmentStorage=true", "queue1");
             log = new Mock<ILogger>();
 
@@ -30,9 +33,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
                 .AddMediatR(this.GetType())
 
-                .AddTransient<IPipelineBehavior<TestCommand, Unit>, SendMessageBehavior<TestCommand>>()
+                .AddTransient<IPipelineBehavior<TRequest, TResponse>, SendMessageBehavior<TRequest, TResponse>>()
 
-                .AddTransient<IOptions<SendMessageOptions<TestCommand>>>(sp => Options.Create(opt.Object))
+                .AddTransient<IOptions<SendMessageOptions<TRequest, TResponse>>>(sp => Options.Create(opt.Object))
 
                 .AddTransient<PipelineContext>()
 
@@ -43,74 +46,69 @@ namespace MediatR.Extensions.Azure.Storage.Tests
             med = svc.GetRequiredService<IMediator>();
         }
 
-        [Fact(DisplayName = "Behavior is disabled")]
-        public async Task Test1()
+        public async Task<TResponse> Test1(TRequest req)
         {
-            var cmd = new TestCommand { Message = "Hello! :)" };
-
-            _ = await med.Send(cmd);
+            var res = await med.Send(req);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.QueueClient, Times.Never);
             opt.VerifyGet(m => m.QueueMessage, Times.Never);
+
+            return res;
         }
 
-        [Fact(DisplayName = "QueueClient is not specified")]
-        public async Task Test2()
+        public async Task<TResponse> Test2(TRequest req)
         {
             opt.SetupProperty(m => m.IsEnabled, true);
 
-            var cmd = new TestCommand { Message = "Hello! :)" };
-
-            _ = await med.Send(cmd);
+            var res = await med.Send(req);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.QueueClient, Times.Once);
             opt.VerifyGet(m => m.QueueMessage, Times.Never);
+
+            return res;
         }
 
-        [Fact(DisplayName = "Behavior uses default QueueMessage")]
-        public async Task Test3()
+        public async Task<TResponse> Test3(TRequest req)
         {
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.QueueClient, que.Object);
             opt.SetupProperty(m => m.QueueMessage, null);
 
-            var cmd = new TestCommand { Message = "Hello! :)" };
-
-            _ = await med.Send(cmd);
+            var res = await med.Send(req);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.QueueClient, Times.Exactly(2));
             opt.VerifyGet(m => m.QueueMessage, Times.Exactly(2));
 
-            opt.VerifySet(m => m.QueueMessage = It.IsAny<Func<TestCommand, PipelineContext, BinaryData>>(), Times.Once);
+            opt.VerifySet(m => m.QueueMessage = It.IsAny<Func<TRequest, PipelineContext, BinaryData>>(), Times.Once);
 
             opt.Verify(m => m.QueueClient.SendMessageAsync(It.IsAny<BinaryData>(), opt.Object.Visibility, opt.Object.TimeToLive, CancellationToken.None), Times.Once);
+
+            return res;
         }
 
-        [Fact(DisplayName = "Behavior uses specified QueueMessage")]
-        public async Task Test4()
+        public async Task<TResponse> Test4(TRequest req)
         {
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.QueueClient, que.Object);
             opt.SetupProperty(m => m.QueueMessage, (cmd, ctx) => BinaryData.FromString("Hello world"));
 
-            var cmd = new TestCommand { Message = "Hello! :)" };
-
-            _ = await med.Send(cmd);
+            var res = await med.Send(req);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.QueueClient, Times.Exactly(2));
             opt.VerifyGet(m => m.QueueMessage, Times.Exactly(2));
 
-            opt.VerifySet(m => m.QueueMessage = It.IsAny<Func<TestCommand, PipelineContext, BinaryData>>(), Times.Never);
+            opt.VerifySet(m => m.QueueMessage = It.IsAny<Func<TRequest, PipelineContext, BinaryData>>(), Times.Never);
 
             opt.Verify(m => m.QueueClient.SendMessageAsync(It.IsAny<BinaryData>(), opt.Object.Visibility, opt.Object.TimeToLive, CancellationToken.None), Times.Once);
+
+            return res;
         }
 
-        [Fact(DisplayName = "Exceptions are logged")]
-        public async Task Test5()
+        public async Task<TResponse> Test5(TRequest req)
         {
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.QueueClient, que.Object);
@@ -118,15 +116,13 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             que.Setup(m => m.SendMessageAsync(It.IsAny<BinaryData>(), opt.Object.Visibility, opt.Object.TimeToLive, CancellationToken.None)).Throws(new Exception("Failed! :("));
 
-            var cmd = new TestCommand { Message = "Hello! :)" };
-
-            _ = await med.Send(cmd);
+            var res = await med.Send(req);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.QueueClient, Times.Exactly(2));
             opt.VerifyGet(m => m.QueueMessage, Times.Exactly(2));
 
-            opt.VerifySet(m => m.QueueMessage = It.IsAny<Func<TestCommand, PipelineContext, BinaryData>>(), Times.Never);
+            opt.VerifySet(m => m.QueueMessage = It.IsAny<Func<TRequest, PipelineContext, BinaryData>>(), Times.Never);
 
             opt.Verify(m => m.QueueClient.SendMessageAsync(It.IsAny<BinaryData>(), opt.Object.Visibility, opt.Object.TimeToLive, CancellationToken.None), Times.Once);
 
@@ -134,6 +130,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             logInvocation.Arguments.OfType<LogLevel>().Single().Should().Be(LogLevel.Error);
             logInvocation.Arguments.OfType<Exception>().Single().Message.Should().Be("Failed! :(");
+
+            return res;
         }
     }
 }

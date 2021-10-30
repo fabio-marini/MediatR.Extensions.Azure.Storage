@@ -16,7 +16,7 @@ namespace ClassLibrary1
     public static class ServiceCollectionExtensions
     {
         // TODO: 
-        // - add context unit tests + validate scopes! + test both commands and queries 
+        // - add console/function app tests for queries + add context unit tests? + validate scopes! 
         // - add abstract generic post processors for table/blob/queue storage
 
         public static IServiceCollection AddPipelines(this IServiceCollection services)
