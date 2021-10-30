@@ -69,7 +69,7 @@ namespace MediatR.Extensions.Azure.Storage
                     // behavior is enabled, but no BlobHeaders func specified - use default
                     log.LogDebug("Behavior {Behavior} is using the default BlobHeaders delegate", this.GetType().Name);
 
-                    opt.Value.BlobHeaders = (req, ctx) => new BlobHttpHeaders { ContentType = "application/json",   };
+                    opt.Value.BlobHeaders = (req, ctx) => new BlobHttpHeaders { ContentType = "application/json" };
                 }
             }
 

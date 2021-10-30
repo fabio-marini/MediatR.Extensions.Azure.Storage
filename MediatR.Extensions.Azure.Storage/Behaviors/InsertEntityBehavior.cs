@@ -62,7 +62,8 @@ namespace MediatR.Extensions.Azure.Storage
 
                     var tableEntity = new DynamicTableEntity(pk, rk);
 
-                    tableEntity.Properties.Add("Request", EntityProperty.GeneratePropertyForString(JsonConvert.SerializeObject(req)));
+                    tableEntity.Properties.Add("Request", EntityProperty.GeneratePropertyForString(request.GetType().FullName));
+                    tableEntity.Properties.Add("Content", EntityProperty.GeneratePropertyForString(JsonConvert.SerializeObject(req)));
 
                     return tableEntity;
                 };

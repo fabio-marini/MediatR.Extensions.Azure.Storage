@@ -28,7 +28,7 @@ namespace ClassLibrary1
         {
             var json = JsonConvert.SerializeObject(request);
 
-            File.WriteAllText($"C:\\Repos\\ConsoleApp1\\Messages\\{request.MessageId}.json", json);
+            File.WriteAllText($"C:\\Repos\\Customers\\{request.MessageId}.json", json);
 
             log.LogInformation("Handler {Handler} completed, returning", this.GetType().Name);
 

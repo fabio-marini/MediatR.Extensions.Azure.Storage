@@ -1,5 +1,6 @@
 using ClassLibrary1;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
@@ -20,7 +21,7 @@ namespace FunctionApp2
 
         [FunctionName(nameof(HttpSourceCustomer))]
         public async Task<IActionResult> HttpSourceCustomer(
-            [HttpTrigger(AuthorizationLevel.Function, "POST")] SourceCustomer sourceCustomer)
+            [HttpTrigger(AuthorizationLevel.Function, "POST", Route = "customers")] SourceCustomer sourceCustomer)
         {
             var cmd = new SourceCustomerCommand
             {
@@ -46,6 +47,20 @@ namespace FunctionApp2
             };
 
             _ = await mediator.Send(cmd);
+        }
+
+        [FunctionName(nameof(HttpTargetCustomer))]
+        public async Task<IActionResult> HttpTargetCustomer(
+            [HttpTrigger(AuthorizationLevel.Function, "GET", Route = "customers/{messageId}")]HttpRequest req, string messageId)
+        {
+            var qry = new RetrieveCustomerQuery
+            {
+                MessageId = messageId,
+            };
+
+            var res = await mediator.Send(qry);
+
+            return new OkObjectResult(res);
         }
     }
 }

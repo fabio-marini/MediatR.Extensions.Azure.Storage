@@ -15,9 +15,8 @@ namespace ClassLibrary1
 {
     public static class ServiceCollectionExtensions
     {
-        // TODO: 
-        // - add console/function app tests for queries + add context unit tests? + validate scopes! 
-        // - add abstract generic post processors for table/blob/queue storage
+        // TODO: add request type to blob metadata?
+        // TODO: add abstract generic post processors for table/blob/queue storage
 
         public static IServiceCollection AddPipelines(this IServiceCollection services)
         {
@@ -144,7 +143,7 @@ namespace ClassLibrary1
             });
 
             // source customer pipeline - validate, transform and send to queue
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, UploadBlobBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertEntityBehavior<SourceCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, UploadBlobBehavior<SourceCustomerCommand>>();
@@ -164,6 +163,19 @@ namespace ClassLibrary1
 
                 return ActivatorUtilities.CreateInstance<InsertEntityBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
             });
+
+            // retrieve pipeline
+            services.AddOptions<InsertEntityOptions<RetrieveCustomerQuery, TargetCustomer>>().Configure<IConfiguration>((opt, cfg) =>
+            {
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+
+                var storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
+
+                opt.CloudTable = storageAccount.CreateCloudTableClient().GetTableReference("Messages");
+                opt.CloudTable.CreateIfNotExists();
+            });
+
+            services.AddTransient<IPipelineBehavior<RetrieveCustomerQuery, TargetCustomer>, InsertEntityBehavior<RetrieveCustomerQuery, TargetCustomer>>();
 
             return services;
         }
