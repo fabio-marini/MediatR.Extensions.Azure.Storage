@@ -25,7 +25,6 @@ namespace MediatR.Extensions.Azure.Storage
         {
             if (opt.Value.IsEnabled == false)
             {
-                // command is disabled - skip
                 log.LogDebug("Command {Command} is not enabled, returning", this.GetType().Name);
 
                 return ;
@@ -33,15 +32,11 @@ namespace MediatR.Extensions.Azure.Storage
 
             if (opt.Value.QueueClient == null)
             {
-                // no client configured - skip
-                log.LogError("Command {Command} requires a valid QueueClient", this.GetType().Name);
-
-                return ;
+                throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid QueueClient");
             }
 
             if (opt.Value.QueueMessage == null)
             {
-                // command is enabled, but no QueueMessage func specified - use default
                 log.LogDebug("Command {Command} is using the default QueueMessage delegate", this.GetType().Name);
 
                 opt.Value.QueueMessage = (req, ctx) =>
@@ -52,19 +47,9 @@ namespace MediatR.Extensions.Azure.Storage
                 };
             }
 
-            try
-            {
-                var msg = opt.Value.QueueMessage(message, ctx);
+            var msg = opt.Value.QueueMessage(message, ctx);
 
-                await opt.Value.QueueClient.SendMessageAsync(msg, opt.Value.Visibility, opt.Value.TimeToLive, cancellationToken);
-
-                log.LogInformation("Command {Command} completed, returning", this.GetType().Name);
-            }
-            catch (Exception ex)
-            {
-                // failure should not stop execution - log exception, but don't rethrow
-                log.LogError(ex, "Command {Command} failed, returning", this.GetType().Name);
-            }
+            await opt.Value.QueueClient.SendMessageAsync(msg, opt.Value.Visibility, opt.Value.TimeToLive, cancellationToken);
         }
     }
 }

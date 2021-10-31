@@ -26,7 +26,6 @@ namespace MediatR.Extensions.Azure.Storage
         {
             if (opt.Value.IsEnabled == false)
             {
-                // command is disabled - skip
                 log.LogDebug("Command {Command} is not enabled, returning", this.GetType().Name);
 
                 return;
@@ -34,15 +33,11 @@ namespace MediatR.Extensions.Azure.Storage
 
             if (opt.Value.CloudTable == null)
             {
-                // no table configured - skip
-                log.LogError("Command {Command} requires a valid CloudTable", this.GetType().Name);
-
-                return;
+                throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid CloudTable");
             }
 
             if (opt.Value.TableEntity == null)
             {
-                // command is enabled, but no TableEntity func specified - use default
                 log.LogDebug("Command {Command} is using the default TableEntity delegate", this.GetType().Name);
 
                 opt.Value.TableEntity = (msg, ctx) =>
@@ -59,23 +54,11 @@ namespace MediatR.Extensions.Azure.Storage
                 };
             }
 
-            try
-            {
-                var tableEntity = opt.Value.TableEntity(message, ctx);
+            var tableEntity = opt.Value.TableEntity(message, ctx);
 
-                var insertOperation = TableOperation.Insert(tableEntity);
+            var insertOperation = TableOperation.Insert(tableEntity);
 
-                await opt.Value.CloudTable.ExecuteAsync(insertOperation, cancellationToken);
-
-                log.LogInformation("Command {Command} completed, returning", this.GetType().Name);
-            }
-            catch (Exception ex)
-            {
-                // failure should not stop execution - log exception, but don't rethrow
-                log.LogError(ex, "Command {Command} failed, returning", this.GetType().Name);
-            }
-
-            return;
+            await opt.Value.CloudTable.ExecuteAsync(insertOperation, cancellationToken);
         }
     }
 }

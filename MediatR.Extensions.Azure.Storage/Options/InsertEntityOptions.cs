@@ -5,8 +5,8 @@ namespace MediatR.Extensions.Azure.Storage
 {
     public class InsertEntityOptions<TMessage>
     {
-        public virtual bool IsEnabled { get; }
-        public virtual CloudTable CloudTable { get; }
+        public virtual bool IsEnabled { get; set;  }
+        public virtual CloudTable CloudTable { get; set; }
         public virtual Func<TMessage, PipelineContext, ITableEntity> TableEntity { get; set; }
     }
 }

@@ -26,7 +26,17 @@ namespace MediatR.Extensions.Azure.Storage
 
         public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
         {
-            await cmd.ExecuteAsync(request, cancellationToken);
+            try
+            {
+                await cmd.ExecuteAsync(request, cancellationToken);
+
+                log.LogInformation("Behavior {Behavior} completed, returning", this.GetType().Name);
+            }
+            catch (Exception ex)
+            {
+                // failure should not stop execution - log exception, but don't rethrow
+                log.LogError(ex, "Behavior {Behavior} failed, returning", this.GetType().Name);
+            }
 
             return await next();
         }

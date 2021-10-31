@@ -28,7 +28,6 @@ namespace MediatR.Extensions.Azure.Storage
             // a container client is also required, but a default will not be supplied; instead the command will not execute (as if disabled)
             if (opt.Value.IsEnabled == false)
             {
-                // command is disabled - skip
                 log.LogDebug("Command {Command} is not enabled, returning", this.GetType().Name);
 
                 return;
@@ -36,15 +35,11 @@ namespace MediatR.Extensions.Azure.Storage
 
             if (opt.Value.BlobClient == null)
             {
-                // no BlobClient configured - skip
-                log.LogError("Command {Command} requires a valid BlobClient", this.GetType().Name);
-
-                return;
+                throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid BlobClient");
             }
 
             if (opt.Value.BlobContent == null)
             {
-                // command is enabled, but no BlobContent func specified - use default
                 log.LogDebug("Command {Command} is using the default BlobContent delegate", this.GetType().Name);
 
                 opt.Value.BlobContent = (req, ctx) =>
@@ -56,41 +51,30 @@ namespace MediatR.Extensions.Azure.Storage
 
                 if (opt.Value.BlobHeaders == null)
                 {
-                    // command is enabled, but no BlobHeaders func specified - use default
                     log.LogDebug("Command {Command} is using the default BlobHeaders delegate", this.GetType().Name);
 
                     opt.Value.BlobHeaders = (req, ctx) => new BlobHttpHeaders { ContentType = "application/json" };
                 }
             }
 
-            try
+            var blobClient = opt.Value.BlobClient(message, ctx);
+
+            var blobContent = opt.Value.BlobContent(message, ctx);
+
+            await blobClient.UploadAsync(blobContent, cancellationToken);
+
+            if (opt.Value.BlobHeaders != null)
             {
-                var blobClient = opt.Value.BlobClient(message, ctx);
+                var blobHeaders = opt.Value.BlobHeaders(message, ctx);
 
-                var blobContent = opt.Value.BlobContent(message, ctx);
-
-                await blobClient.UploadAsync(blobContent, cancellationToken);
-
-                if (opt.Value.BlobHeaders != null)
-                {
-                    var blobHeaders = opt.Value.BlobHeaders(message, ctx);
-
-                    await blobClient.SetHttpHeadersAsync(blobHeaders, cancellationToken: cancellationToken);
-                }
-
-                if (opt.Value.Metadata != null)
-                {
-                    var blobMetadata = opt.Value.Metadata(message, ctx);
-
-                    await blobClient.SetMetadataAsync(blobMetadata, cancellationToken: cancellationToken);
-                }
-
-                log.LogInformation("Command {Command} completed, returning", this.GetType().Name);
+                await blobClient.SetHttpHeadersAsync(blobHeaders, cancellationToken: cancellationToken);
             }
-            catch (Exception ex)
+
+            if (opt.Value.Metadata != null)
             {
-                // failure should not stop execution - log exception, but don't rethrow
-                log.LogError(ex, "Command {Command} failed, returning", this.GetType().Name);
+                var blobMetadata = opt.Value.Metadata(message, ctx);
+
+                await blobClient.SetMetadataAsync(blobMetadata, cancellationToken: cancellationToken);
             }
         }
     }

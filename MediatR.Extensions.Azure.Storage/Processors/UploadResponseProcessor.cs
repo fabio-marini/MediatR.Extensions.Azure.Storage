@@ -20,7 +20,17 @@ namespace MediatR.Extensions.Azure.Storage
 
         public async Task Process(TRequest request, TResponse response, CancellationToken cancellationToken)
         {
-            await cmd.ExecuteAsync(response, cancellationToken);
+            try
+            {
+                await cmd.ExecuteAsync(response, cancellationToken);
+
+                log.LogInformation("Processor {Processor} completed, returning", this.GetType().Name);
+            }
+            catch (Exception ex)
+            {
+                // failure should not stop execution - log exception, but don't rethrow
+                log.LogError(ex, "Processor {Processor} failed, returning", this.GetType().Name);
+            }
         }
     }
 }

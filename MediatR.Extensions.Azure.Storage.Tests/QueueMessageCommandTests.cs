@@ -55,7 +55,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests
         {
             opt.SetupProperty(m => m.IsEnabled, true);
 
-            await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+
+            await act.Should().ThrowAsync<ArgumentNullException>();
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.QueueClient, Times.Once);
@@ -98,7 +100,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests
             opt.Verify(m => m.QueueClient.SendMessageAsync(It.IsAny<BinaryData>(), opt.Object.Visibility, opt.Object.TimeToLive, CancellationToken.None), Times.Once);
         }
 
-        [Fact(DisplayName = "Exceptions are logged")]
+        [Fact(DisplayName = "Exceptions are logged", Skip = "TODO: Move me to behavior/processor test class")]
         public async Task Test5()
         {
             opt.SetupProperty(m => m.IsEnabled, true);

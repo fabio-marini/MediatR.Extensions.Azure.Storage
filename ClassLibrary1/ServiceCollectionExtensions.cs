@@ -16,13 +16,8 @@ namespace ClassLibrary1
     public static class ServiceCollectionExtensions
     {
         // TODO: add DevOps build...
-
-        // TODO: add unit tests for behaviors and processors
-
         // TODO: add request type to blob metadata?
-
-        // TODO: review logging - debug only in commands + info/error in processors/behaviors?
-        // TODO: review exception handling - bubble exception up in commands + try/catch in processors/behaviors?
+        // TODO: add unit tests for behaviors and processors
 
         public static IServiceCollection AddPipelines(this IServiceCollection services)
         {
