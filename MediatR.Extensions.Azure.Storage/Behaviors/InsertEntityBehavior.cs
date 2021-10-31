@@ -19,11 +19,11 @@ namespace MediatR.Extensions.Azure.Storage
 
     public class InsertEntityBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
     {
-        private readonly IOptions<InsertEntityOptions<TRequest, TResponse>> opt;
+        private readonly IOptions<InsertEntityOptions<TRequest>> opt;
         private readonly PipelineContext ctx;
         private readonly ILogger log;
 
-        public InsertEntityBehavior(IOptions<InsertEntityOptions<TRequest, TResponse>> opt, PipelineContext ctx, ILogger log = null)
+        public InsertEntityBehavior(IOptions<InsertEntityOptions<TRequest>> opt, PipelineContext ctx, ILogger log = null)
         {
             // this parameter is required: if an instance is not supplied, it will be created using the default ctor
             // (which will set IsEnabled = false) - no additional validation is required...

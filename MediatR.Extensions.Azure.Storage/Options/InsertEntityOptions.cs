@@ -3,14 +3,10 @@ using System;
 
 namespace MediatR.Extensions.Azure.Storage
 {
-    public class InsertEntityOptions<TRequest> : InsertEntityOptions<TRequest, Unit> where TRequest : IRequest<Unit>
-    {
-    }
-
-    public class InsertEntityOptions<TRequest, TResponse> where TRequest : IRequest<TResponse>
+    public class InsertEntityOptions<TMessage>
     {
         public virtual bool IsEnabled { get; set; }
         public virtual CloudTable CloudTable { get; set; }
-        public virtual Func<TRequest, PipelineContext, ITableEntity> TableEntity { get; set; }
+        public virtual Func<TMessage, PipelineContext, ITableEntity> TableEntity { get; set; }
     }
 }

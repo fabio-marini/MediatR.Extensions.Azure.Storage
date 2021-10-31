@@ -18,14 +18,14 @@ namespace MediatR.Extensions.Azure.Storage.Tests
     public class SendMessageBehaviorFixture<TRequest, TResponse> where TRequest : IRequest<TResponse>
     {
         private readonly IServiceProvider svc;
-        private readonly Mock<SendMessageOptions<TRequest, TResponse>> opt;
+        private readonly Mock<SendMessageOptions<TRequest>> opt;
         private readonly IMediator med;
         private readonly Mock<QueueClient> que;
         private readonly Mock<ILogger> log;
 
         public SendMessageBehaviorFixture()
         {
-            opt = new Mock<SendMessageOptions<TRequest, TResponse>>();
+            opt = new Mock<SendMessageOptions<TRequest>>();
             que = new Mock<QueueClient>("UseDevelopmentStorage=true", "queue1");
             log = new Mock<ILogger>();
 
@@ -35,7 +35,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
                 .AddTransient<IPipelineBehavior<TRequest, TResponse>, SendMessageBehavior<TRequest, TResponse>>()
 
-                .AddTransient<IOptions<SendMessageOptions<TRequest, TResponse>>>(sp => Options.Create(opt.Object))
+                .AddTransient<IOptions<SendMessageOptions<TRequest>>>(sp => Options.Create(opt.Object))
 
                 .AddTransient<PipelineContext>()
 

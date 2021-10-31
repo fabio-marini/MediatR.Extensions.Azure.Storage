@@ -20,14 +20,14 @@ namespace MediatR.Extensions.Azure.Storage.Tests
     public class UploadBlobBehaviorFixture<TRequest, TResponse> where TRequest : IRequest<TResponse>
     {
         private readonly IServiceProvider svc;
-        private readonly Mock<UploadBlobOptions<TRequest, TResponse>> opt;
+        private readonly Mock<UploadBlobOptions<TRequest>> opt;
         private readonly IMediator med;
         private readonly Mock<BlobClient> blb;
         private readonly Mock<ILogger> log;
 
         public UploadBlobBehaviorFixture()
         {
-            opt = new Mock<UploadBlobOptions<TRequest, TResponse>>();
+            opt = new Mock<UploadBlobOptions<TRequest>>();
             blb = new Mock<BlobClient>("UseDevelopmentStorage=true", "container1", "blob1.txt");
             log = new Mock<ILogger>();
 
@@ -37,7 +37,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
                 .AddTransient<IPipelineBehavior<TRequest, TResponse>, UploadBlobBehavior<TRequest, TResponse>>()
 
-                .AddTransient<IOptions<UploadBlobOptions<TRequest, TResponse>>>(sp => Options.Create(opt.Object))
+                .AddTransient<IOptions<UploadBlobOptions<TRequest>>>(sp => Options.Create(opt.Object))
 
                 .AddTransient<PipelineContext>()
 

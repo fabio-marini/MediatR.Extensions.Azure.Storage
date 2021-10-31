@@ -19,14 +19,14 @@ namespace MediatR.Extensions.Azure.Storage.Tests
     public class InsertEntityBehaviorFixture<TRequest, TResponse> where TRequest : IRequest<TResponse>
     {
         private readonly IServiceProvider svc;
-        private readonly Mock<InsertEntityOptions<TRequest, TResponse>> opt;
+        private readonly Mock<InsertEntityOptions<TRequest>> opt;
         private readonly IMediator med;
         private readonly Mock<CloudTable> tbl;
         private readonly Mock<ILogger> log;
 
         public InsertEntityBehaviorFixture()
         {
-            opt = new Mock<InsertEntityOptions<TRequest, TResponse>>();
+            opt = new Mock<InsertEntityOptions<TRequest>>();
             tbl = new Mock<CloudTable>(new Uri("http://127.0.0.1:10002/devstoreaccount1/table1"), null);
             log = new Mock<ILogger>();
 
@@ -36,7 +36,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
                 .AddTransient<IPipelineBehavior<TRequest, TResponse>, InsertEntityBehavior<TRequest, TResponse>>()
 
-                .AddTransient<IOptions<InsertEntityOptions<TRequest, TResponse>>>(sp => Options.Create(opt.Object))
+                .AddTransient<IOptions<InsertEntityOptions<TRequest>>>(sp => Options.Create(opt.Object))
 
                 .AddTransient<PipelineContext>()
 
