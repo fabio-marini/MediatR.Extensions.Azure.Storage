@@ -15,14 +15,14 @@ namespace MediatR.Extensions.Azure.Storage
         private readonly PipelineContext ctx;
         private readonly ILogger log;
 
-        public UploadBlobCommand(IOptions<UploadBlobOptions<TMessage>> opt, PipelineContext ctx, ILogger log = null)
+        public UploadBlobCommand(IOptions<UploadBlobOptions<TMessage>> opt, PipelineContext ctx = null, ILogger log = null)
         {
             this.opt = opt;
             this.ctx = ctx;
             this.log = log ?? NullLogger.Instance;
         }
 
-        public async Task ExecuteAsync(TMessage message, CancellationToken cancellationToken)
+        public virtual async Task ExecuteAsync(TMessage message, CancellationToken cancellationToken)
         {
             // blob name and content are required - defaults will be supplied if not specified
             // a container client is also required, but a default will not be supplied; instead the command will not execute (as if disabled)

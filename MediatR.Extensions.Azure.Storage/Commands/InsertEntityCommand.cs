@@ -15,14 +15,14 @@ namespace MediatR.Extensions.Azure.Storage
         private readonly PipelineContext ctx;
         private readonly ILogger log;
 
-        public InsertEntityCommand(IOptions<InsertEntityOptions<TMessage>> opt, PipelineContext ctx, ILogger log = null)
+        public InsertEntityCommand(IOptions<InsertEntityOptions<TMessage>> opt, PipelineContext ctx = null, ILogger log = null)
         {
             this.opt = opt;
             this.ctx = ctx;
             this.log = log ?? NullLogger.Instance;
         }
 
-        public async Task ExecuteAsync(TMessage message, CancellationToken cancellationToken)
+        public virtual async Task ExecuteAsync(TMessage message, CancellationToken cancellationToken)
         {
             if (opt.Value.IsEnabled == false)
             {

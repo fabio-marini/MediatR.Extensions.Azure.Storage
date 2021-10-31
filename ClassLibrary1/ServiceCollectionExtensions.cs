@@ -18,6 +18,7 @@ namespace ClassLibrary1
         // TODO: add DevOps build...
         // TODO: add request type to blob metadata?
         // TODO: add unit tests for behaviors and processors
+        // TODO: handle cancellation tokens?
 
         public static IServiceCollection AddPipelines(this IServiceCollection services)
         {
