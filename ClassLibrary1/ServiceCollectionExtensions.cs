@@ -17,14 +17,12 @@ namespace ClassLibrary1
     {
         // TODO: add DevOps build...
 
+        // TODO: add unit tests for behaviors and processors
+
         // TODO: add request type to blob metadata?
-        // TODO: add pre (request) and post (response) processors for table/blob/queue storage
 
         // TODO: review logging - debug only in commands + info/error in processors/behaviors?
         // TODO: review exception handling - bubble exception up in commands + try/catch in processors/behaviors?
-
-        // TODO: extract insert/queue/upload logic (incl. defaults)
-        // TODO: rename Insert/Queue/UploadRequestBehavior and Insert/Queue/UploadResponseProcessor and options?
 
         public static IServiceCollection AddPipelines(this IServiceCollection services)
         {
