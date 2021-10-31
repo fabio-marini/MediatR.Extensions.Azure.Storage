@@ -23,7 +23,8 @@ namespace ClassLibrary1
         // TODO: QueueRequestProcessorTests
         // TODO: QueueResponseProcessorTests
 
-        // TODO: add DevOps build...
+        // TODO: add DevOps build + README
+
         // TODO: add request type to blob metadata?
         // TODO: add unit tests for behaviors and processors
         // TODO: handle cancellation tokens?
