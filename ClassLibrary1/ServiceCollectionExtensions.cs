@@ -19,9 +19,7 @@ namespace ClassLibrary1
 
         // TODO: add request type to blob metadata?
         // TODO: add pre (request) and post (response) processors for table/blob/queue storage
-        // TODO: refactor test fixtures to test commands directly, not behaviors/processors?
 
-        // TODO: review commands logging - some still using "behavior"
         // TODO: review logging - debug only in commands + info/error in processors/behaviors?
         // TODO: review exception handling - bubble exception up in commands + try/catch in processors/behaviors?
 

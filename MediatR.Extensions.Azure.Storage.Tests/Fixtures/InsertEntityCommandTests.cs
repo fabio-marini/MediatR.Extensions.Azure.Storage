@@ -9,77 +9,75 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace MediatR.Extensions.Azure.Storage.Tests
 {
-    public class InsertEntityBehaviorFixture<TRequest> : InsertEntityBehaviorFixture<TRequest, Unit> where TRequest : IRequest<Unit>
+    public class TestMessage
     {
+        public static TestMessage Default => new TestMessage { MessageId = Guid.NewGuid().ToString() };
+
+        public string MessageId { get; set; }
     }
 
-    public class InsertEntityBehaviorFixture<TRequest, TResponse> where TRequest : IRequest<TResponse>
+    public class InsertEntityCommandTests
     {
         private readonly IServiceProvider svc;
-        private readonly Mock<InsertEntityOptions<TRequest>> opt;
-        private readonly IMediator med;
+        private readonly Mock<InsertEntityOptions<TestMessage>> opt;
         private readonly Mock<CloudTable> tbl;
         private readonly Mock<ILogger> log;
 
-        public InsertEntityBehaviorFixture()
+        private readonly InsertEntityCommand<TestMessage> cmd;
+
+        public InsertEntityCommandTests()
         {
-            opt = new Mock<InsertEntityOptions<TRequest>>();
+            opt = new Mock<InsertEntityOptions<TestMessage>>();
             tbl = new Mock<CloudTable>(new Uri("http://127.0.0.1:10002/devstoreaccount1/table1"), null);
             log = new Mock<ILogger>();
 
             svc = new ServiceCollection()
 
-                .AddMediatR(this.GetType())
+                .AddTransient<InsertEntityCommand<TestMessage>>()
 
-                .AddTransient<InsertEntityCommand<TRequest>>()
-
-                .AddTransient<IPipelineBehavior<TRequest, TResponse>, InsertRequestBehavior<TRequest, TResponse>>()
-
-                .AddTransient<IOptions<InsertEntityOptions<TRequest>>>(sp => Options.Create(opt.Object))
-
-                .AddTransient<PipelineContext>()
-
+                .AddTransient<IOptions<InsertEntityOptions<TestMessage>>>(sp => Options.Create(opt.Object))
                 .AddTransient<ILogger>(sp => log.Object)
+                .AddTransient<PipelineContext>()
 
                 .BuildServiceProvider();
 
-            med = svc.GetRequiredService<IMediator>();
+            cmd = svc.GetRequiredService<InsertEntityCommand<TestMessage>>();
         }
 
-        public async Task<TResponse> Test1(TRequest req)
+        [Fact(DisplayName = "Behavior is disabled")]
+        public async Task Test1()
         {
-            var res = await med.Send(req);
+            await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.CloudTable, Times.Never);
             opt.VerifyGet(m => m.TableEntity, Times.Never);
-
-            return res;
         }
 
-        public async Task<TResponse> Test2(TRequest req)
+        [Fact(DisplayName = "CloudTable is not specified")]
+        public async Task Test2()
         {
             opt.SetupProperty(m => m.IsEnabled, true);
 
-            var res = await med.Send(req);
+            await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.CloudTable, Times.Once);
             opt.VerifyGet(m => m.TableEntity, Times.Never);
-
-            return res;
         }
 
-        public async Task<TResponse> Test3(TRequest req)
+        [Fact(DisplayName = "Behavior uses default TableEntity")]
+        public async Task Test3()
         {
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.CloudTable, tbl.Object);
             opt.SetupProperty(m => m.TableEntity, null);
 
-            var res = await med.Send(req);
+            await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
 
             var tableOperations = new List<TableOperation>();
 
@@ -87,23 +85,22 @@ namespace MediatR.Extensions.Azure.Storage.Tests
             opt.VerifyGet(m => m.CloudTable, Times.Exactly(2));
             opt.VerifyGet(m => m.TableEntity, Times.Exactly(2));
 
-            opt.VerifySet(m => m.TableEntity = It.IsAny<Func<TRequest, PipelineContext, ITableEntity>>(), Times.Once);
+            opt.VerifySet(m => m.TableEntity = It.IsAny<Func<TestMessage, PipelineContext, ITableEntity>>(), Times.Once);
 
             opt.Verify(m => m.CloudTable.ExecuteAsync(Capture.In(tableOperations), CancellationToken.None), Times.Once);
 
             tableOperations.Should().HaveCount(1);
             tableOperations.Single().OperationType.Should().Be(TableOperationType.Insert);
-
-            return res;
         }
 
-        public async Task<TResponse> Test4(TRequest req)
+        [Fact(DisplayName = "Behavior uses specified TableEntity")]
+        public async Task Test4()
         {
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.CloudTable, tbl.Object);
             opt.SetupProperty(m => m.TableEntity, (cmd, ctx) => new DynamicTableEntity("PK1", "RK1"));
 
-            var res = await med.Send(req);
+            await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
 
             var tableOperations = new List<TableOperation>();
 
@@ -111,17 +108,16 @@ namespace MediatR.Extensions.Azure.Storage.Tests
             opt.VerifyGet(m => m.CloudTable, Times.Exactly(2));
             opt.VerifyGet(m => m.TableEntity, Times.Exactly(2));
 
-            opt.VerifySet(m => m.TableEntity = It.IsAny<Func<TRequest, PipelineContext, ITableEntity>>(), Times.Never);
+            opt.VerifySet(m => m.TableEntity = It.IsAny<Func<TestMessage, PipelineContext, ITableEntity>>(), Times.Never);
 
             opt.Verify(m => m.CloudTable.ExecuteAsync(Capture.In(tableOperations), CancellationToken.None), Times.Once);
 
             tableOperations.Should().HaveCount(1);
             tableOperations.Single().OperationType.Should().Be(TableOperationType.Insert);
-
-            return res;
         }
 
-        public async Task<TResponse> Test5(TRequest req)
+        [Fact(DisplayName = "Exceptions are logged")]
+        public async Task Test5()
         {
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.CloudTable, tbl.Object);
@@ -129,7 +125,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             tbl.Setup(m => m.ExecuteAsync(It.IsAny<TableOperation>(), CancellationToken.None)).Throws(new Exception("Failed! :("));
 
-            var res = await med.Send(req);
+            await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
 
             var tableOperations = new List<TableOperation>();
 
@@ -137,7 +133,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests
             opt.VerifyGet(m => m.CloudTable, Times.Exactly(2));
             opt.VerifyGet(m => m.TableEntity, Times.Exactly(2));
 
-            opt.VerifySet(m => m.TableEntity = It.IsAny<Func<TRequest, PipelineContext, ITableEntity>>(), Times.Never);
+            opt.VerifySet(m => m.TableEntity = It.IsAny<Func<TestMessage, PipelineContext, ITableEntity>>(), Times.Never);
 
             opt.Verify(m => m.CloudTable.ExecuteAsync(Capture.In(tableOperations), CancellationToken.None), Times.Once);
 
@@ -148,8 +144,6 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
             logInvocation.Arguments.OfType<LogLevel>().Single().Should().Be(LogLevel.Error);
             logInvocation.Arguments.OfType<Exception>().Single().Message.Should().Be("Failed! :(");
-
-            return res;
         }
     }
 }
