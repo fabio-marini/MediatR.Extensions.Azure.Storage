@@ -15,6 +15,8 @@ namespace ClassLibrary1
 {
     public static class ServiceCollectionExtensions
     {
+        // TODO: add DevOps build...
+
         // TODO: add request type to blob metadata?
         // TODO: add pre (request) and post (response) processors for table/blob/queue storage
         // TODO: refactor test fixtures to test commands directly, not behaviors/processors?
@@ -76,7 +78,7 @@ namespace ClassLibrary1
                 opt.CloudTable = storageAccount.CreateCloudTableClient().GetTableReference("Messages");
                 opt.CloudTable.CreateIfNotExists();
             });
-            services.AddOptions<SendMessageOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<QueueMessageOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
 
@@ -151,25 +153,25 @@ namespace ClassLibrary1
             });
 
             // source customer pipeline - validate, transform and send to queue
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertEntityBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertRequestBehavior<SourceCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, UploadBlobBehavior<SourceCustomerCommand>>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertEntityBehavior<SourceCustomerCommand>>(sp =>
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, UploadRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertRequestBehavior<SourceCustomerCommand>>(sp =>
             {
                 var opt = sp.GetRequiredService<IOptionsSnapshot<InsertEntityOptions<SourceCustomerCommand>>>().Get("BAM");
 
-                return ActivatorUtilities.CreateInstance<InsertEntityBehavior<SourceCustomerCommand>>(sp, Options.Create(opt));
+                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<SourceCustomerCommand>>(sp, Options.Create(opt));
             });
 
             // target customer pipeline - transform, enrich and write to file
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertEntityBehavior<TargetCustomerCommand>>(sp =>
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertRequestBehavior<TargetCustomerCommand>>(sp =>
             {
                 var opt = sp.GetRequiredService<IOptionsSnapshot<InsertEntityOptions<TargetCustomerCommand>>>().Get("BAM");
 
-                return ActivatorUtilities.CreateInstance<InsertEntityBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
+                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
             });
 
             // retrieve pipeline
@@ -183,7 +185,7 @@ namespace ClassLibrary1
                 opt.CloudTable.CreateIfNotExists();
             });
 
-            services.AddTransient<IPipelineBehavior<RetrieveCustomerQuery, RetrieveCustomerResult>, InsertEntityBehavior<RetrieveCustomerQuery, RetrieveCustomerResult>>();
+            services.AddTransient<IPipelineBehavior<RetrieveCustomerQuery, RetrieveCustomerResult>, InsertRequestBehavior<RetrieveCustomerQuery, RetrieveCustomerResult>>();
 
             return services;
         }

@@ -5,7 +5,7 @@ namespace ClassLibrary1
 {
     public class RetrieveCustomerQueryPostProcessor : InsertResponseProcessor<RetrieveCustomerQuery, RetrieveCustomerResult>
     {
-        public RetrieveCustomerQueryPostProcessor(InsertMessageCommand<RetrieveCustomerResult> cmd, ILogger log = null) : base(cmd, log)
+        public RetrieveCustomerQueryPostProcessor(InsertEntityCommand<RetrieveCustomerResult> cmd, ILogger log = null) : base(cmd, log)
         {
         }
     }

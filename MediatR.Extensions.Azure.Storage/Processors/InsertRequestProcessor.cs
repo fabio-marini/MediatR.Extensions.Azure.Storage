@@ -9,12 +9,12 @@ namespace MediatR.Extensions.Azure.Storage
 {
     public class InsertRequestProcessor<TRequest> : IRequestPreProcessor<TRequest>
     {
-        private readonly InsertMessageCommand<TRequest> cmd;
+        private readonly InsertEntityCommand<TRequest> cmd;
         private readonly ILogger log;
 
-        public InsertRequestProcessor(InsertMessageCommand<TRequest> cmd, ILogger log = null)
+        public InsertRequestProcessor(InsertEntityCommand<TRequest> cmd, ILogger log = null)
         {
-            this.cmd = cmd ?? throw new ArgumentException($"A valid {nameof(InsertMessageCommand<TRequest>)} is required");
+            this.cmd = cmd ?? throw new ArgumentException($"A valid {nameof(InsertEntityCommand<TRequest>)} is required");
             this.log = log ?? NullLogger.Instance;
         }
 

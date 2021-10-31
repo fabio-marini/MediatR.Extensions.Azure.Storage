@@ -6,19 +6,19 @@ using System.Threading.Tasks;
 
 namespace MediatR.Extensions.Azure.Storage
 {
-    public class SendMessageBehavior<TRequest> : SendMessageBehavior<TRequest, Unit> where TRequest : IRequest<Unit>
+    public class QueueRequestBehavior<TRequest> : QueueRequestBehavior<TRequest, Unit> where TRequest : IRequest<Unit>
     {
-        public SendMessageBehavior(QueueMessageCommand<TRequest> cmd, ILogger log = null) : base(cmd, log)
+        public QueueRequestBehavior(QueueMessageCommand<TRequest> cmd, ILogger log = null) : base(cmd, log)
         {
         }
     }
 
-    public class SendMessageBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
+    public class QueueRequestBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
     {
         private readonly QueueMessageCommand<TRequest> cmd;
         private readonly ILogger log;
 
-        public SendMessageBehavior(QueueMessageCommand<TRequest> cmd, ILogger log = null)
+        public QueueRequestBehavior(QueueMessageCommand<TRequest> cmd, ILogger log = null)
         {
             this.cmd = cmd ?? throw new ArgumentException($"A valid {nameof(QueueMessageCommand<TRequest>)} is required");
             this.log = log ?? NullLogger.Instance;

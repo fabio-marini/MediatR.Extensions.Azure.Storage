@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace MediatR.Extensions.Azure.Storage
 {
-    public class UploadMessageCommand<TMessage> : ICommand<TMessage>
+    public class UploadBlobCommand<TMessage> : ICommand<TMessage>
     {
         private readonly IOptions<UploadBlobOptions<TMessage>> opt;
         private readonly PipelineContext ctx;
         private readonly ILogger log;
 
-        public UploadMessageCommand(IOptions<UploadBlobOptions<TMessage>> opt, PipelineContext ctx, ILogger log = null)
+        public UploadBlobCommand(IOptions<UploadBlobOptions<TMessage>> opt, PipelineContext ctx, ILogger log = null)
         {
             this.opt = opt;
             this.ctx = ctx;

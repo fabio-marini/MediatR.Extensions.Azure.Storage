@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace MediatR.Extensions.Azure.Storage
 {
-    public class InsertMessageCommand<TMessage> : ICommand<TMessage>
+    public class InsertEntityCommand<TMessage> : ICommand<TMessage>
     {
         private readonly IOptions<InsertEntityOptions<TMessage>> opt;
         private readonly PipelineContext ctx;
         private readonly ILogger log;
 
-        public InsertMessageCommand(IOptions<InsertEntityOptions<TMessage>> opt, PipelineContext ctx, ILogger log = null)
+        public InsertEntityCommand(IOptions<InsertEntityOptions<TMessage>> opt, PipelineContext ctx, ILogger log = null)
         {
             this.opt = opt;
             this.ctx = ctx;
