@@ -35,6 +35,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
                 .AddMediatR(this.GetType())
 
+                .AddTransient<UploadMessageCommand<TRequest>>()
+
                 .AddTransient<IPipelineBehavior<TRequest, TResponse>, UploadBlobBehavior<TRequest, TResponse>>()
 
                 .AddTransient<IOptions<UploadBlobOptions<TRequest>>>(sp => Options.Create(opt.Object))

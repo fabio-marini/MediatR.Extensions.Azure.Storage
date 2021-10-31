@@ -16,7 +16,15 @@ namespace ClassLibrary1
     public static class ServiceCollectionExtensions
     {
         // TODO: add request type to blob metadata?
-        // TODO: add abstract generic post processors for table/blob/queue storage
+        // TODO: add pre (request) and post (response) processors for table/blob/queue storage
+        // TODO: refactor test fixtures to test commands directly, not behaviors/processors?
+
+        // TODO: review commands logging - some still using "behavior"
+        // TODO: review logging - debug only in commands + info/error in processors/behaviors?
+        // TODO: review exception handling - bubble exception up in commands + try/catch in processors/behaviors?
+
+        // TODO: extract insert/queue/upload logic (incl. defaults)
+        // TODO: rename Insert/Queue/UploadRequestBehavior and Insert/Queue/UploadResponseProcessor and options?
 
         public static IServiceCollection AddPipelines(this IServiceCollection services)
         {
@@ -165,7 +173,7 @@ namespace ClassLibrary1
             });
 
             // retrieve pipeline
-            services.AddOptions<InsertEntityOptions<RetrieveCustomerQuery, TargetCustomer>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<InsertEntityOptions<RetrieveCustomerQuery>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
 
@@ -175,7 +183,7 @@ namespace ClassLibrary1
                 opt.CloudTable.CreateIfNotExists();
             });
 
-            services.AddTransient<IPipelineBehavior<RetrieveCustomerQuery, TargetCustomer>, InsertEntityBehavior<RetrieveCustomerQuery, TargetCustomer>>();
+            services.AddTransient<IPipelineBehavior<RetrieveCustomerQuery, RetrieveCustomerResult>, InsertEntityBehavior<RetrieveCustomerQuery, RetrieveCustomerResult>>();
 
             return services;
         }

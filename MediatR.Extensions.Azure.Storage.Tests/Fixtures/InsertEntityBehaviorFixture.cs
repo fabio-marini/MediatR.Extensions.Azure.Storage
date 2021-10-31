@@ -34,6 +34,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
                 .AddMediatR(this.GetType())
 
+                .AddTransient<InsertMessageCommand<TRequest>>()
+
                 .AddTransient<IPipelineBehavior<TRequest, TResponse>, InsertEntityBehavior<TRequest, TResponse>>()
 
                 .AddTransient<IOptions<InsertEntityOptions<TRequest>>>(sp => Options.Create(opt.Object))

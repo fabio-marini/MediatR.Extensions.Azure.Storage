@@ -33,6 +33,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
                 .AddMediatR(this.GetType())
 
+                .AddTransient<QueueMessageCommand<TRequest>>()
+
                 .AddTransient<IPipelineBehavior<TRequest, TResponse>, SendMessageBehavior<TRequest, TResponse>>()
 
                 .AddTransient<IOptions<SendMessageOptions<TRequest>>>(sp => Options.Create(opt.Object))
