@@ -12,26 +12,26 @@ using Xunit;
 
 namespace MediatR.Extensions.Azure.Storage.Tests.Behaviors
 {
-    public class InsertRequestBehaviorTests
+    public class UploadRequestBehaviorTests
     {
         private readonly IServiceProvider svc;
         private readonly Mock<ILogger> log;
-        private readonly Mock<InsertEntityCommand<TestCommand>> cmd;
-        private readonly Mock<InsertEntityCommand<TestQuery>> qry;
+        private readonly Mock<UploadBlobCommand<TestCommand>> cmd;
+        private readonly Mock<UploadBlobCommand<TestQuery>> qry;
 
-        public InsertRequestBehaviorTests()
+        public UploadRequestBehaviorTests()
         {
             log = new Mock<ILogger>();
-            cmd = new Mock<InsertEntityCommand<TestCommand>>(Options.Create(new InsertEntityOptions<TestCommand>()), null, null);
-            qry = new Mock<InsertEntityCommand<TestQuery>>(Options.Create(new InsertEntityOptions<TestQuery>()), null, null);
+            cmd = new Mock<UploadBlobCommand<TestCommand>>(Options.Create(new UploadBlobOptions<TestCommand>()), null, null);
+            qry = new Mock<UploadBlobCommand<TestQuery>>(Options.Create(new UploadBlobOptions<TestQuery>()), null, null);
 
             svc = new ServiceCollection()
 
-                .AddTransient<InsertRequestBehavior<TestCommand, Unit>>()
-                .AddTransient<InsertEntityCommand<TestCommand>>(sp => cmd.Object)
+                .AddTransient<UploadRequestBehavior<TestCommand, Unit>>()
+                .AddTransient<UploadBlobCommand<TestCommand>>(sp => cmd.Object)
 
-                .AddTransient<InsertRequestBehavior<TestQuery, TestResult>>()
-                .AddTransient<InsertEntityCommand<TestQuery>>(sp => qry.Object)
+                .AddTransient<UploadRequestBehavior<TestQuery, TestResult>>()
+                .AddTransient<UploadBlobCommand<TestQuery>>(sp => qry.Object)
 
                 .AddTransient<ILogger>(sp => log.Object)
 
@@ -47,7 +47,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Behaviors
         [Theory(DisplayName = "Behavior executes successfully"), MemberData(nameof(TestData))]
         public async Task Test1<TRequest, TResponse>(TRequest req, Func<Task<TResponse>> res) where TRequest : IRequest<TResponse>
         {
-            var bvr = svc.GetRequiredService<InsertRequestBehavior<TRequest, TResponse>>();
+            var bvr = svc.GetRequiredService<UploadRequestBehavior<TRequest, TResponse>>();
 
             await bvr.Handle(req, CancellationToken.None, () => res());
 
@@ -62,7 +62,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Behaviors
             cmd.Setup(m => m.ExecuteAsync(It.IsAny<TestCommand>(), CancellationToken.None)).ThrowsAsync(new Exception("Failed! :("));
             qry.Setup(m => m.ExecuteAsync(It.IsAny<TestQuery>(), CancellationToken.None)).ThrowsAsync(new Exception("Failed! :("));
 
-            var bvr = svc.GetRequiredService<InsertRequestBehavior<TRequest, TResponse>>();
+            var bvr = svc.GetRequiredService<UploadRequestBehavior<TRequest, TResponse>>();
 
             await bvr.Handle(req, CancellationToken.None, () => res());
 

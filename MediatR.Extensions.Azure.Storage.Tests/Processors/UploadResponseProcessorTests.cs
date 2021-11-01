@@ -12,26 +12,26 @@ using Xunit;
 
 namespace MediatR.Extensions.Azure.Storage.Tests.Processors
 {
-    public class InsertResponseProcessorTests
+    public class UploadResponseProcessorTests
     {
         private readonly IServiceProvider svc;
         private readonly Mock<ILogger> log;
-        private readonly Mock<InsertEntityCommand<Unit>> cmd;
-        private readonly Mock<InsertEntityCommand<TestResult>> qry;
+        private readonly Mock<UploadBlobCommand<Unit>> cmd;
+        private readonly Mock<UploadBlobCommand<TestResult>> qry;
 
-        public InsertResponseProcessorTests()
+        public UploadResponseProcessorTests()
         {
             log = new Mock<ILogger>();
-            cmd = new Mock<InsertEntityCommand<Unit>>(Options.Create(new InsertEntityOptions<Unit>()), null, null);
-            qry = new Mock<InsertEntityCommand<TestResult>>(Options.Create(new InsertEntityOptions<TestResult>()), null, null);
+            cmd = new Mock<UploadBlobCommand<Unit>>(Options.Create(new UploadBlobOptions<Unit>()), null, null);
+            qry = new Mock<UploadBlobCommand<TestResult>>(Options.Create(new UploadBlobOptions<TestResult>()), null, null);
 
             svc = new ServiceCollection()
 
-                .AddTransient<InsertResponseProcessor<TestCommand, Unit>>()
-                .AddTransient<InsertEntityCommand<Unit>>(sp => cmd.Object)
+                .AddTransient<UploadResponseProcessor<TestCommand, Unit>>()
+                .AddTransient<UploadBlobCommand<Unit>>(sp => cmd.Object)
 
-                .AddTransient<InsertResponseProcessor<TestQuery, TestResult>>()
-                .AddTransient<InsertEntityCommand<TestResult>>(sp => qry.Object)
+                .AddTransient<UploadResponseProcessor<TestQuery, TestResult>>()
+                .AddTransient<UploadBlobCommand<TestResult>>(sp => qry.Object)
 
                 .AddTransient<ILogger>(sp => log.Object)
 
@@ -47,7 +47,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Processors
         [Theory(DisplayName = "Processor executes successfully"), MemberData(nameof(TestData))]
         public async Task Test1<TRequest, TResponse>(TRequest req, TResponse res) where TRequest : IRequest<TResponse>
         {
-            var prc = svc.GetRequiredService<InsertResponseProcessor<TRequest, TResponse>>();
+            var prc = svc.GetRequiredService<UploadResponseProcessor<TRequest, TResponse>>();
 
             await prc.Process(req, res, CancellationToken.None);
 
@@ -62,7 +62,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Processors
             cmd.Setup(m => m.ExecuteAsync(It.IsAny<Unit>(), CancellationToken.None)).ThrowsAsync(new Exception("Failed! :("));
             qry.Setup(m => m.ExecuteAsync(It.IsAny<TestResult>(), CancellationToken.None)).ThrowsAsync(new Exception("Failed! :("));
 
-            var prc = svc.GetRequiredService<InsertResponseProcessor<TRequest, TResponse>>();
+            var prc = svc.GetRequiredService<UploadResponseProcessor<TRequest, TResponse>>();
 
             await prc.Process(req, res, CancellationToken.None);
 

@@ -10,28 +10,28 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace MediatR.Extensions.Azure.Storage.Tests.Behaviors
+namespace MediatR.Extensions.Azure.Storage.Tests.Processors
 {
-    public class InsertRequestBehaviorTests
+    public class UploadRequestProcessorTests
     {
         private readonly IServiceProvider svc;
         private readonly Mock<ILogger> log;
-        private readonly Mock<InsertEntityCommand<TestCommand>> cmd;
-        private readonly Mock<InsertEntityCommand<TestQuery>> qry;
+        private readonly Mock<UploadBlobCommand<TestCommand>> cmd;
+        private readonly Mock<UploadBlobCommand<TestQuery>> qry;
 
-        public InsertRequestBehaviorTests()
+        public UploadRequestProcessorTests()
         {
             log = new Mock<ILogger>();
-            cmd = new Mock<InsertEntityCommand<TestCommand>>(Options.Create(new InsertEntityOptions<TestCommand>()), null, null);
-            qry = new Mock<InsertEntityCommand<TestQuery>>(Options.Create(new InsertEntityOptions<TestQuery>()), null, null);
+            cmd = new Mock<UploadBlobCommand<TestCommand>>(Options.Create(new UploadBlobOptions<TestCommand>()), null, null);
+            qry = new Mock<UploadBlobCommand<TestQuery>>(Options.Create(new UploadBlobOptions<TestQuery>()), null, null);
 
             svc = new ServiceCollection()
 
-                .AddTransient<InsertRequestBehavior<TestCommand, Unit>>()
-                .AddTransient<InsertEntityCommand<TestCommand>>(sp => cmd.Object)
+                .AddTransient<UploadRequestProcessor<TestCommand>>()
+                .AddTransient<UploadBlobCommand<TestCommand>>(sp => cmd.Object)
 
-                .AddTransient<InsertRequestBehavior<TestQuery, TestResult>>()
-                .AddTransient<InsertEntityCommand<TestQuery>>(sp => qry.Object)
+                .AddTransient<UploadRequestProcessor<TestQuery>>()
+                .AddTransient<UploadBlobCommand<TestQuery>>(sp => qry.Object)
 
                 .AddTransient<ILogger>(sp => log.Object)
 
@@ -44,27 +44,27 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Behaviors
             yield return new object[] { TestQuery.Default, new Func<Task<TestResult>>(() => Task.FromResult(TestResult.Default)) };
         }
 
-        [Theory(DisplayName = "Behavior executes successfully"), MemberData(nameof(TestData))]
+        [Theory(DisplayName = "Processor executes successfully"), MemberData(nameof(TestData))]
         public async Task Test1<TRequest, TResponse>(TRequest req, Func<Task<TResponse>> res) where TRequest : IRequest<TResponse>
         {
-            var bvr = svc.GetRequiredService<InsertRequestBehavior<TRequest, TResponse>>();
+            var prc = svc.GetRequiredService<UploadRequestProcessor<TRequest>>();
 
-            await bvr.Handle(req, CancellationToken.None, () => res());
+            await prc.Process(req, CancellationToken.None);
 
             var logInvocation = log.Invocations.Where(i => i.Method.Name == "Log").Single();
 
             logInvocation.Arguments.OfType<LogLevel>().Single().Should().Be(LogLevel.Information);
         }
 
-        [Theory(DisplayName = "Behavior handles exceptions"), MemberData(nameof(TestData))]
+        [Theory(DisplayName = "Processor handles exceptions"), MemberData(nameof(TestData))]
         public async Task Test2<TRequest, TResponse>(TRequest req, Func<Task<TResponse>> res) where TRequest : IRequest<TResponse>
         {
             cmd.Setup(m => m.ExecuteAsync(It.IsAny<TestCommand>(), CancellationToken.None)).ThrowsAsync(new Exception("Failed! :("));
             qry.Setup(m => m.ExecuteAsync(It.IsAny<TestQuery>(), CancellationToken.None)).ThrowsAsync(new Exception("Failed! :("));
 
-            var bvr = svc.GetRequiredService<InsertRequestBehavior<TRequest, TResponse>>();
+            var prc = svc.GetRequiredService<UploadRequestProcessor<TRequest>>();
 
-            await bvr.Handle(req, CancellationToken.None, () => res());
+            await prc.Process(req, CancellationToken.None);
 
             var logInvocation = log.Invocations.Where(i => i.Method.Name == "Log").Single();
 

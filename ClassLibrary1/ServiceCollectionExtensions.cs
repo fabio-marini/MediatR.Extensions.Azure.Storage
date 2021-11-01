@@ -15,18 +15,9 @@ namespace ClassLibrary1
 {
     public static class ServiceCollectionExtensions
     {
-        // TODO: UploadRequestBehaviorTests
-        // TODO: UploadRequestProcessorTests
-        // TODO: UploadResponseProcessorTests
-
-        // TODO: QueueRequestBehaviorTests
-        // TODO: QueueRequestProcessorTests
-        // TODO: QueueResponseProcessorTests
-
         // TODO: add DevOps build + README
 
         // TODO: add request type to blob metadata?
-        // TODO: add unit tests for behaviors and processors
         // TODO: handle cancellation tokens?
         public static IServiceCollection AddPipelines(this IServiceCollection services)
         {

@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
+    <NoWarn>xUnit1026</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

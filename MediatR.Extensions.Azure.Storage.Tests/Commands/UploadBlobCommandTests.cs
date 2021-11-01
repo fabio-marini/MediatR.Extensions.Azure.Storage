@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace MediatR.Extensions.Azure.Storage.Tests
+namespace MediatR.Extensions.Azure.Storage.Tests.Commands
 {
     public class UploadBlobCommandTests
     {
