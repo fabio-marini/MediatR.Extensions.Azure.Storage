@@ -28,15 +28,15 @@ namespace ClassLibrary1
             this.log = log ?? NullLogger.Instance;
         }
 
-        public Task<Unit> Handle(SourceCustomerCommand request, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(SourceCustomerCommand request, CancellationToken cancellationToken)
         {
             var json = JsonConvert.SerializeObject(request);
 
-            _ = queueClient.SendMessage(Convert.ToBase64String(Encoding.UTF8.GetBytes(json)));
+            _ = await queueClient.SendMessageAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(json)));
 
             log.LogInformation("Handler {Handler} completed, returning", this.GetType().Name);
 
-            return Unit.Task;
+            return Unit.Value;
         }
     }
 }

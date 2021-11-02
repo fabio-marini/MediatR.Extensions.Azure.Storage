@@ -56,6 +56,11 @@ namespace MediatR.Extensions.Azure.Storage
 
             var tableEntity = opt.Value.TableEntity(message, ctx);
 
+            if (tableEntity == null)
+            {
+                throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid TableEntity value");
+            }
+
             var insertOperation = TableOperation.Insert(tableEntity);
 
             await opt.Value.CloudTable.ExecuteAsync(insertOperation, cancellationToken);

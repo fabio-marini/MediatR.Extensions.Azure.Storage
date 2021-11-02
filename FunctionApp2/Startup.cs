@@ -1,12 +1,5 @@
-﻿using Azure.Storage.Blobs;
-using ClassLibrary1;
+﻿using ClassLibrary1;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System;
-using System.IO;
-using System.Xml.Serialization;
 
 [assembly: FunctionsStartup(typeof(FunctionApp2.Startup))]
 
@@ -22,9 +15,18 @@ namespace FunctionApp2
 
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            // https://blog.stephencleary.com/2018/06/microsoft-extensions-logging-part-2-types.html
-            // FIXME: without Configure, it will NOT load the default options, i.e. enabled = false
-            builder.Services.AddPipelines();
+            builder.Services.AddCore();
+
+            //builder.Services.AddSimplePipeline();
+
+            //builder.Services.AddTableTrackingPipeline();
+            //builder.Services.AddBlobTrackingPipeline();
+            //builder.Services.AddQueueRoutingPipeline();
+
+            //builder.Services.AddBlobTrackingProcessors();
+
+            //builder.Services.AddActivityTrackingPipeline();
+            builder.Services.AddMultiTrackingPipeline();
 
             // the first one causes a runtime exception if the service depends on a delegate,
             // i.e. Action or Func, however, the one below works - but they should be the same!

@@ -31,7 +31,7 @@ namespace FunctionApp2
 
             _ = await mediator.Send(cmd);
 
-            return new OkResult();
+            return new AcceptedResult(cmd.MessageId, null);
         }
 
         [FunctionName(nameof(QueueSourceCustomer))]
@@ -58,9 +58,18 @@ namespace FunctionApp2
                 MessageId = messageId,
             };
 
-            var res = await mediator.Send(qry);
+            try
+            {
+                //var src = new CancellationTokenSource(500);
 
-            return new OkObjectResult(res);
+                var res = await mediator.Send(qry);
+
+                return new OkObjectResult(res);
+            }
+            catch (OperationCanceledException)
+            {
+                return new StatusCodeResult(408);
+            }
         }
     }
 }

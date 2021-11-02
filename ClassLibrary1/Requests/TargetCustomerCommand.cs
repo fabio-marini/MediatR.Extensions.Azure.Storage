@@ -24,15 +24,15 @@ namespace ClassLibrary1
             this.log = log ?? NullLogger.Instance;
         }
 
-        public Task<Unit> Handle(TargetCustomerCommand request, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(TargetCustomerCommand request, CancellationToken cancellationToken)
         {
             var json = JsonConvert.SerializeObject(request);
 
-            File.WriteAllText($"C:\\Repos\\Customers\\{request.MessageId}.json", json);
+            await File.WriteAllTextAsync($"C:\\Repos\\Customers\\{request.MessageId}.json", json);
 
             log.LogInformation("Handler {Handler} completed, returning", this.GetType().Name);
 
-            return Unit.Task;
+            return Unit.Value;
         }
     }
 }

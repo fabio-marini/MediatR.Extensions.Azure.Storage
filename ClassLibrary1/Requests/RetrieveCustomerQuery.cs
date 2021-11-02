@@ -14,6 +14,8 @@ namespace ClassLibrary1
 
     public class RetrieveCustomerResult
     {
+        public string MessageId { get; set; }
+
         public TargetCustomer Customer { get; set; }
     }
 
@@ -26,18 +28,19 @@ namespace ClassLibrary1
             this.log = log;
         }
 
-        public Task<RetrieveCustomerResult> Handle(RetrieveCustomerQuery request, CancellationToken cancellationToken)
+        public async Task<RetrieveCustomerResult> Handle(RetrieveCustomerQuery request, CancellationToken cancellationToken)
         {
-            var json = File.ReadAllText($"C:\\Repos\\Customers\\{request.MessageId}.json");
+            var json = await File.ReadAllTextAsync($"C:\\Repos\\Customers\\{request.MessageId}.json");
 
             var result = new RetrieveCustomerResult
             {
+                MessageId = request.MessageId,
                 Customer = JsonConvert.DeserializeObject<TargetCustomerCommand>(json).TargetCustomer
             };
 
             log.LogInformation("Handler {Handler} completed, returning", this.GetType().Name);
 
-            return Task.FromResult(result);
+            return result;
         }
     }
 }

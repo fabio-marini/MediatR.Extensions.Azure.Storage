@@ -82,8 +82,32 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
             tableOperations.Single().OperationType.Should().Be(TableOperationType.Insert);
         }
 
-        [Fact(DisplayName = "Command uses specified TableEntity")]
+        [Fact(DisplayName = "TableEntity delegate returns null")]
         public async Task Test4()
+        {
+            opt.SetupProperty(m => m.IsEnabled, true);
+            opt.SetupProperty(m => m.CloudTable, tbl.Object);
+            opt.SetupProperty(m => m.TableEntity, (cmd, ctx) => null);
+
+            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+
+            await act.Should().ThrowAsync<ArgumentNullException>();
+
+            var tableOperations = new List<TableOperation>();
+
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.CloudTable, Times.Exactly(1));
+            opt.VerifyGet(m => m.TableEntity, Times.Exactly(2));
+
+            opt.VerifySet(m => m.TableEntity = It.IsAny<Func<TestMessage, PipelineContext, ITableEntity>>(), Times.Never);
+
+            opt.Verify(m => m.CloudTable.ExecuteAsync(Capture.In(tableOperations), CancellationToken.None), Times.Never);
+
+            tableOperations.Should().HaveCount(0);
+        }
+
+        [Fact(DisplayName = "Command uses specified TableEntity")]
+        public async Task Test5()
         {
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.CloudTable, tbl.Object);

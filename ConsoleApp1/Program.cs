@@ -209,7 +209,8 @@ namespace ConsoleApp1
                         .AddInMemoryCollection(appSettings)
                         .Build();
                 })
-                .AddPipelines()
+                .AddCore()
+                .AddSimplePipeline()
                 .BuildServiceProvider();
 
             var activityId = Guid.NewGuid().ToString();

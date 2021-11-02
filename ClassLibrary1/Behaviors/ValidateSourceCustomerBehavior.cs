@@ -13,7 +13,7 @@ namespace ClassLibrary1
         private readonly PipelineContext ctx;
         private readonly ILogger log;
 
-        public ValidateSourceCustomerBehavior(PipelineContext ctx, ILogger log = null)
+        public ValidateSourceCustomerBehavior(PipelineContext ctx = null, ILogger log = null)
         {
             this.ctx = ctx;
             this.log = log ?? NullLogger.Instance;
@@ -41,7 +41,10 @@ namespace ClassLibrary1
                 Email = request.SourceCustomer.Email
             };
 
-            ctx.Add("CustomerActivity", customerActivity);
+            if (ctx != null)
+            {
+                ctx.Add("CustomerActivity", customerActivity);
+            }
 
             log.LogInformation("Behavior {Behavior} completed, invoking next behavior in the chain", this.GetType().Name);
 
