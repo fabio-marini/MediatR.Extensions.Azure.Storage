@@ -3,6 +3,7 @@ using MediatR;
 using MediatR.Pipeline;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -193,29 +194,9 @@ namespace ConsoleApp1
             await mediator.Publish(notification);
         }
 
-        private static async Task RunDemo2()
+        private static async Task RunDemo2(IMediator mediator)
         {
-            var serviceProvider = new ServiceCollection()
-
-                .AddSingleton<IConfiguration>(sp =>
-                {
-                    var appSettings = new Dictionary<string, string>
-                    {
-                        { "TrackingEnabled", "true" }
-                    };
-
-                    return new ConfigurationBuilder()
-
-                        .AddInMemoryCollection(appSettings)
-                        .Build();
-                })
-                .AddCore()
-                .AddSimplePipeline()
-                .BuildServiceProvider();
-
             var activityId = Guid.NewGuid().ToString();
-
-            var mediator = serviceProvider.GetRequiredService<IMediator>();
 
             var cmd1 = new SourceCustomerCommand
             {
@@ -244,11 +225,56 @@ namespace ConsoleApp1
             _ = await mediator.Send(cmd2);
         }
 
+        private static async Task RunDemo3(IMediator mediator)
+        {
+            var activityId = "c6fcc080-d812-4822-97ce-1bfb5e883158";
+
+            var qry = new RetrieveCustomerQuery { MessageId = activityId };
+
+            var res = await mediator.Send(qry);
+
+            Console.WriteLine(JsonConvert.SerializeObject(res, Formatting.Indented));
+        }
+
         static async Task Main(string[] args)
         {
-            await RunDemo2();
+            var serviceProvider = new ServiceCollection()
 
-            //Console.Read();
+                .AddSingleton<IConfiguration>(sp =>
+                {
+                    var appSettings = new Dictionary<string, string>
+                    {
+                        { "TrackingEnabled", "true" }
+                    };
+
+                    return new ConfigurationBuilder()
+
+                        .AddInMemoryCollection(appSettings)
+                        .Build();
+                })
+                .AddCore()
+
+                //.AddSimplePipeline()
+
+                //.AddTableTrackingPipeline()
+                //.AddBlobTrackingPipeline()
+                //.AddQueueRoutingPipeline()
+
+                //.AddActivityTrackingPipeline()
+                //.AddMultiTrackingPipeline()
+
+                // run query
+                //.AddBlobTrackingProcessors()
+
+                .BuildServiceProvider();
+
+            var mediator = serviceProvider.GetRequiredService<IMediator>();
+
+            await RunDemo2(mediator);
+
+            //await RunDemo3(mediator);
+
+            Console.Read();
         }
     }
 }

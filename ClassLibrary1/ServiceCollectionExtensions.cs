@@ -27,11 +27,8 @@ namespace ClassLibrary1
         // 7. TODO: claim check pipeline?
 
         // TODO: create simple diagrams?
-        // TODO: repeat all scenarios with console app
 
         // TODO: TableEntity delegate returns null for queue (okay) and blobs (throws)?
-
-        // TODO: update all demo DI methods (don't inject commands, init behaviors with options, not commands)
 
         // TODO: add DevOps build + README
         // TODO: add request type to blob metadata?
@@ -213,17 +210,15 @@ namespace ClassLibrary1
             services.AddTransient<IRequestPreProcessor<RetrieveCustomerQuery>, UploadRequestProcessor<RetrieveCustomerQuery>>();
             services.AddTransient<IRequestPostProcessor<RetrieveCustomerQuery, RetrieveCustomerResult>, UploadResponseProcessor<RetrieveCustomerQuery, RetrieveCustomerResult>>();
 
-            services.AddTransient<UploadBlobCommand<RetrieveCustomerQuery>>();
-            services.AddTransient<UploadBlobCommand<RetrieveCustomerResult>>();
             services.AddOptions<UploadBlobOptions<RetrieveCustomerQuery>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
-                opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/query/{req.MessageId}.json");
+                opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/query/{Guid.NewGuid().ToString()}.json");
             });
             services.AddOptions<UploadBlobOptions<RetrieveCustomerResult>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
-                opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/result/{req.MessageId}.json");
+                opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/result/{Guid.NewGuid().ToString()}.json");
             });
 
             return services;
@@ -235,20 +230,36 @@ namespace ClassLibrary1
             var cloudTable = storageAccount.CreateCloudTableClient().GetTableReference("Activities");
             cloudTable.CreateIfNotExists();
 
-            services.AddScoped<PipelineContext>();
-            services.AddTransient<InsertEntityCommand<SourceCustomerCommand>>();
-            services.AddTransient<InsertEntityCommand<TargetCustomerCommand>>();
             services.AddOptions<InsertEntityOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = cloudTable;
-                opt.TableEntity = (cmd, ctx) => (CustomerActivityEntity)ctx["CustomerActivity"];
+                opt.TableEntity = (req, ctx) =>
+                {
+                    return new CustomerActivityEntity
+                    {
+                        PartitionKey = req.MessageId,
+                        RowKey = Guid.NewGuid().ToString(),
+                        IsValid = true,
+                        CustomerReceivedOn = DateTime.Now,
+                        Email = req.SourceCustomer.Email
+                    };
+                };
             });
             services.AddOptions<InsertEntityOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = cloudTable;
-                opt.TableEntity = (cmd, ctx) => (CustomerActivityEntity)ctx["CustomerActivity"];
+                opt.TableEntity = (req, ctx) =>
+                {
+                    return new CustomerActivityEntity
+                    {
+                        PartitionKey = req.MessageId,
+                        RowKey = Guid.NewGuid().ToString(),
+                        DateOfBirth = req.TargetCustomer.DateOfBirth,
+                        CustomerPublishedOn = DateTime.Now
+                    };
+                };
             });
 
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
@@ -271,8 +282,6 @@ namespace ClassLibrary1
 
             var activitiesTable = storageAccount.CreateCloudTableClient().GetTableReference("Activities");
             activitiesTable.CreateIfNotExists();
-
-            services.AddScoped<PipelineContext>();
 
             services.AddOptions<InsertEntityOptions<SourceCustomerCommand>>("Messages").Configure<IConfiguration>((opt, cfg) =>
             {
