@@ -61,6 +61,12 @@ namespace MediatR.Extensions.Azure.Storage
 
             var blobContent = opt.Value.BlobContent(message, ctx);
 
+            if (blobContent == null)
+            {
+                // UploadAsync will throw a NullReferenceException if this is null - this message is a bit more helpful hopefully...
+                throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid BlobContent value");
+            }
+
             await blobClient.UploadAsync(blobContent, cancellationToken);
 
             if (opt.Value.BlobHeaders != null)

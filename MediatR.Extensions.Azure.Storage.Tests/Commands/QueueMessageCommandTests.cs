@@ -1,9 +1,11 @@
 ﻿using Azure.Storage.Queues;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -15,6 +17,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
         private readonly IServiceProvider svc;
         private readonly Mock<QueueMessageOptions<TestMessage>> opt;
         private readonly Mock<QueueClient> que;
+        private readonly Mock<ILogger> log;
 
         private readonly QueueMessageCommand<TestMessage> cmd;
 
@@ -22,9 +25,11 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
         {
             opt = new Mock<QueueMessageOptions<TestMessage>>();
             que = new Mock<QueueClient>("UseDevelopmentStorage=true", "queue1");
+            log = new Mock<ILogger>();
 
             svc = new ServiceCollection()
 
+                .AddTransient<ILogger>(sp => log.Object)
                 .AddTransient<QueueMessageCommand<TestMessage>>()
                 .AddTransient<IOptions<QueueMessageOptions<TestMessage>>>(sp => Options.Create(opt.Object))
 
@@ -91,6 +96,28 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
             opt.VerifySet(m => m.QueueMessage = It.IsAny<Func<TestMessage, PipelineContext, BinaryData>>(), Times.Never);
 
             opt.Verify(m => m.QueueClient.SendMessageAsync(It.IsAny<BinaryData>(), opt.Object.Visibility, opt.Object.TimeToLive, CancellationToken.None), Times.Once);
+        }
+
+        [Fact(DisplayName = "QueueMessage delegate returns null")]
+        public async Task Test5()
+        {
+            opt.SetupProperty(m => m.IsEnabled, true);
+            opt.SetupProperty(m => m.QueueClient, que.Object);
+            opt.SetupProperty(m => m.QueueMessage, (cmd, ctx) => null);
+
+            await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.QueueClient, Times.Exactly(2));
+            opt.VerifyGet(m => m.QueueMessage, Times.Exactly(2));
+
+            opt.VerifySet(m => m.QueueMessage = It.IsAny<Func<TestMessage, PipelineContext, BinaryData>>(), Times.Never);
+
+            opt.Verify(m => m.QueueClient.SendMessageAsync(default(BinaryData), opt.Object.Visibility, opt.Object.TimeToLive, CancellationToken.None), Times.Once);
+
+            var logInvocation = log.Invocations.Where(i => i.Method.Name == "Log").Single();
+
+            logInvocation.Arguments.OfType<LogLevel>().Single().Should().Be(LogLevel.Warning);
         }
     }
 }

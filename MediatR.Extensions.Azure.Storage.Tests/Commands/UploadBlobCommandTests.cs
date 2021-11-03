@@ -88,8 +88,35 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
             blb.Verify(m => m.SetMetadataAsync(It.IsAny<IDictionary<string, string>>(), null, CancellationToken.None), Times.Never);
         }
 
-        [Fact(DisplayName = "Command uses specified BlobContent")]
+        [Fact(DisplayName = "BlobContent delegate returns null")]
         public async Task Test4()
+        {
+            opt.SetupProperty(m => m.IsEnabled, true);
+            opt.SetupProperty(m => m.BlobClient, (req, ctx) => blb.Object);
+            opt.SetupProperty(m => m.BlobContent, (req, ctx) => null);
+            opt.SetupProperty(m => m.BlobHeaders, null);
+            opt.SetupProperty(m => m.Metadata, null);
+
+            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+
+            await act.Should().ThrowAsync<ArgumentNullException>();
+
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.BlobClient, Times.Exactly(2));
+            opt.VerifyGet(m => m.Metadata, Times.Never);
+            opt.VerifyGet(m => m.BlobContent, Times.Exactly(2));
+            opt.VerifyGet(m => m.BlobHeaders, Times.Never);
+
+            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<TestMessage, PipelineContext, BinaryData>>(), Times.Never);
+            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<TestMessage, PipelineContext, BlobHttpHeaders>>(), Times.Never);
+
+            blb.Verify(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None), Times.Never);
+            blb.Verify(m => m.SetHttpHeadersAsync(It.IsAny<BlobHttpHeaders>(), null, CancellationToken.None), Times.Never);
+            blb.Verify(m => m.SetMetadataAsync(It.IsAny<IDictionary<string, string>>(), null, CancellationToken.None), Times.Never);
+        }
+
+        [Fact(DisplayName = "Command uses specified BlobContent")]
+        public async Task Test5()
         {
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.BlobClient, (req, ctx) => blb.Object);
@@ -114,7 +141,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
         }
 
         [Fact(DisplayName = "Command uses specified BlobHeaders")]
-        public async Task Test5()
+        public async Task Test6()
         {
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.BlobClient, (req, ctx) => blb.Object);
@@ -139,7 +166,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
         }
 
         [Fact(DisplayName = "Command uses specified BlobContent and BlobHeaders")]
-        public async Task Test6()
+        public async Task Test7()
         {
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.BlobClient, (req, ctx) => blb.Object);
@@ -164,7 +191,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
         }
 
         [Fact(DisplayName = "Command uses specified Metadata")]
-        public async Task Test7()
+        public async Task Test8()
         {
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.BlobClient, (req, ctx) => blb.Object);

@@ -28,11 +28,9 @@ namespace ClassLibrary1
 
         // TODO: create simple diagrams?
 
-        // TODO: TableEntity delegate returns null for queue (okay) and blobs (throws)?
+        // TODO: honour cancellation tokens + add exceptions to context + tests!
 
         // TODO: add DevOps build + README
-        // TODO: add request type to blob metadata?
-        // TODO: honour cancellation tokens?
         // TODO: add projects for Service Bus (messaging and management?) and HttpClient?
 
         public static IServiceCollection AddCore(this IServiceCollection services)

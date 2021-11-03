@@ -58,6 +58,7 @@ namespace MediatR.Extensions.Azure.Storage
 
             if (tableEntity == null)
             {
+                // Insert will throw an ArgumentNullException if this is null - this message is a bit more helpful hopefully...
                 throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid TableEntity value");
             }
 

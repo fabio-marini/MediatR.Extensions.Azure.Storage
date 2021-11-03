@@ -49,6 +49,12 @@ namespace MediatR.Extensions.Azure.Storage
 
             var msg = opt.Value.QueueMessage(message, ctx);
 
+            if (msg == null)
+            {
+                // the queue client supports null messages - don't throw, but log a warning...
+                log.LogWarning($"The QueueMessage delegate of Command {this.GetType().Name} returned a null message");
+            }
+
             await opt.Value.QueueClient.SendMessageAsync(msg, opt.Value.Visibility, opt.Value.TimeToLive, cancellationToken);
         }
     }
