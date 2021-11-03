@@ -23,15 +23,10 @@ namespace FunctionApp2
             //builder.Services.AddBlobTrackingPipeline();
             //builder.Services.AddQueueRoutingPipeline();
 
-            //builder.Services.AddBlobTrackingProcessors();
-
             //builder.Services.AddActivityTrackingPipeline();
             //builder.Services.AddMultiTrackingPipeline();
 
-            // the first one causes a runtime exception if the service depends on a delegate,
-            // i.e. Action or Func, however, the one below works - but they should be the same!
-            //builder.Services.AddSingleton<MyService>();
-            //builder.Services.AddSingleton(new MyService());
+            //builder.Services.AddBlobTrackingProcessors();
         }
     }
 }

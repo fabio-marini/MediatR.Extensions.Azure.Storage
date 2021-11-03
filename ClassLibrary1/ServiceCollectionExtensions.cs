@@ -27,9 +27,6 @@ namespace ClassLibrary1
         // 7. TODO: claim check pipeline?
 
         // TODO: create simple diagrams?
-
-        // TODO: honour cancellation tokens + add exceptions to context + tests!
-
         // TODO: add DevOps build + README
         // TODO: add projects for Service Bus (messaging and management?) and HttpClient?
 

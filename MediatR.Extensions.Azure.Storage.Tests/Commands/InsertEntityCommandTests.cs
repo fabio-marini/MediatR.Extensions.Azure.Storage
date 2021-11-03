@@ -36,13 +36,25 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
         }
 
         [Fact(DisplayName = "Command is disabled")]
-        public async Task Test1()
+        public async Task Test1a()
         {
             await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.CloudTable, Times.Never);
             opt.VerifyGet(m => m.TableEntity, Times.Never);
+        }
+
+        [Fact(DisplayName = "Command is cancelled")]
+        public async Task Test1b()
+        {
+            var src = new CancellationTokenSource(0);
+
+            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, src.Token);
+
+            await act.Should().ThrowAsync<OperationCanceledException>();
+
+            opt.VerifyGet(m => m.IsEnabled, Times.Never);
         }
 
         [Fact(DisplayName = "CloudTable is not specified")]

@@ -19,12 +19,14 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Processors
         private readonly Mock<ILogger> log;
         private readonly Mock<UploadBlobOptions<Unit>> cmd;
         private readonly Mock<UploadBlobOptions<TestResult>> qry;
+        private readonly Mock<PipelineContext> ctx;
 
         public UploadResponseProcessorTests()
         {
             log = new Mock<ILogger>();
             cmd = new Mock<UploadBlobOptions<Unit>>();
             qry = new Mock<UploadBlobOptions<TestResult>>();
+            ctx = new Mock<PipelineContext>();
 
             svc = new ServiceCollection()
 
@@ -34,6 +36,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Processors
                 .AddTransient<UploadResponseProcessor<TestQuery, TestResult>>()
                 .AddTransient<IOptions<UploadBlobOptions<TestResult>>>(sp => Options.Create(qry.Object))
 
+                .AddTransient<PipelineContext>(sp => ctx.Object)
                 .AddTransient<ILogger>(sp => log.Object)
 
                 .BuildServiceProvider();
@@ -82,6 +85,25 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Processors
 
             logInvocation.Arguments.OfType<LogLevel>().Single().Should().Be(LogLevel.Error);
             logInvocation.Arguments.OfType<ArgumentNullException>().Single();
+
+            ctx.VerifyGet(m => m.Exceptions, Times.Once);
+        }
+
+        [Theory(DisplayName = "Processor handles cancellations"), MemberData(nameof(TestData))]
+        public async Task Test3<TRequest, TResponse>(TRequest req, TResponse res) where TRequest : IRequest<TResponse>
+        {
+            var src = new CancellationTokenSource(0);
+
+            var prc = svc.GetRequiredService<UploadResponseProcessor<TRequest, TResponse>>();
+
+            await prc.Process(req, res, src.Token);
+
+            var logInvocation = log.Invocations.Where(i => i.Method.Name == "Log").Single();
+
+            logInvocation.Arguments.OfType<LogLevel>().Single().Should().Be(LogLevel.Error);
+            logInvocation.Arguments.OfType<OperationCanceledException>().Single();
+
+            ctx.VerifyGet(m => m.Exceptions, Times.Once);
         }
     }
 }

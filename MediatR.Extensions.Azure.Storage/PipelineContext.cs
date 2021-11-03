@@ -9,8 +9,10 @@ namespace MediatR.Extensions.Azure.Storage
         public PipelineContext()
         {
             PipelineId = Guid.NewGuid().ToString();
+            Exceptions = new List<Exception>();
         }
 
-        public string PipelineId { get; }
+        public virtual string PipelineId { get; }
+        public virtual List<Exception> Exceptions { get; }
     }
 }

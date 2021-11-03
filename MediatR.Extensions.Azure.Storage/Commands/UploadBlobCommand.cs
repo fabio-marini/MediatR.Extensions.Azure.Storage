@@ -24,6 +24,8 @@ namespace MediatR.Extensions.Azure.Storage
 
         public virtual async Task ExecuteAsync(TMessage message, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // blob name and content are required - defaults will be supplied if not specified
             // a container client is also required, but a default will not be supplied; instead the command will not execute (as if disabled)
             if (opt.Value.IsEnabled == false)

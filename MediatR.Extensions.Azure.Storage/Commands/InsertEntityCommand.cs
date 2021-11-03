@@ -24,6 +24,8 @@ namespace MediatR.Extensions.Azure.Storage
 
         public virtual async Task ExecuteAsync(TMessage message, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (opt.Value.IsEnabled == false)
             {
                 log.LogDebug("Command {Command} is not enabled, returning", this.GetType().Name);

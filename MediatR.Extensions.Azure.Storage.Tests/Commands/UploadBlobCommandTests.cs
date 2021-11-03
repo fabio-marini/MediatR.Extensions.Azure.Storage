@@ -36,7 +36,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
         }
 
         [Fact(DisplayName = "Command is disabled")]
-        public async Task Test1()
+        public async Task Test1a()
         {
             await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
 
@@ -45,6 +45,18 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
             opt.VerifyGet(m => m.BlobContent, Times.Never);
             opt.VerifyGet(m => m.BlobHeaders, Times.Never);
             opt.VerifyGet(m => m.Metadata, Times.Never);
+        }
+
+        [Fact(DisplayName = "Command is cancelled")]
+        public async Task Test1b()
+        {
+            var src = new CancellationTokenSource(0);
+
+            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, src.Token);
+
+            await act.Should().ThrowAsync<OperationCanceledException>();
+
+            opt.VerifyGet(m => m.IsEnabled, Times.Never);
         }
 
         [Fact(DisplayName = "BlobClient is not specified")]
