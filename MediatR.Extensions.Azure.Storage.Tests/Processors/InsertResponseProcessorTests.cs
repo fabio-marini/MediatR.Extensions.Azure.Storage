@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -16,22 +17,22 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Processors
     {
         private readonly IServiceProvider svc;
         private readonly Mock<ILogger> log;
-        private readonly Mock<InsertEntityCommand<Unit>> cmd;
-        private readonly Mock<InsertEntityCommand<TestResult>> qry;
+        private readonly Mock<InsertEntityOptions<Unit>> cmd;
+        private readonly Mock<InsertEntityOptions<TestResult>> qry;
 
         public InsertResponseProcessorTests()
         {
             log = new Mock<ILogger>();
-            cmd = new Mock<InsertEntityCommand<Unit>>(Options.Create(new InsertEntityOptions<Unit>()), null, null);
-            qry = new Mock<InsertEntityCommand<TestResult>>(Options.Create(new InsertEntityOptions<TestResult>()), null, null);
+            cmd = new Mock<InsertEntityOptions<Unit>>();
+            qry = new Mock<InsertEntityOptions<TestResult>>();
 
             svc = new ServiceCollection()
 
                 .AddTransient<InsertResponseProcessor<TestCommand, Unit>>()
-                .AddTransient<InsertEntityCommand<Unit>>(sp => cmd.Object)
+                .AddTransient<IOptions<InsertEntityOptions<Unit>>>(sp => Options.Create(cmd.Object))
 
                 .AddTransient<InsertResponseProcessor<TestQuery, TestResult>>()
-                .AddTransient<InsertEntityCommand<TestResult>>(sp => qry.Object)
+                .AddTransient<IOptions<InsertEntityOptions<TestResult>>>(sp => Options.Create(qry.Object))
 
                 .AddTransient<ILogger>(sp => log.Object)
 
@@ -47,6 +48,17 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Processors
         [Theory(DisplayName = "Processor executes successfully"), MemberData(nameof(TestData))]
         public async Task Test1<TRequest, TResponse>(TRequest req, TResponse res) where TRequest : IRequest<TResponse>
         {
+            var tbl = new Mock<CloudTable>(new Uri("http://127.0.0.1:10002/devstoreaccount1/table1"), null);
+
+            cmd.SetupProperty(m => m.IsEnabled, true);
+            qry.SetupProperty(m => m.IsEnabled, true);
+
+            cmd.SetupProperty(m => m.CloudTable, tbl.Object);
+            qry.SetupProperty(m => m.CloudTable, tbl.Object);
+
+            cmd.SetupProperty(m => m.TableEntity, (req, ctx) => new DynamicTableEntity("PK1", "RK1"));
+            qry.SetupProperty(m => m.TableEntity, (req, ctx) => new DynamicTableEntity("PK1", "RK1"));
+
             var prc = svc.GetRequiredService<InsertResponseProcessor<TRequest, TResponse>>();
 
             await prc.Process(req, res, CancellationToken.None);
@@ -59,8 +71,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Processors
         [Theory(DisplayName = "Processor handles exceptions"), MemberData(nameof(TestData))]
         public async Task Test2<TRequest, TResponse>(TRequest req, TResponse res) where TRequest : IRequest<TResponse>
         {
-            cmd.Setup(m => m.ExecuteAsync(It.IsAny<Unit>(), CancellationToken.None)).ThrowsAsync(new Exception("Failed! :("));
-            qry.Setup(m => m.ExecuteAsync(It.IsAny<TestResult>(), CancellationToken.None)).ThrowsAsync(new Exception("Failed! :("));
+            cmd.SetupProperty(m => m.IsEnabled, true);
+            qry.SetupProperty(m => m.IsEnabled, true);
 
             var prc = svc.GetRequiredService<InsertResponseProcessor<TRequest, TResponse>>();
 
@@ -69,7 +81,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Processors
             var logInvocation = log.Invocations.Where(i => i.Method.Name == "Log").Single();
 
             logInvocation.Arguments.OfType<LogLevel>().Single().Should().Be(LogLevel.Error);
-            logInvocation.Arguments.OfType<Exception>().Single().Message.Should().Be("Failed! :(");
+            logInvocation.Arguments.OfType<ArgumentNullException>().Single();
         }
     }
 }

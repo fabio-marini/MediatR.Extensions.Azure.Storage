@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Azure.Storage.Queues;
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -16,22 +17,22 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Processors
     {
         private readonly IServiceProvider svc;
         private readonly Mock<ILogger> log;
-        private readonly Mock<QueueMessageCommand<Unit>> cmd;
-        private readonly Mock<QueueMessageCommand<TestResult>> qry;
+        private readonly Mock<QueueMessageOptions<Unit>> cmd;
+        private readonly Mock<QueueMessageOptions<TestResult>> qry;
 
         public QueueResponseProcessorTests()
         {
             log = new Mock<ILogger>();
-            cmd = new Mock<QueueMessageCommand<Unit>>(Options.Create(new QueueMessageOptions<Unit>()), null, null);
-            qry = new Mock<QueueMessageCommand<TestResult>>(Options.Create(new QueueMessageOptions<TestResult>()), null, null);
+            cmd = new Mock<QueueMessageOptions<Unit>>();
+            qry = new Mock<QueueMessageOptions<TestResult>>();
 
             svc = new ServiceCollection()
 
                 .AddTransient<QueueResponseProcessor<TestCommand, Unit>>()
-                .AddTransient<QueueMessageCommand<Unit>>(sp => cmd.Object)
+                .AddTransient<IOptions<QueueMessageOptions<Unit>>>(sp => Options.Create(cmd.Object))
 
                 .AddTransient<QueueResponseProcessor<TestQuery, TestResult>>()
-                .AddTransient<QueueMessageCommand<TestResult>>(sp => qry.Object)
+                .AddTransient<IOptions<QueueMessageOptions<TestResult>>>(sp => Options.Create(qry.Object))
 
                 .AddTransient<ILogger>(sp => log.Object)
 
@@ -47,6 +48,17 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Processors
         [Theory(DisplayName = "Processor executes successfully"), MemberData(nameof(TestData))]
         public async Task Test1<TRequest, TResponse>(TRequest req, TResponse res) where TRequest : IRequest<TResponse>
         {
+            var que = new Mock<QueueClient>("UseDevelopmentStorage=true", "queue1");
+
+            cmd.SetupProperty(m => m.IsEnabled, true);
+            qry.SetupProperty(m => m.IsEnabled, true);
+
+            cmd.SetupProperty(m => m.QueueClient, que.Object);
+            qry.SetupProperty(m => m.QueueClient, que.Object);
+
+            cmd.SetupProperty(m => m.QueueMessage, (req, ctx) => BinaryData.FromString("Hello world"));
+            qry.SetupProperty(m => m.QueueMessage, (req, ctx) => BinaryData.FromString("Hello world"));
+
             var prc = svc.GetRequiredService<QueueResponseProcessor<TRequest, TResponse>>();
 
             await prc.Process(req, res, CancellationToken.None);
@@ -59,8 +71,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Processors
         [Theory(DisplayName = "Processor handles exceptions"), MemberData(nameof(TestData))]
         public async Task Test2<TRequest, TResponse>(TRequest req, TResponse res) where TRequest : IRequest<TResponse>
         {
-            cmd.Setup(m => m.ExecuteAsync(It.IsAny<Unit>(), CancellationToken.None)).ThrowsAsync(new Exception("Failed! :("));
-            qry.Setup(m => m.ExecuteAsync(It.IsAny<TestResult>(), CancellationToken.None)).ThrowsAsync(new Exception("Failed! :("));
+            cmd.SetupProperty(m => m.IsEnabled, true);
+            qry.SetupProperty(m => m.IsEnabled, true);
 
             var prc = svc.GetRequiredService<QueueResponseProcessor<TRequest, TResponse>>();
 
@@ -69,7 +81,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Processors
             var logInvocation = log.Invocations.Where(i => i.Method.Name == "Log").Single();
 
             logInvocation.Arguments.OfType<LogLevel>().Single().Should().Be(LogLevel.Error);
-            logInvocation.Arguments.OfType<Exception>().Single().Message.Should().Be("Failed! :(");
+            logInvocation.Arguments.OfType<ArgumentNullException>().Single();
         }
     }
 }

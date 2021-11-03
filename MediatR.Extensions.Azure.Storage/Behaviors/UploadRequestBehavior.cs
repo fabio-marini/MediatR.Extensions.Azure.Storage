@@ -1,44 +1,19 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 namespace MediatR.Extensions.Azure.Storage
 {
     public class UploadRequestBehavior<TRequest> : UploadRequestBehavior<TRequest, Unit> where TRequest : IRequest<Unit>
     {
-        public UploadRequestBehavior(UploadBlobCommand<TRequest> cmd, ILogger log = null) : base(cmd, log)
+        public UploadRequestBehavior(IOptions<UploadBlobOptions<TRequest>> opt, PipelineContext ctx = null, ILogger log = null) : base(opt, ctx, log)
         {
         }
     }
 
-    public class UploadRequestBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
+    public class UploadRequestBehavior<TRequest, TResponse> : RequestBehaviorBase<TRequest, TResponse> where TRequest : IRequest<TResponse>
     {
-        private readonly UploadBlobCommand<TRequest> cmd;
-        private readonly ILogger log;
-
-        public UploadRequestBehavior(UploadBlobCommand<TRequest> cmd, ILogger log = null)
+        public UploadRequestBehavior(IOptions<UploadBlobOptions<TRequest>> opt, PipelineContext ctx = null, ILogger log = null) : base(opt, ctx, log)
         {
-            this.cmd = cmd ?? throw new ArgumentException($"A valid {nameof(UploadBlobCommand<TRequest>)} is required");
-            this.log = log ?? NullLogger.Instance;
-        }
-
-        public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
-        {
-            try
-            {
-                await cmd.ExecuteAsync(request, cancellationToken);
-
-                log.LogInformation("Behavior {Behavior} completed, returning", this.GetType().Name);
-            }
-            catch (Exception ex)
-            {
-                // failure should not stop execution - log exception, but don't rethrow
-                log.LogError(ex, "Behavior {Behavior} failed, returning", this.GetType().Name);
-            }
-
-            return await next();
         }
     }
 }

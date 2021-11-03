@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Azure.Storage.Blobs;
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -16,22 +17,22 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Processors
     {
         private readonly IServiceProvider svc;
         private readonly Mock<ILogger> log;
-        private readonly Mock<UploadBlobCommand<Unit>> cmd;
-        private readonly Mock<UploadBlobCommand<TestResult>> qry;
+        private readonly Mock<UploadBlobOptions<Unit>> cmd;
+        private readonly Mock<UploadBlobOptions<TestResult>> qry;
 
         public UploadResponseProcessorTests()
         {
             log = new Mock<ILogger>();
-            cmd = new Mock<UploadBlobCommand<Unit>>(Options.Create(new UploadBlobOptions<Unit>()), null, null);
-            qry = new Mock<UploadBlobCommand<TestResult>>(Options.Create(new UploadBlobOptions<TestResult>()), null, null);
+            cmd = new Mock<UploadBlobOptions<Unit>>();
+            qry = new Mock<UploadBlobOptions<TestResult>>();
 
             svc = new ServiceCollection()
 
                 .AddTransient<UploadResponseProcessor<TestCommand, Unit>>()
-                .AddTransient<UploadBlobCommand<Unit>>(sp => cmd.Object)
+                .AddTransient<IOptions<UploadBlobOptions<Unit>>>(sp => Options.Create(cmd.Object))
 
                 .AddTransient<UploadResponseProcessor<TestQuery, TestResult>>()
-                .AddTransient<UploadBlobCommand<TestResult>>(sp => qry.Object)
+                .AddTransient<IOptions<UploadBlobOptions<TestResult>>>(sp => Options.Create(qry.Object))
 
                 .AddTransient<ILogger>(sp => log.Object)
 
@@ -47,6 +48,17 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Processors
         [Theory(DisplayName = "Processor executes successfully"), MemberData(nameof(TestData))]
         public async Task Test1<TRequest, TResponse>(TRequest req, TResponse res) where TRequest : IRequest<TResponse>
         {
+            var blb = new Mock<BlobClient>("UseDevelopmentStorage=true", "container1", "blob1");
+
+            cmd.SetupProperty(m => m.IsEnabled, true);
+            qry.SetupProperty(m => m.IsEnabled, true);
+
+            cmd.SetupProperty(m => m.BlobClient, (req, ctx) => blb.Object);
+            qry.SetupProperty(m => m.BlobClient, (req, ctx) => blb.Object);
+
+            cmd.SetupProperty(m => m.BlobContent, (req, ctx) => BinaryData.FromString("Hello world"));
+            qry.SetupProperty(m => m.BlobContent, (req, ctx) => BinaryData.FromString("Hello world"));
+
             var prc = svc.GetRequiredService<UploadResponseProcessor<TRequest, TResponse>>();
 
             await prc.Process(req, res, CancellationToken.None);
@@ -59,8 +71,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Processors
         [Theory(DisplayName = "Processor handles exceptions"), MemberData(nameof(TestData))]
         public async Task Test2<TRequest, TResponse>(TRequest req, TResponse res) where TRequest : IRequest<TResponse>
         {
-            cmd.Setup(m => m.ExecuteAsync(It.IsAny<Unit>(), CancellationToken.None)).ThrowsAsync(new Exception("Failed! :("));
-            qry.Setup(m => m.ExecuteAsync(It.IsAny<TestResult>(), CancellationToken.None)).ThrowsAsync(new Exception("Failed! :("));
+            cmd.SetupProperty(m => m.IsEnabled, true);
+            qry.SetupProperty(m => m.IsEnabled, true);
 
             var prc = svc.GetRequiredService<UploadResponseProcessor<TRequest, TResponse>>();
 
@@ -69,7 +81,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Processors
             var logInvocation = log.Invocations.Where(i => i.Method.Name == "Log").Single();
 
             logInvocation.Arguments.OfType<LogLevel>().Single().Should().Be(LogLevel.Error);
-            logInvocation.Arguments.OfType<Exception>().Single().Message.Should().Be("Failed! :(");
+            logInvocation.Arguments.OfType<ArgumentNullException>().Single();
         }
     }
 }

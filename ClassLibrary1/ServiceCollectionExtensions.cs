@@ -29,14 +29,14 @@ namespace ClassLibrary1
         // TODO: create simple diagrams?
         // TODO: repeat all scenarios with console app
 
-        // TODO: TableEntity delegate returns null for queue and blobs?
-        // TODO: inject opt and ctx into behaviors/processors and new cmd - no need to inject
-        // TODO: can refactor multiple behaviors/processors into one by providing different ctors, e.g.
-        //       ctor1(InsertEntity opt), ctor2(UploadBlob opt) and ctor3(QueueMessage opt)
+        // TODO: TableEntity delegate returns null for queue (okay) and blobs (throws)?
+
+        // TODO: update all demo DI methods (don't inject commands, init behaviors with options, not commands)
 
         // TODO: add DevOps build + README
         // TODO: add request type to blob metadata?
         // TODO: honour cancellation tokens?
+        // TODO: add projects for Service Bus (messaging and management?) and HttpClient?
 
         public static IServiceCollection AddCore(this IServiceCollection services)
         {
@@ -87,8 +87,6 @@ namespace ClassLibrary1
             var cloudTable = storageAccount.CreateCloudTableClient().GetTableReference("Messages");
             cloudTable.CreateIfNotExists();
 
-            services.AddTransient<InsertEntityCommand<SourceCustomerCommand>>();
-            services.AddTransient<InsertEntityCommand<TargetCustomerCommand>>();
             services.AddOptions<InsertEntityOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
@@ -130,8 +128,6 @@ namespace ClassLibrary1
             var container = new BlobContainerClient("UseDevelopmentStorage=true", "messages");
             container.CreateIfNotExists();
 
-            services.AddTransient<UploadBlobCommand<SourceCustomerCommand>>();
-            services.AddTransient<UploadBlobCommand<TargetCustomerCommand>>();
             services.AddOptions<UploadBlobOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
@@ -172,8 +168,6 @@ namespace ClassLibrary1
             var queueClient = new QueueClient("UseDevelopmentStorage=true", "messages");
             queueClient.CreateIfNotExists();
 
-            services.AddTransient<QueueMessageCommand<SourceCustomerCommand>>();
-            services.AddTransient<QueueMessageCommand<TargetCustomerCommand>>();
             services.AddOptions<QueueMessageOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
@@ -302,26 +296,43 @@ namespace ClassLibrary1
                     return tableEntity;
                 };
             });
-            services.AddOptions<InsertEntityOptions<SourceCustomerCommand>>("Activities").Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<InsertEntityOptions<SourceCustomerCommand>>("Source").Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = activitiesTable;
-                opt.TableEntity = (cmd, ctx) => (CustomerActivityEntity)ctx["CustomerActivity"];
+                opt.TableEntity = (req, ctx) =>
+                {
+                    return new CustomerActivityEntity
+                    {
+                        PartitionKey = req.MessageId,
+                        RowKey = Guid.NewGuid().ToString(),
+                        IsValid = true,
+                        CustomerReceivedOn = DateTime.Now,
+                        Email = req.SourceCustomer.Email
+                    };
+                };
             });
-            services.AddOptions<InsertEntityOptions<TargetCustomerCommand>>("Activities").Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<InsertEntityOptions<TargetCustomerCommand>>("Target").Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = activitiesTable;
-                opt.TableEntity = (cmd, ctx) => (CustomerActivityEntity)ctx["CustomerActivity"];
+                opt.TableEntity = (req, ctx) =>
+                {
+                    return new CustomerActivityEntity
+                    {
+                        PartitionKey = req.MessageId,
+                        RowKey = Guid.NewGuid().ToString(),
+                        DateOfBirth = req.TargetCustomer.DateOfBirth,
+                        CustomerPublishedOn = DateTime.Now
+                    };
+                };
             });
 
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertRequestBehavior<SourceCustomerCommand>>(sp =>
             {
                 var opt = sp.GetRequiredService<IOptionsSnapshot<InsertEntityOptions<SourceCustomerCommand>>>().Get("Messages");
 
-                var cmd = new InsertEntityCommand<SourceCustomerCommand>(Options.Create(opt), sp.GetService<PipelineContext>(), sp.GetService<ILogger>());
-
-                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<SourceCustomerCommand>>(sp, cmd);
+                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<SourceCustomerCommand>>(sp, Options.Create(opt));
             });
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
@@ -329,26 +340,20 @@ namespace ClassLibrary1
             {
                 var opt = sp.GetRequiredService<IOptionsSnapshot<InsertEntityOptions<SourceCustomerCommand>>>().Get("Messages");
 
-                var cmd = new InsertEntityCommand<SourceCustomerCommand>(Options.Create(opt), sp.GetService<PipelineContext>(), sp.GetService<ILogger>());
-
-                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<SourceCustomerCommand>>(sp, cmd);
+                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<SourceCustomerCommand>>(sp, Options.Create(opt));
             });
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertRequestBehavior<SourceCustomerCommand>>(sp =>
             {
-                var opt = sp.GetRequiredService<IOptionsSnapshot<InsertEntityOptions<SourceCustomerCommand>>>().Get("Activities");
+                var opt = sp.GetRequiredService<IOptionsSnapshot<InsertEntityOptions<SourceCustomerCommand>>>().Get("Source");
 
-                var cmd = new InsertEntityCommand<SourceCustomerCommand>(Options.Create(opt), sp.GetService<PipelineContext>(), sp.GetService<ILogger>());
-
-                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<SourceCustomerCommand>>(sp, cmd);
+                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<SourceCustomerCommand>>(sp, Options.Create(opt));
             });
 
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertRequestBehavior<TargetCustomerCommand>>(sp =>
             {
                 var opt = sp.GetRequiredService<IOptionsSnapshot<InsertEntityOptions<TargetCustomerCommand>>>().Get("Messages");
 
-                var cmd = new InsertEntityCommand<TargetCustomerCommand>(Options.Create(opt), sp.GetService<PipelineContext>(), sp.GetService<ILogger>());
-
-                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<TargetCustomerCommand>>(sp, cmd);
+                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
             });
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
@@ -356,17 +361,13 @@ namespace ClassLibrary1
             {
                 var opt = sp.GetRequiredService<IOptionsSnapshot<InsertEntityOptions<TargetCustomerCommand>>>().Get("Messages");
 
-                var cmd = new InsertEntityCommand<TargetCustomerCommand>(Options.Create(opt), sp.GetService<PipelineContext>(), sp.GetService<ILogger>());
-
-                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<TargetCustomerCommand>>(sp, cmd);
+                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
             });
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertRequestBehavior<TargetCustomerCommand>>(sp =>
             {
-                var opt = sp.GetRequiredService<IOptionsSnapshot<InsertEntityOptions<TargetCustomerCommand>>>().Get("Activities");
+                var opt = sp.GetRequiredService<IOptionsSnapshot<InsertEntityOptions<TargetCustomerCommand>>>().Get("Target");
 
-                var cmd = new InsertEntityCommand<TargetCustomerCommand>(Options.Create(opt), sp.GetService<PipelineContext>(), sp.GetService<ILogger>());
-
-                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<TargetCustomerCommand>>(sp, cmd);
+                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
             });
 
             return services;
