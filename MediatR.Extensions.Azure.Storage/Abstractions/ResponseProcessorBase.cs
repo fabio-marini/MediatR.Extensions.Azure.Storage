@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace MediatR.Extensions.Azure.Storage
 {
+
     public abstract class ResponseProcessorBase<TRequest, TResponse> : IRequestPostProcessor<TRequest, TResponse> where TRequest : IRequest<TResponse>
     {
         private readonly ICommand<TResponse> cmd;

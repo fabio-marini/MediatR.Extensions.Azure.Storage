@@ -12,6 +12,8 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 namespace ClassLibrary1
@@ -24,11 +26,14 @@ namespace ClassLibrary1
         // 4. add storage processors to track GET response
         // 5. use storage behaviors for activity tracking (BAM)
         // 6. use storage behaviors for activity and message tracking (named options)
-        // 7. TODO: claim check pipeline?
+        // 7. claim check pipeline
+
+        // FIXME: delegates pipeline executes in the wrong order?!?
 
         // TODO: create simple diagrams?
         // TODO: add DevOps build + README
         // TODO: add projects for Service Bus (messaging and management?) and HttpClient?
+        // TODO: add retrieve (claim check) and delete (use case? also claim check) commands and extensions?
 
         public static IServiceCollection AddCore(this IServiceCollection services)
         {
@@ -46,10 +51,6 @@ namespace ClassLibrary1
             });
 
             services.AddMediatR(typeof(ServiceCollectionExtensions));
-
-            // a transient lifetime will cause state to be lost between behaviors
-            // a singleton lifetime will cause duplicate errors when adding items to the dictionary
-            //services.AddScoped<PipelineContext>();
 
             services.AddSingleton<QueueClient>(sp =>
             {
@@ -72,6 +73,61 @@ namespace ClassLibrary1
 
             return services;
         }
+
+        //public static IServiceCollection AddDelegatesPipeline(this IServiceCollection services)
+        //{
+        //    services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, DelegatePipelineBehavior<SourceCustomerCommand>>(sp =>
+        //    {
+        //        Func<SourceCustomerCommand, CancellationToken, RequestHandlerDelegate<Unit>, Task<Unit>> handle = (cmd, tkn, del) =>
+        //        {
+        //            Console.WriteLine("DelegatePipelineBehavior1");
+
+        //            return del();
+        //        };
+
+        //        return ActivatorUtilities.CreateInstance<DelegatePipelineBehavior<SourceCustomerCommand>>(sp, handle);
+        //    });
+        //    services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
+        //    services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
+        //    services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, DelegatePipelineBehavior<SourceCustomerCommand>>(sp =>
+        //    {
+        //        Func<SourceCustomerCommand, CancellationToken, RequestHandlerDelegate<Unit>, Task<Unit>> handle = (cmd, tkn, del) =>
+        //        {
+        //            Console.WriteLine("DelegatePipelineBehavior2");
+
+        //            return del();
+        //        };
+
+        //        return ActivatorUtilities.CreateInstance<DelegatePipelineBehavior<SourceCustomerCommand>>(sp, handle);
+        //    });
+
+        //    services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, DelegatePipelineBehavior<TargetCustomerCommand>>(sp =>
+        //    {
+        //        Func<TargetCustomerCommand, CancellationToken, RequestHandlerDelegate<Unit>, Task<Unit>> handle = (cmd, tkn, del) =>
+        //        {
+        //            Console.WriteLine("DelegatePipelineBehavior3");
+
+        //            return del();
+        //        };
+
+        //        return ActivatorUtilities.CreateInstance<DelegatePipelineBehavior<TargetCustomerCommand>>(sp, handle);
+        //    });
+        //    services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
+        //    services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
+        //    services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, DelegatePipelineBehavior<TargetCustomerCommand>>(sp =>
+        //    {
+        //        Func<TargetCustomerCommand, CancellationToken, RequestHandlerDelegate<Unit>, Task<Unit>> handle = (cmd, tkn, del) =>
+        //        {
+        //            Console.WriteLine("DelegatePipelineBehavior4");
+
+        //            return del();
+        //        };
+
+        //        return ActivatorUtilities.CreateInstance<DelegatePipelineBehavior<TargetCustomerCommand>>(sp, handle);
+        //    });
+
+        //    return services;
+        //}
 
         public static IServiceCollection AddTableTrackingPipeline(this IServiceCollection services)
         {
@@ -373,6 +429,45 @@ namespace ClassLibrary1
 
                 return ActivatorUtilities.CreateInstance<InsertRequestBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
             });
+
+            return services;
+        }
+
+        public static IServiceCollection AddClaimCheckPipeline(this IServiceCollection services)
+        {
+            var container = new BlobContainerClient("UseDevelopmentStorage=true", "claim-checks");
+            container.CreateIfNotExists();
+
+            services.AddOptions<UploadBlobOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            {
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+                opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/canonical/{req.MessageId}.json");
+                opt.BlobContent = (req, ctx) =>
+                {
+                    var blobContent = BinaryData.FromString(JsonConvert.SerializeObject(req.CanonicalCustomer));
+
+                    req.CanonicalCustomer = null;
+                    req.SourceCustomer = null;
+
+                    return blobContent;
+                };
+            });
+
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, UploadRequestBehavior<SourceCustomerCommand>>();
+
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, ClaimCheckTargetCustomerBehavior>(sp =>
+            {
+                Func<TargetCustomerCommand, PipelineContext, BlobClient> blb = (req, ctx) =>
+                {
+                    return container.GetBlobClient($"customers/canonical/{req.MessageId}.json");
+                };
+
+                return ActivatorUtilities.CreateInstance<ClaimCheckTargetCustomerBehavior>(sp, blb);
+            });
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
 
             return services;
         }

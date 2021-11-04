@@ -26,6 +26,8 @@ namespace FunctionApp2
             //builder.Services.AddActivityTrackingPipeline();
             //builder.Services.AddMultiTrackingPipeline();
 
+            //builder.Services.AddClaimCheckPipeline();
+
             //builder.Services.AddBlobTrackingProcessors();
         }
     }

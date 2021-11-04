@@ -30,7 +30,12 @@ namespace ClassLibrary1
 
         public async Task<Unit> Handle(SourceCustomerCommand request, CancellationToken cancellationToken)
         {
-            var json = JsonConvert.SerializeObject(request);
+            var settings = new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            };
+
+            var json = JsonConvert.SerializeObject(request, settings);
 
             _ = await queueClient.SendMessageAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(json)));
 
