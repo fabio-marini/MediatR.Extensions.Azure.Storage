@@ -51,10 +51,10 @@ namespace MediatR.Extensions.Azure.Storage
 
         public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
                 await cmd.ExecuteAsync(request, cancellationToken);
 
                 log.LogInformation("Behavior {Behavior} completed, returning", this.GetType().Name);

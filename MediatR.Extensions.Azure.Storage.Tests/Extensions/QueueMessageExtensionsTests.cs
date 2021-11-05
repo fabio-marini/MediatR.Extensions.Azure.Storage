@@ -65,6 +65,32 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
             {
                 new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
                 {
+                    var bvr = svc.GetRequiredService<QueueResponseBehavior<TestCommand, Unit>>();
+
+                    await bvr.Handle(TestCommand.Default, tkn, () => Unit.Task);
+                }),
+                new Func<IServiceProvider, Mock<QueueMessageOptions<Unit>>>(svc =>
+                {
+                    return svc.GetRequiredService<Mock<QueueMessageOptions<Unit>>>();
+                })
+            };
+            yield return new object[]
+            {
+                new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
+                {
+                    var bvr = svc.GetRequiredService<QueueResponseBehavior<TestQuery, TestResult>>();
+
+                    await bvr.Handle(TestQuery.Default, tkn, () => Task.FromResult(TestResult.Default));
+                }),
+                new Func<IServiceProvider, Mock<QueueMessageOptions<TestResult>>>(svc =>
+                {
+                    return svc.GetRequiredService<Mock<QueueMessageOptions<TestResult>>>();
+                })
+            };
+            yield return new object[]
+            {
+                new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
+                {
                     var bvr = svc.GetRequiredService<QueueRequestProcessor<TestCommand>>();
 
                     await bvr.Process(TestCommand.Default, tkn);
@@ -156,14 +182,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
             var src = new CancellationTokenSource(0);
 
-            await act(svc, src.Token);
+            Func<Task> act2 = async () => await act(svc, src.Token);
 
-            var logInvocation = log.Invocations.Where(i => i.Method.Name == "Log").Single();
-
-            logInvocation.Arguments.OfType<LogLevel>().Single().Should().Be(LogLevel.Error);
-            logInvocation.Arguments.OfType<OperationCanceledException>().Single();
-
-            ctx.VerifyGet(m => m.Exceptions, Times.Once);
+            await act2.Should().ThrowAsync<OperationCanceledException>();
         }
     }
 }

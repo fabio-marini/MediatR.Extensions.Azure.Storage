@@ -38,10 +38,10 @@ namespace MediatR.Extensions.Azure.Storage
 
         public async Task Process(TRequest request, TResponse response, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
                 await cmd.ExecuteAsync(response, cancellationToken);
 
                 log.LogInformation("Processor {Processor} completed, returning", this.GetType().Name);

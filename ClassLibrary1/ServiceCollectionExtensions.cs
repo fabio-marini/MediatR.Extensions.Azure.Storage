@@ -12,8 +12,6 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 namespace ClassLibrary1
@@ -21,23 +19,26 @@ namespace ClassLibrary1
     public static class ServiceCollectionExtensions
     {
         // 1. walk through the models, pipeline (commands/query and behaviors) and functions
-        // 2. simple pipeline (without any storage behaviors/processors) and GET endpoint
+        // 2. simple pipeline (without any storage behaviors/processors)
         // 3. table, blob and queue tracking pipelines (default/custom)
         // 4. add storage processors to track GET response
         // 5. use storage behaviors for activity tracking (BAM)
         // 6. use storage behaviors for activity and message tracking (named options)
         // 7. claim check pipeline
 
+        // TODO: complete README: move reference info to XML comments and add code examples to README...
+        // TODO: each class should have a corresponding test class - re-refactor extension tests to work with abstractions...
+
+        // TODO: add retrieve (claim check) and delete (use case? also claim check) commands and extensions? Start with table storage...
+
         // FIXME: delegates pipeline executes in the wrong order?!?
 
         // TODO: create simple diagrams?
-        // TODO: add DevOps build + README
         // TODO: add projects for Service Bus (messaging and management?) and HttpClient?
-        // TODO: add retrieve (claim check) and delete (use case? also claim check) commands and extensions?
 
         public static IServiceCollection AddCore(this IServiceCollection services)
         {
-            // core set of dependencies - POST and GET work without any additional dependency
+            // core set of dependencies
             services.AddSingleton<ILogger>(sp =>
             {
                 // https://blog.stephencleary.com/2018/06/microsoft-extensions-logging-part-2-types.html
@@ -271,6 +272,27 @@ namespace ClassLibrary1
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/result/{Guid.NewGuid().ToString()}.json");
             });
+
+            return services;
+        }
+
+        public static IServiceCollection AddBlobTrackingBehaviors(this IServiceCollection services)
+        {
+            var container = new BlobContainerClient("UseDevelopmentStorage=true", "messages");
+            container.CreateIfNotExists();
+
+            services.AddOptions<UploadBlobOptions<RetrieveCustomerQuery>>().Configure<IConfiguration>((opt, cfg) =>
+            {
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+                opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/query/{Guid.NewGuid().ToString()}.json");
+            });
+            services.AddOptions<UploadBlobOptions<RetrieveCustomerResult>>().Configure<IConfiguration>((opt, cfg) =>
+            {
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+                opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/result/{Guid.NewGuid().ToString()}.json");
+            });
+
+            services.AddTransient<IPipelineBehavior<RetrieveCustomerQuery, RetrieveCustomerResult>, UploadRequestBehavior<RetrieveCustomerQuery, RetrieveCustomerResult>>();
 
             return services;
         }

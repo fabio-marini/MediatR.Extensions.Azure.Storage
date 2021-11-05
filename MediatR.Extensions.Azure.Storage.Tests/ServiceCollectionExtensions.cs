@@ -12,6 +12,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
                 .AddTransient<InsertRequestBehavior<TestCommand, Unit>>()
                 .AddTransient<InsertRequestBehavior<TestQuery, TestResult>>()
+                .AddTransient<InsertResponseBehavior<TestCommand, Unit>>()
+                .AddTransient<InsertResponseBehavior<TestQuery, TestResult>>()
                 .AddTransient<InsertRequestProcessor<TestCommand>>()
                 .AddTransient<InsertRequestProcessor<TestQuery>>()
                 .AddTransient<InsertResponseProcessor<TestCommand, Unit>>()
@@ -54,6 +56,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
                 .AddTransient<UploadRequestBehavior<TestCommand, Unit>>()
                 .AddTransient<UploadRequestBehavior<TestQuery, TestResult>>()
+                .AddTransient<UploadResponseBehavior<TestCommand, Unit>>()
+                .AddTransient<UploadResponseBehavior<TestQuery, TestResult>>()
                 .AddTransient<UploadRequestProcessor<TestCommand>>()
                 .AddTransient<UploadRequestProcessor<TestQuery>>()
                 .AddTransient<UploadResponseProcessor<TestCommand, Unit>>()
@@ -96,6 +100,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
                 .AddTransient<QueueRequestBehavior<TestCommand, Unit>>()
                 .AddTransient<QueueRequestBehavior<TestQuery, TestResult>>()
+                .AddTransient<QueueResponseBehavior<TestCommand, Unit>>()
+                .AddTransient<QueueResponseBehavior<TestQuery, TestResult>>()
                 .AddTransient<QueueRequestProcessor<TestCommand>>()
                 .AddTransient<QueueRequestProcessor<TestQuery>>()
                 .AddTransient<QueueResponseProcessor<TestCommand, Unit>>()

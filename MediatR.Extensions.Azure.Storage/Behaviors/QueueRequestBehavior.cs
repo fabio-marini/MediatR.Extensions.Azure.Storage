@@ -9,7 +9,6 @@ namespace MediatR.Extensions.Azure.Storage
         {
         }
     }
-
     public class QueueRequestBehavior<TRequest, TResponse> : RequestBehaviorBase<TRequest, TResponse> where TRequest : IRequest<TResponse>
     {
         public QueueRequestBehavior(IOptions<QueueMessageOptions<TRequest>> opt, PipelineContext ctx = null, ILogger log = null) : base(opt, ctx, log)
