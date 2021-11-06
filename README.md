@@ -6,33 +6,9 @@ This repository contains [MediatR](https://github.com/jbogard/MediatR) extension
 
 All extensions are configured using generic option classes. The generic type parameter represents the type to store (or route in the case of queue storage) and is either a MediatR request or response.
 
-[InsertEntityOptions](./MediatR.Extensions.Azure.Storage/Options/InsertEntityOptions.cs) are used to configure the table storage extensions
-
-Name | Description | Optional | Default 
---- | --- | --- | ---
-IsEnabled   | `true` to enable execution of the extension; `false` to disable it   | No  | Yes (`false`)
-CloudTable  | The table where the request/response will be stored                  | No  | No
-TableEntity | The delegate used to transform the request/response to a TableEntity | Yes | Yes
-
-[QueueMessageOptions](./MediatR.Extensions.Azure.Storage/Options/QueueMessageOptions.cs) are used to configure the queue storage extensions
-
-Name | Description | Optional | Default 
---- | --- | --- | ---
-IsEnabled   | `true` to enable execution of the extension; `false` to disable it   | No  | Yes (`false`)
-QueueClient | The queue client used to send the request/response | |
-QueueMessage | The delegate used to generate the message content from the request/response | |
-Visibility | | |
-TimeToLive | | |
-
-[UploadBlobOptions](./MediatR.Extensions.Azure.Storage/Options/UploadBlobOptions.cs) are used to configure the blob storage extensions
-
-Name | Description | Optional | Default 
---- | --- | --- | ---
-IsEnabled   | `true` to enable execution of the extension; `false` to disable it   | No  | Yes (`false`)
-BlobClient | The blob client used to upload the request/response | |
-BlobContent | The delegate used to generate the message content from the request/response | |
-BlobHeaders | | |
-Metadata | | |
+- [InsertEntityOptions](./MediatR.Extensions.Azure.Storage/Options/InsertEntityOptions.cs) are used to configure the table storage extensions
+- [QueueMessageOptions](./MediatR.Extensions.Azure.Storage/Options/QueueMessageOptions.cs) are used to configure the queue storage extensions
+- [UploadBlobOptions](./MediatR.Extensions.Azure.Storage/Options/UploadBlobOptions.cs) are used to configure the blob storage extensions
 
 All extensions take an optional dependency on [PipelineContext](./MediatR.Extensions.Azure.Storage/PipelineContext.cs), which is nothing but a `Dictionary<string, object>` and is used to share context with other behaviors/processors as described [here](https://jimmybogard.com/sharing-context-in-mediatr-pipelines/).
 
