@@ -19,7 +19,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
         private readonly Mock<QueueClient> que;
         private readonly Mock<ILogger> log;
 
-        private readonly QueueMessageCommand<TestMessage> cmd;
+        private readonly SendMessageCommand<TestMessage> cmd;
 
         public QueueMessageCommandTests()
         {
@@ -30,12 +30,12 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
             svc = new ServiceCollection()
 
                 .AddTransient<ILogger>(sp => log.Object)
-                .AddTransient<QueueMessageCommand<TestMessage>>()
+                .AddTransient<SendMessageCommand<TestMessage>>()
                 .AddTransient<IOptions<QueueMessageOptions<TestMessage>>>(sp => Options.Create(opt.Object))
 
                 .BuildServiceProvider();
 
-            cmd = svc.GetRequiredService<QueueMessageCommand<TestMessage>>();
+            cmd = svc.GetRequiredService<SendMessageCommand<TestMessage>>();
         }
 
         [Fact(DisplayName = "Command is disabled")]

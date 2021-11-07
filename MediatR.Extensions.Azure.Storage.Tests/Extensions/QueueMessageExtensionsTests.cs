@@ -2,6 +2,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -25,7 +26,38 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
             svc = new ServiceCollection()
 
-                .AddQueueMessageExtensions()
+                .AddSingleton<Mock<QueueMessageOptions<TestCommand>>>()
+                .AddSingleton<Mock<QueueMessageOptions<Unit>>>()
+                .AddSingleton<Mock<QueueMessageOptions<TestQuery>>>()
+                .AddSingleton<Mock<QueueMessageOptions<TestResult>>>()
+
+                .AddTransient<IOptions<QueueMessageOptions<TestCommand>>>(sp =>
+                {
+                    var optionsMock = sp.GetRequiredService<Mock<QueueMessageOptions<TestCommand>>>();
+
+                    return Options.Create(optionsMock.Object);
+                })
+                .AddTransient<IOptions<QueueMessageOptions<Unit>>>(sp =>
+                {
+                    var optionsMock = sp.GetRequiredService<Mock<QueueMessageOptions<Unit>>>();
+
+                    return Options.Create(optionsMock.Object);
+                })
+                .AddTransient<IOptions<QueueMessageOptions<TestQuery>>>(sp =>
+                {
+                    var optionsMock = sp.GetRequiredService<Mock<QueueMessageOptions<TestQuery>>>();
+
+                    return Options.Create(optionsMock.Object);
+                })
+                .AddTransient<IOptions<QueueMessageOptions<TestResult>>>(sp =>
+                {
+                    var optionsMock = sp.GetRequiredService<Mock<QueueMessageOptions<TestResult>>>();
+
+                    return Options.Create(optionsMock.Object);
+                })
+
+                .AddQueueExtensions<TestCommand>()
+                .AddMessageExtensions<TestQuery, TestResult>()
 
                 .AddTransient<PipelineContext>(sp => ctx.Object)
                 .AddTransient<ILogger>(sp => log.Object)

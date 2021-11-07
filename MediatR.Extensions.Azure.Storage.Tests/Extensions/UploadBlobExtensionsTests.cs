@@ -2,6 +2,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -25,7 +26,38 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
             svc = new ServiceCollection()
 
-                .AddUploadBlobExtensions()
+                .AddSingleton<Mock<UploadBlobOptions<TestCommand>>>()
+                .AddSingleton<Mock<UploadBlobOptions<Unit>>>()
+                .AddSingleton<Mock<UploadBlobOptions<TestQuery>>>()
+                .AddSingleton<Mock<UploadBlobOptions<TestResult>>>()
+
+                .AddTransient<IOptions<UploadBlobOptions<TestCommand>>>(sp =>
+                {
+                    var optionsMock = sp.GetRequiredService<Mock<UploadBlobOptions<TestCommand>>>();
+
+                    return Options.Create(optionsMock.Object);
+                })
+                .AddTransient<IOptions<UploadBlobOptions<Unit>>>(sp =>
+                {
+                    var optionsMock = sp.GetRequiredService<Mock<UploadBlobOptions<Unit>>>();
+
+                    return Options.Create(optionsMock.Object);
+                })
+                .AddTransient<IOptions<UploadBlobOptions<TestQuery>>>(sp =>
+                {
+                    var optionsMock = sp.GetRequiredService<Mock<UploadBlobOptions<TestQuery>>>();
+
+                    return Options.Create(optionsMock.Object);
+                })
+                .AddTransient<IOptions<UploadBlobOptions<TestResult>>>(sp =>
+                {
+                    var optionsMock = sp.GetRequiredService<Mock<UploadBlobOptions<TestResult>>>();
+
+                    return Options.Create(optionsMock.Object);
+                })
+
+                .AddBlobExtensions<TestCommand>()
+                .AddBlobExtensions<TestQuery, TestResult>()
 
                 .AddTransient<PipelineContext>(sp => ctx.Object)
                 .AddTransient<ILogger>(sp => log.Object)

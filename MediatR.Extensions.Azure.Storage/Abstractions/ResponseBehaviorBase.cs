@@ -29,7 +29,7 @@ namespace MediatR.Extensions.Azure.Storage
 
         public ResponseBehaviorBase(IOptions<QueueMessageOptions<TResponse>> opt, PipelineContext ctx = null, ILogger log = null)
         {
-            this.cmd = new QueueMessageCommand<TResponse>(opt, ctx, log);
+            this.cmd = new SendMessageCommand<TResponse>(opt, ctx, log);
             this.ctx = ctx;
             this.log = log ?? NullLogger.Instance;
         }

@@ -30,7 +30,7 @@ namespace MediatR.Extensions.Azure.Storage
 
         public RequestProcessorBase(IOptions<QueueMessageOptions<TRequest>> opt, PipelineContext ctx = null, ILogger log = null)
         {
-            this.cmd = cmd ?? new QueueMessageCommand<TRequest>(opt, ctx, log);
+            this.cmd = cmd ?? new SendMessageCommand<TRequest>(opt, ctx, log);
             this.log = log ?? NullLogger.Instance;
             this.ctx = ctx;
         }

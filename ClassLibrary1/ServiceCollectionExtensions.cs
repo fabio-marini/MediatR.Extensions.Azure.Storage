@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Linq;
 using System.Xml.Serialization;
 
 namespace ClassLibrary1
@@ -26,12 +27,15 @@ namespace ClassLibrary1
         // 6. use storage behaviors for activity and message tracking (named options)
         // 7. claim check pipeline
 
-        // TODO: complete README: move reference info to XML comments and add code examples to README...
+        // TODO: add implementation of remaining blob/queue commands
+
+        // TODO: add commands to all DEMO ServiceCollectionExtensions extension methods so they can be injected
+
+        // TODO: rename behaviors (delete request applies to blob/table/queue)
+        // TODO: add src and examples folders + add code examples to README...
+        // TODO: log operation results (see table commands) + wrap command operations in try/catch and rethrow consistent exception
+        // TODO: rename/document options (they are use for insert/delete/retrieve) + update README
         // TODO: each class should have a corresponding test class - re-refactor extension tests to work with abstractions...
-
-        // TODO: add retrieve (claim check) and delete (use case? also claim check) commands and extensions? Start with table storage...
-
-        // FIXME: delegates pipeline executes in the wrong order?!?
 
         // TODO: create simple diagrams?
         // TODO: add projects for Service Bus (messaging and management?) and HttpClient?
@@ -74,61 +78,6 @@ namespace ClassLibrary1
 
             return services;
         }
-
-        //public static IServiceCollection AddDelegatesPipeline(this IServiceCollection services)
-        //{
-        //    services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, DelegatePipelineBehavior<SourceCustomerCommand>>(sp =>
-        //    {
-        //        Func<SourceCustomerCommand, CancellationToken, RequestHandlerDelegate<Unit>, Task<Unit>> handle = (cmd, tkn, del) =>
-        //        {
-        //            Console.WriteLine("DelegatePipelineBehavior1");
-
-        //            return del();
-        //        };
-
-        //        return ActivatorUtilities.CreateInstance<DelegatePipelineBehavior<SourceCustomerCommand>>(sp, handle);
-        //    });
-        //    services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
-        //    services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
-        //    services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, DelegatePipelineBehavior<SourceCustomerCommand>>(sp =>
-        //    {
-        //        Func<SourceCustomerCommand, CancellationToken, RequestHandlerDelegate<Unit>, Task<Unit>> handle = (cmd, tkn, del) =>
-        //        {
-        //            Console.WriteLine("DelegatePipelineBehavior2");
-
-        //            return del();
-        //        };
-
-        //        return ActivatorUtilities.CreateInstance<DelegatePipelineBehavior<SourceCustomerCommand>>(sp, handle);
-        //    });
-
-        //    services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, DelegatePipelineBehavior<TargetCustomerCommand>>(sp =>
-        //    {
-        //        Func<TargetCustomerCommand, CancellationToken, RequestHandlerDelegate<Unit>, Task<Unit>> handle = (cmd, tkn, del) =>
-        //        {
-        //            Console.WriteLine("DelegatePipelineBehavior3");
-
-        //            return del();
-        //        };
-
-        //        return ActivatorUtilities.CreateInstance<DelegatePipelineBehavior<TargetCustomerCommand>>(sp, handle);
-        //    });
-        //    services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
-        //    services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
-        //    services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, DelegatePipelineBehavior<TargetCustomerCommand>>(sp =>
-        //    {
-        //        Func<TargetCustomerCommand, CancellationToken, RequestHandlerDelegate<Unit>, Task<Unit>> handle = (cmd, tkn, del) =>
-        //        {
-        //            Console.WriteLine("DelegatePipelineBehavior4");
-
-        //            return del();
-        //        };
-
-        //        return ActivatorUtilities.CreateInstance<DelegatePipelineBehavior<TargetCustomerCommand>>(sp, handle);
-        //    });
-
-        //    return services;
-        //}
 
         public static IServiceCollection AddTableTrackingPipeline(this IServiceCollection services)
         {
@@ -457,37 +406,70 @@ namespace ClassLibrary1
 
         public static IServiceCollection AddClaimCheckPipeline(this IServiceCollection services)
         {
-            var container = new BlobContainerClient("UseDevelopmentStorage=true", "claim-checks");
-            container.CreateIfNotExists();
+            // FIXME: claim check - canonical customer is populated on delete (retrieve only stores it in the context)
+            //        could use a delegate to map ITableEntity to TRequest/TResponse?
 
-            services.AddOptions<UploadBlobOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            var storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
+            var cloudTable = storageAccount.CreateCloudTableClient().GetTableReference("ClaimChecks");
+            cloudTable.CreateIfNotExists();
+
+            services.AddScoped<PipelineContext>();
+
+            services.AddTransient<InsertEntityCommand<SourceCustomerCommand>>();
+            services.AddTransient<RetrieveEntityCommand<SourceCustomerCommand>>();
+            services.AddTransient<DeleteEntityCommand<SourceCustomerCommand>>();
+            services.AddTransient<InsertEntityCommand<TargetCustomerCommand>>();
+            services.AddTransient<RetrieveEntityCommand<TargetCustomerCommand>>();
+            services.AddTransient<DeleteEntityCommand<TargetCustomerCommand>>();
+
+            services.AddOptions<InsertEntityOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
-                opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/canonical/{req.MessageId}.json");
-                opt.BlobContent = (req, ctx) =>
+                opt.CloudTable = cloudTable;
+                opt.TableEntity = (req, ctx) =>
                 {
-                    var blobContent = BinaryData.FromString(JsonConvert.SerializeObject(req.CanonicalCustomer));
+                    var tableEntity = new DynamicTableEntity("SourceCustomerCommand", req.MessageId);
 
-                    req.CanonicalCustomer = null;
-                    req.SourceCustomer = null;
+                    var canonicalCustomer = JsonConvert.SerializeObject(req.CanonicalCustomer);
 
-                    return blobContent;
+                    tableEntity.Properties.Add("CanonicalCustomer", EntityProperty.GeneratePropertyForString(canonicalCustomer));
+
+                    return tableEntity;
+                };
+            });
+            services.AddOptions<InsertEntityOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            {
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+                opt.CloudTable = cloudTable;
+                opt.TableEntity = (req, ctx) =>
+                {
+                    var tableEntity = new DynamicTableEntity("SourceCustomerCommand", req.MessageId) { ETag = "*" };
+
+                    if (ctx?.Entities != null)
+                    {
+                        // this delegate will be used by both retrieve and delete...
+                        // when used by delete, the context will have the canonical customer
+                        var retrievedEntity = ctx.Entities
+                            .FirstOrDefault(e => e.PartitionKey == tableEntity.PartitionKey && e.RowKey == tableEntity.RowKey);
+
+                        if (retrievedEntity != null)
+                        {
+                            var canonicalCustomer = retrievedEntity["CanonicalCustomer"].StringValue;
+
+                            req.CanonicalCustomer = JsonConvert.DeserializeObject<CanonicalCustomer>(canonicalCustomer);
+                        }
+                    }
+
+                    return tableEntity;
                 };
             });
 
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, UploadRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertRequestBehavior<SourceCustomerCommand>>();
 
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, ClaimCheckTargetCustomerBehavior>(sp =>
-            {
-                Func<TargetCustomerCommand, PipelineContext, BlobClient> blb = (req, ctx) =>
-                {
-                    return container.GetBlobClient($"customers/canonical/{req.MessageId}.json");
-                };
-
-                return ActivatorUtilities.CreateInstance<ClaimCheckTargetCustomerBehavior>(sp, blb);
-            });
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, RetrieveRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, DeleteRequestBehavior<TargetCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
 

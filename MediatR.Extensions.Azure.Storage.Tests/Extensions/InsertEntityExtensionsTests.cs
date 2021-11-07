@@ -2,6 +2,7 @@
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -25,7 +26,38 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
             svc = new ServiceCollection()
 
-                .AddInsertEntityExtensions()
+                .AddSingleton<Mock<InsertEntityOptions<TestCommand>>>()
+                .AddSingleton<Mock<InsertEntityOptions<Unit>>>()
+                .AddSingleton<Mock<InsertEntityOptions<TestQuery>>>()
+                .AddSingleton<Mock<InsertEntityOptions<TestResult>>>()
+
+                .AddTransient<IOptions<InsertEntityOptions<TestCommand>>>(sp =>
+                {
+                    var optionsMock = sp.GetRequiredService<Mock<InsertEntityOptions<TestCommand>>>();
+
+                    return Options.Create(optionsMock.Object);
+                })
+                .AddTransient<IOptions<InsertEntityOptions<Unit>>>(sp =>
+                {
+                    var optionsMock = sp.GetRequiredService<Mock<InsertEntityOptions<Unit>>>();
+
+                    return Options.Create(optionsMock.Object);
+                })
+                .AddTransient<IOptions<InsertEntityOptions<TestQuery>>>(sp =>
+                {
+                    var optionsMock = sp.GetRequiredService<Mock<InsertEntityOptions<TestQuery>>>();
+
+                    return Options.Create(optionsMock.Object);
+                })
+                .AddTransient<IOptions<InsertEntityOptions<TestResult>>>(sp =>
+                {
+                    var optionsMock = sp.GetRequiredService<Mock<InsertEntityOptions<TestResult>>>();
+
+                    return Options.Create(optionsMock.Object);
+                })
+
+                .AddTableExtensions<TestCommand>()
+                .AddTableExtensions<TestQuery, TestResult>()
 
                 .AddTransient<PipelineContext>(sp => ctx.Object)
                 .AddTransient<ILogger>(sp => log.Object)

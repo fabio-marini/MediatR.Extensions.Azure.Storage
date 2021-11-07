@@ -66,7 +66,9 @@ namespace MediatR.Extensions.Azure.Storage
 
             var insertOperation = TableOperation.Insert(tableEntity);
 
-            await opt.Value.CloudTable.ExecuteAsync(insertOperation, cancellationToken);
+            var tableResult = await opt.Value.CloudTable.ExecuteAsync(insertOperation, cancellationToken);
+
+            //log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, tableResult.HttpStatusCode);
         }
     }
 }

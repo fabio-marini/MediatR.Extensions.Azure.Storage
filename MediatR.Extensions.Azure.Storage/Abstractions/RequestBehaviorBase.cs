@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,15 +8,15 @@ namespace MediatR.Extensions.Azure.Storage
 {
     public abstract class RequestBehaviorBase<TRequest> : RequestBehaviorBase<TRequest, Unit> where TRequest : IRequest<Unit>
     {
-        public RequestBehaviorBase(IOptions<InsertEntityOptions<TRequest>> opt, PipelineContext ctx = null, ILogger log = null) : base(opt, ctx, log)
+        public RequestBehaviorBase(InsertEntityCommand<TRequest> cmd, PipelineContext ctx = null, ILogger log = null) : base(cmd, ctx, log)
         {
         }
 
-        public RequestBehaviorBase(IOptions<UploadBlobOptions<TRequest>> opt, PipelineContext ctx = null, ILogger log = null) : base(opt, ctx, log)
+        public RequestBehaviorBase(RetrieveEntityCommand<TRequest> cmd, PipelineContext ctx = null, ILogger log = null) : base(cmd, ctx, log)
         {
         }
 
-        public RequestBehaviorBase(IOptions<QueueMessageOptions<TRequest>> opt, PipelineContext ctx = null, ILogger log = null) : base(opt, ctx, log)
+        public RequestBehaviorBase(DeleteEntityCommand<TRequest> cmd, PipelineContext ctx = null, ILogger log = null) : base(cmd, ctx, log)
         {
         }
     }
@@ -28,23 +27,37 @@ namespace MediatR.Extensions.Azure.Storage
         private readonly PipelineContext ctx;
         private readonly ILogger log;
 
-        public RequestBehaviorBase(IOptions<InsertEntityOptions<TRequest>> opt, PipelineContext ctx = null, ILogger log = null)
+        public RequestBehaviorBase(InsertEntityCommand<TRequest> cmd, PipelineContext ctx = null, ILogger log = null)
         {
-            this.cmd = new InsertEntityCommand<TRequest>(opt, ctx, log);
+            this.cmd = cmd;
             this.ctx = ctx;
             this.log = log ?? NullLogger.Instance;
         }
 
-        public RequestBehaviorBase(IOptions<UploadBlobOptions<TRequest>> opt, PipelineContext ctx = null, ILogger log = null)
+        public RequestBehaviorBase(RetrieveEntityCommand<TRequest> cmd, PipelineContext ctx = null, ILogger log = null)
         {
-            this.cmd = new UploadBlobCommand<TRequest>(opt, ctx, log);
+            this.cmd = cmd;
             this.ctx = ctx;
             this.log = log ?? NullLogger.Instance;
         }
 
-        public RequestBehaviorBase(IOptions<QueueMessageOptions<TRequest>> opt, PipelineContext ctx = null, ILogger log = null)
+        public RequestBehaviorBase(DeleteEntityCommand<TRequest> cmd, PipelineContext ctx = null, ILogger log = null)
         {
-            this.cmd = new QueueMessageCommand<TRequest>(opt, ctx, log);
+            this.cmd = cmd;
+            this.ctx = ctx;
+            this.log = log ?? NullLogger.Instance;
+        }
+
+        public RequestBehaviorBase(UploadBlobCommand<TRequest> cmd, PipelineContext ctx = null, ILogger log = null)
+        {
+            this.cmd = cmd;
+            this.ctx = ctx;
+            this.log = log ?? NullLogger.Instance;
+        }
+
+        public RequestBehaviorBase(SendMessageCommand<TRequest> cmd, PipelineContext ctx = null, ILogger log = null)
+        {
+            this.cmd = cmd;
             this.ctx = ctx;
             this.log = log ?? NullLogger.Instance;
         }
