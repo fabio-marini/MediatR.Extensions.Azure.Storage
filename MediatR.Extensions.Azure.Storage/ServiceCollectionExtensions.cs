@@ -56,10 +56,10 @@ namespace MediatR.Extensions.Azure.Storage
 
         public static IServiceCollection AddQueueExtensions<TRequest>(this IServiceCollection services) where TRequest : IRequest<Unit>
         {
-            return services.AddMessageExtensions<TRequest, Unit>();
+            return services.AddQueueExtensions<TRequest, Unit>();
         }
 
-        public static IServiceCollection AddMessageExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
+        public static IServiceCollection AddQueueExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
         {
             return services
 
@@ -71,10 +71,10 @@ namespace MediatR.Extensions.Azure.Storage
                 .AddTransient<ReceiveMessageCommand<TRequest>>()
                 .AddTransient<DeleteMessageCommand<TRequest>>()
 
-                .AddTransient<QueueRequestBehavior<TRequest, TResponse>>()
-                .AddTransient<QueueResponseBehavior<TRequest, TResponse>>()
-                .AddTransient<QueueRequestProcessor<TRequest>>()
-                .AddTransient<QueueResponseProcessor<TRequest, TResponse>>()
+                .AddTransient<SendRequestBehavior<TRequest, TResponse>>()
+                .AddTransient<SendResponseBehavior<TRequest, TResponse>>()
+                .AddTransient<SendRequestProcessor<TRequest>>()
+                .AddTransient<SendResponseProcessor<TRequest, TResponse>>()
 
                 ;
         }

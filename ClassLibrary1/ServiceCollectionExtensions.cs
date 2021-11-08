@@ -191,15 +191,15 @@ namespace ClassLibrary1
                 };
             });
 
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, QueueRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, SendRequestBehavior<SourceCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, QueueRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, SendRequestBehavior<SourceCustomerCommand>>();
 
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, QueueRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, SendRequestBehavior<TargetCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, QueueRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, SendRequestBehavior<TargetCustomerCommand>>();
 
             return services;
         }
