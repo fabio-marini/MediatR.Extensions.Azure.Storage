@@ -266,8 +266,6 @@ namespace ConsoleApp1
                 // run query
                 //.AddBlobTrackingProcessors()
 
-                //.AddClaimCheckPipeline()
-
                 .BuildServiceProvider();
 
             var mediator = serviceProvider.GetRequiredService<IMediator>();

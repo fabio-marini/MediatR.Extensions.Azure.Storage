@@ -65,11 +65,9 @@ namespace MediatR.Extensions.Azure.Storage
 
                 .AddTransient<SendMessageCommand<TRequest>>()
                 .AddTransient<ReceiveMessageCommand<TRequest>>()
-                .AddTransient<DeleteMessageCommand<TRequest>>()
 
                 .AddTransient<SendMessageCommand<TResponse>>()
                 .AddTransient<ReceiveMessageCommand<TRequest>>()
-                .AddTransient<DeleteMessageCommand<TRequest>>()
 
                 .AddTransient<SendRequestBehavior<TRequest, TResponse>>()
                 .AddTransient<SendResponseBehavior<TRequest, TResponse>>()

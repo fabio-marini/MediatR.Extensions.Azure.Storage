@@ -22,8 +22,6 @@ namespace MediatR.Extensions.Azure.Storage
 
         public virtual async Task ExecuteAsync(TMessage message, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
-
             cancellationToken.ThrowIfCancellationRequested();
 
             if (opt.Value.IsEnabled == false)
@@ -40,12 +38,16 @@ namespace MediatR.Extensions.Azure.Storage
 
             var receiveResponse = await opt.Value.QueueClient.ReceiveMessageAsync(opt.Value.Visibility, cancellationToken);
 
-            log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, receiveResponse.GetRawResponse().Status);
+            log.LogDebug("Command {Command} completed receive task with status {StatusCode}", this.GetType().Name, receiveResponse.GetRawResponse().Status);
 
             if (receiveResponse.Value != null)
             {
-                ctx.Messages.Add(receiveResponse.Value);
+                ctx.Messages.Enqueue(receiveResponse.Value);
             }
+
+            var deleteResponse = await opt.Value.QueueClient.DeleteMessageAsync(receiveResponse.Value.MessageId, receiveResponse.Value.PopReceipt, cancellationToken);
+
+            log.LogDebug("Command {Command} completed delete task with status {StatusCode}", this.GetType().Name, deleteResponse.Status);
         }
     }
 }

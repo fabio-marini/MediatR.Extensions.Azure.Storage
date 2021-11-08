@@ -79,13 +79,6 @@ namespace MediatR.Extensions.Azure.Storage
             this.log = log ?? NullLogger.Instance;
         }
 
-        public RequestProcessorBase(DeleteMessageCommand<TRequest> cmd, PipelineContext ctx = null, ILogger log = null)
-        {
-            this.cmd = cmd;
-            this.ctx = ctx;
-            this.log = log ?? NullLogger.Instance;
-        }
-
         #endregion
 
         public async Task Process(TRequest request, CancellationToken cancellationToken)

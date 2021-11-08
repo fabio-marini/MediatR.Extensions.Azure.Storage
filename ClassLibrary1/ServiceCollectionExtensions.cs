@@ -27,17 +27,20 @@ namespace ClassLibrary1
         // 6. use storage behaviors for activity and message tracking (named options)
         // 7. claim check pipeline
 
-        // TODO: add implementation of remaining blob/queue commands
-        // TODO: add implementation of remaining behaviors/processors
-
         // TODO: review ServiceCollectionExtensions extension methods - behaviors are added explicitly, processors automatically?
         // TODO: add commands to all DEMO ServiceCollectionExtensions extension methods so they can be injected
+
+        // TODO: refactor extension tests so each base class has a corresponding test class...
+        // TODO: add tests for send/receive queue commands
+
+        // TODO: add example for queue behaviors/processors
+        // TODO: add implementation of remaining blob/queue commands
+        // TODO: add implementation of remaining behaviors/processors
 
         // TODO: rename behaviors (delete request applies to blob/table/queue)
         // TODO: add src and examples folders + add code examples to README...
         // TODO: log operation results (see table commands) + wrap command operations in try/catch and rethrow consistent exception
         // TODO: rename/document options (they are use for insert/delete/retrieve) + update README
-        // TODO: each class should have a corresponding test class - re-refactor extension tests to work with abstractions...
 
         // TODO: create simple diagrams?
         // TODO: add projects for Service Bus (messaging and management?) and HttpClient?
@@ -472,6 +475,57 @@ namespace ClassLibrary1
 
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, RetrieveRequestBehavior<TargetCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, DeleteRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddQueueClaimCheckPipeline(this IServiceCollection services)
+        {
+            var queueClient = new QueueClient("UseDevelopmentStorage=true", "claim-checks");
+            queueClient.CreateIfNotExists();
+
+            services.AddScoped<PipelineContext>();
+
+            services.AddTransient<SendMessageCommand<SourceCustomerCommand>>();
+            services.AddTransient<ReceiveMessageCommand<TargetCustomerCommand>>();
+
+            services.AddOptions<QueueMessageOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            {
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+                opt.QueueClient = queueClient;
+                opt.QueueMessage = (req, ctx) =>
+                {
+                    var canonicalCustomer = JsonConvert.SerializeObject(new { Id = req.MessageId, req.CanonicalCustomer });
+
+                    return BinaryData.FromString(canonicalCustomer);
+                };
+            });
+            services.AddOptions<QueueMessageOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            {
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+                opt.QueueClient = queueClient;
+                opt.QueueMessage = (req, ctx) =>
+                {
+                    var receivedMessage = ctx?.Messages.Dequeue();
+
+                    if (receivedMessage != null)
+                    {
+                        var canonicalCustomer = receivedMessage.Body.ToString();
+
+                        req.CanonicalCustomer = JsonConvert.DeserializeObject<CanonicalCustomer>(canonicalCustomer);
+                    }
+
+                    return receivedMessage?.Body;
+                };
+            });
+
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, SendRequestBehavior<SourceCustomerCommand>>();
+
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, ReceiveRequestBehavior<TargetCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
 
