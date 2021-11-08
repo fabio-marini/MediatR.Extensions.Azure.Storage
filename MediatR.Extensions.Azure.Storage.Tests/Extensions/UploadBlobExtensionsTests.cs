@@ -2,7 +2,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -26,37 +25,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
             svc = new ServiceCollection()
 
-                .AddSingleton<Mock<UploadBlobOptions<TestCommand>>>()
-                .AddSingleton<Mock<UploadBlobOptions<Unit>>>()
-                .AddSingleton<Mock<UploadBlobOptions<TestQuery>>>()
-                .AddSingleton<Mock<UploadBlobOptions<TestResult>>>()
-
-                .AddTransient<IOptions<UploadBlobOptions<TestCommand>>>(sp =>
-                {
-                    var optionsMock = sp.GetRequiredService<Mock<UploadBlobOptions<TestCommand>>>();
-
-                    return Options.Create(optionsMock.Object);
-                })
-                .AddTransient<IOptions<UploadBlobOptions<Unit>>>(sp =>
-                {
-                    var optionsMock = sp.GetRequiredService<Mock<UploadBlobOptions<Unit>>>();
-
-                    return Options.Create(optionsMock.Object);
-                })
-                .AddTransient<IOptions<UploadBlobOptions<TestQuery>>>(sp =>
-                {
-                    var optionsMock = sp.GetRequiredService<Mock<UploadBlobOptions<TestQuery>>>();
-
-                    return Options.Create(optionsMock.Object);
-                })
-                .AddTransient<IOptions<UploadBlobOptions<TestResult>>>(sp =>
-                {
-                    var optionsMock = sp.GetRequiredService<Mock<UploadBlobOptions<TestResult>>>();
-
-                    return Options.Create(optionsMock.Object);
-                })
-
-                .AddBlobExtensions<TestCommand>()
+                .AddBlobExtensions<TestCommand, Unit>()
                 .AddBlobExtensions<TestQuery, TestResult>()
 
                 .AddTransient<PipelineContext>(sp => ctx.Object)
@@ -75,9 +44,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Handle(TestCommand.Default, tkn, () => Unit.Task);
                 }),
-                new Func<IServiceProvider, Mock<UploadBlobOptions<TestCommand>>>(svc =>
+                new Func<IServiceProvider, Mock<UploadBlobCommand<TestCommand>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<UploadBlobOptions<TestCommand>>>();
+                    return svc.GetRequiredService<Mock<UploadBlobCommand<TestCommand>>>();
                 })
             };
             yield return new object[]
@@ -88,9 +57,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Handle(TestQuery.Default, tkn, () => Task.FromResult(TestResult.Default));
                 }),
-                new Func<IServiceProvider, Mock<UploadBlobOptions<TestQuery>>>(svc =>
+                new Func<IServiceProvider, Mock<UploadBlobCommand<TestQuery>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<UploadBlobOptions<TestQuery>>>();
+                    return svc.GetRequiredService<Mock<UploadBlobCommand<TestQuery>>>();
                 })
             };
             yield return new object[]
@@ -101,9 +70,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Handle(TestCommand.Default, tkn, () => Unit.Task);
                 }),
-                new Func<IServiceProvider, Mock<UploadBlobOptions<Unit>>>(svc =>
+                new Func<IServiceProvider, Mock<UploadBlobCommand<Unit>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<UploadBlobOptions<Unit>>>();
+                    return svc.GetRequiredService<Mock<UploadBlobCommand<Unit>>>();
                 })
             };
             yield return new object[]
@@ -114,9 +83,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Handle(TestQuery.Default, tkn, () => Task.FromResult(TestResult.Default));
                 }),
-                new Func<IServiceProvider, Mock<UploadBlobOptions<TestResult>>>(svc =>
+                new Func<IServiceProvider, Mock<UploadBlobCommand<TestResult>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<UploadBlobOptions<TestResult>>>();
+                    return svc.GetRequiredService<Mock<UploadBlobCommand<TestResult>>>();
                 })
             };
             yield return new object[]
@@ -127,9 +96,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Process(TestCommand.Default, tkn);
                 }),
-                new Func<IServiceProvider, Mock<UploadBlobOptions<TestCommand>>>(svc =>
+                new Func<IServiceProvider, Mock<UploadBlobCommand<TestCommand>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<UploadBlobOptions<TestCommand>>>();
+                    return svc.GetRequiredService<Mock<UploadBlobCommand<TestCommand>>>();
                 })
             };
             yield return new object[]
@@ -140,9 +109,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Process(TestQuery.Default, tkn);
                 }),
-                new Func<IServiceProvider, Mock<UploadBlobOptions<TestQuery>>>(svc =>
+                new Func<IServiceProvider, Mock<UploadBlobCommand<TestQuery>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<UploadBlobOptions<TestQuery>>>();
+                    return svc.GetRequiredService<Mock<UploadBlobCommand<TestQuery>>>();
                 })
             };
             yield return new object[]
@@ -153,9 +122,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Process(TestCommand.Default, Unit.Value, tkn);
                 }),
-                new Func<IServiceProvider, Mock<UploadBlobOptions<Unit>>>(svc =>
+                new Func<IServiceProvider, Mock<UploadBlobCommand<Unit>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<UploadBlobOptions<Unit>>>();
+                    return svc.GetRequiredService<Mock<UploadBlobCommand<Unit>>>();
                 })
             };
             yield return new object[]
@@ -166,22 +135,18 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Process(TestQuery.Default, TestResult.Default, tkn);
                 }),
-                new Func<IServiceProvider, Mock<UploadBlobOptions<TestResult>>>(svc =>
+                new Func<IServiceProvider, Mock<UploadBlobCommand<TestResult>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<UploadBlobOptions<TestResult>>>();
+                    return svc.GetRequiredService<Mock<UploadBlobCommand<TestResult>>>();
                 })
             };
         }
 
         [Theory(DisplayName = "Extension executes successfully"), MemberData(nameof(TestData))]
         public async Task Test1<TMessage>(Func<IServiceProvider, CancellationToken, Task> act,
-            Func<IServiceProvider, Mock<UploadBlobOptions<TMessage>>> opt)
+            Func<IServiceProvider, Mock<UploadBlobCommand<TMessage>>> cmd)
         {
-            var blb = new Mock<BlobClient>("UseDevelopmentStorage=true", "container1", "blob1");
-
-            opt(svc).SetupProperty(m => m.IsEnabled, true);
-            opt(svc).SetupProperty(m => m.BlobClient, (req, ctx) => blb.Object);
-            opt(svc).SetupProperty(m => m.BlobContent, (req, ctx) => BinaryData.FromString("Hello world"));
+            cmd(svc).Setup(m => m.ExecuteAsync(It.IsAny<TMessage>(), CancellationToken.None)).Returns(Task.CompletedTask);
 
             await act(svc, CancellationToken.None);
 
@@ -192,9 +157,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
         [Theory(DisplayName = "Extension handles exceptions"), MemberData(nameof(TestData))]
         public async Task Test2<TMessage>(Func<IServiceProvider, CancellationToken, Task> act,
-            Func<IServiceProvider, Mock<UploadBlobOptions<TMessage>>> opt)
+            Func<IServiceProvider, Mock<UploadBlobCommand<TMessage>>> cmd)
         {
-            opt(svc).SetupProperty(m => m.IsEnabled, true);
+            cmd(svc).Setup(m => m.ExecuteAsync(It.IsAny<TMessage>(), CancellationToken.None)).Throws(new ArgumentNullException());
 
             await act(svc, CancellationToken.None);
 
@@ -208,9 +173,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
         [Theory(DisplayName = "Extension handles cancellations"), MemberData(nameof(TestData))]
         public async Task Test3<TMessage>(Func<IServiceProvider, CancellationToken, Task> act,
-            Func<IServiceProvider, Mock<UploadBlobOptions<TMessage>>> opt)
+            Func<IServiceProvider, Mock<UploadBlobCommand<TMessage>>> cmd)
         {
-            _ = opt(svc);
+            _ = cmd(svc);
             
             var src = new CancellationTokenSource(0);
 

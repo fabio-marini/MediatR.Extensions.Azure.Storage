@@ -3,7 +3,7 @@ using System;
 
 namespace MediatR.Extensions.Azure.Storage
 {
-    public class QueueMessageOptions<TMessage>
+    public class SendMessageOptions<TMessage>
     {
         public virtual bool IsEnabled { get; set; }
         public virtual QueueClient QueueClient { get; set; }

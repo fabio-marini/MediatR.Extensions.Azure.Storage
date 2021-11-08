@@ -27,10 +27,8 @@ namespace ClassLibrary1
         // 6. use storage behaviors for activity and message tracking (named options)
         // 7. claim check pipeline
 
-        // TODO: review ServiceCollectionExtensions extension methods - behaviors are added explicitly, processors automatically?
         // TODO: add commands to all DEMO ServiceCollectionExtensions extension methods so they can be injected
 
-        // TODO: refactor extension tests so each base class has a corresponding test class...
         // TODO: add tests for send/receive queue commands
 
         // TODO: add example for queue behaviors/processors
@@ -40,10 +38,11 @@ namespace ClassLibrary1
         // TODO: rename behaviors (delete request applies to blob/table/queue)
         // TODO: add src and examples folders + add code examples to README...
         // TODO: log operation results (see table commands) + wrap command operations in try/catch and rethrow consistent exception
-        // TODO: rename/document options (they are use for insert/delete/retrieve) + update README
+        // TODO: rename/document options (they are used for insert/delete/retrieve) + update README
 
         // TODO: create simple diagrams?
         // TODO: add projects for Service Bus (messaging and management?) and HttpClient?
+        // TODO: delete from table/blob for maintenance (using retention days?)
 
         public static IServiceCollection AddCore(this IServiceCollection services)
         {
@@ -171,12 +170,12 @@ namespace ClassLibrary1
             var queueClient = new QueueClient("UseDevelopmentStorage=true", "messages");
             queueClient.CreateIfNotExists();
 
-            services.AddOptions<QueueMessageOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<SendMessageOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.QueueClient = queueClient;
             });
-            services.AddOptions<QueueMessageOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<SendMessageOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.QueueClient = queueClient;
@@ -491,7 +490,7 @@ namespace ClassLibrary1
             services.AddTransient<SendMessageCommand<SourceCustomerCommand>>();
             services.AddTransient<ReceiveMessageCommand<TargetCustomerCommand>>();
 
-            services.AddOptions<QueueMessageOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<SendMessageOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.QueueClient = queueClient;
@@ -502,7 +501,7 @@ namespace ClassLibrary1
                     return BinaryData.FromString(canonicalCustomer);
                 };
             });
-            services.AddOptions<QueueMessageOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<SendMessageOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.QueueClient = queueClient;

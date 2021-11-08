@@ -1,8 +1,6 @@
 ﻿using FluentAssertions;
-using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -26,37 +24,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
             svc = new ServiceCollection()
 
-                .AddSingleton<Mock<InsertEntityOptions<TestCommand>>>()
-                .AddSingleton<Mock<InsertEntityOptions<Unit>>>()
-                .AddSingleton<Mock<InsertEntityOptions<TestQuery>>>()
-                .AddSingleton<Mock<InsertEntityOptions<TestResult>>>()
-
-                .AddTransient<IOptions<InsertEntityOptions<TestCommand>>>(sp =>
-                {
-                    var optionsMock = sp.GetRequiredService<Mock<InsertEntityOptions<TestCommand>>>();
-
-                    return Options.Create(optionsMock.Object);
-                })
-                .AddTransient<IOptions<InsertEntityOptions<Unit>>>(sp =>
-                {
-                    var optionsMock = sp.GetRequiredService<Mock<InsertEntityOptions<Unit>>>();
-
-                    return Options.Create(optionsMock.Object);
-                })
-                .AddTransient<IOptions<InsertEntityOptions<TestQuery>>>(sp =>
-                {
-                    var optionsMock = sp.GetRequiredService<Mock<InsertEntityOptions<TestQuery>>>();
-
-                    return Options.Create(optionsMock.Object);
-                })
-                .AddTransient<IOptions<InsertEntityOptions<TestResult>>>(sp =>
-                {
-                    var optionsMock = sp.GetRequiredService<Mock<InsertEntityOptions<TestResult>>>();
-
-                    return Options.Create(optionsMock.Object);
-                })
-
-                .AddTableExtensions<TestCommand>()
+                .AddTableExtensions<TestCommand, Unit>()
                 .AddTableExtensions<TestQuery, TestResult>()
 
                 .AddTransient<PipelineContext>(sp => ctx.Object)
@@ -75,9 +43,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Handle(TestCommand.Default, tkn, () => Unit.Task);
                 }),
-                new Func<IServiceProvider, Mock<InsertEntityOptions<TestCommand>>>(svc =>
+                new Func<IServiceProvider, Mock<InsertEntityCommand<TestCommand>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<InsertEntityOptions<TestCommand>>>();
+                    return svc.GetRequiredService<Mock<InsertEntityCommand<TestCommand>>>();
                 })
             };
             yield return new object[]
@@ -88,9 +56,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Handle(TestQuery.Default, tkn, () => Task.FromResult(TestResult.Default));
                 }),
-                new Func<IServiceProvider, Mock<InsertEntityOptions<TestQuery>>>(svc =>
+                new Func<IServiceProvider, Mock<InsertEntityCommand<TestQuery>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<InsertEntityOptions<TestQuery>>>();
+                    return svc.GetRequiredService<Mock<InsertEntityCommand<TestQuery>>>();
                 })
             };
             yield return new object[]
@@ -101,9 +69,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Handle(TestCommand.Default, tkn, () => Unit.Task);
                 }),
-                new Func<IServiceProvider, Mock<InsertEntityOptions<Unit>>>(svc =>
+                new Func<IServiceProvider, Mock<InsertEntityCommand<Unit>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<InsertEntityOptions<Unit>>>();
+                    return svc.GetRequiredService<Mock<InsertEntityCommand<Unit>>>();
                 })
             };
             yield return new object[]
@@ -114,9 +82,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Handle(TestQuery.Default, tkn, () => Task.FromResult(TestResult.Default));
                 }),
-                new Func<IServiceProvider, Mock<InsertEntityOptions<TestResult>>>(svc =>
+                new Func<IServiceProvider, Mock<InsertEntityCommand<TestResult>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<InsertEntityOptions<TestResult>>>();
+                    return svc.GetRequiredService<Mock<InsertEntityCommand<TestResult>>>();
                 })
             };
             yield return new object[]
@@ -127,9 +95,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Process(TestCommand.Default, tkn);
                 }),
-                new Func<IServiceProvider, Mock<InsertEntityOptions<TestCommand>>>(svc =>
+                new Func<IServiceProvider, Mock<InsertEntityCommand<TestCommand>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<InsertEntityOptions<TestCommand>>>();
+                    return svc.GetRequiredService<Mock<InsertEntityCommand<TestCommand>>>();
                 })
             };
             yield return new object[]
@@ -140,9 +108,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Process(TestQuery.Default, tkn);
                 }),
-                new Func<IServiceProvider, Mock<InsertEntityOptions<TestQuery>>>(svc =>
+                new Func<IServiceProvider, Mock<InsertEntityCommand<TestQuery>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<InsertEntityOptions<TestQuery>>>();
+                    return svc.GetRequiredService<Mock<InsertEntityCommand<TestQuery>>>();
                 })
             };
             yield return new object[]
@@ -153,9 +121,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Process(TestCommand.Default, Unit.Value, tkn);
                 }),
-                new Func<IServiceProvider, Mock<InsertEntityOptions<Unit>>>(svc =>
+                new Func<IServiceProvider, Mock<InsertEntityCommand<Unit>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<InsertEntityOptions<Unit>>>();
+                    return svc.GetRequiredService<Mock<InsertEntityCommand<Unit>>>();
                 })
             };
             yield return new object[]
@@ -166,22 +134,18 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Process(TestQuery.Default, TestResult.Default, tkn);
                 }),
-                new Func<IServiceProvider, Mock<InsertEntityOptions<TestResult>>>(svc =>
+                new Func<IServiceProvider, Mock<InsertEntityCommand<TestResult>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<InsertEntityOptions<TestResult>>>();
+                    return svc.GetRequiredService<Mock<InsertEntityCommand<TestResult>>>();
                 })
             };
         }
 
         [Theory(DisplayName = "Extension executes successfully"), MemberData(nameof(TestData))]
         public async Task Test1<TMessage>(Func<IServiceProvider, CancellationToken, Task> act,
-            Func<IServiceProvider, Mock<InsertEntityOptions<TMessage>>> opt)
+            Func<IServiceProvider, Mock<InsertEntityCommand<TMessage>>> cmd)
         {
-            var tbl = new Mock<CloudTable>(new Uri("http://127.0.0.1:10002/devstoreaccount1/table1"), null);
-
-            opt(svc).SetupProperty(m => m.IsEnabled, true);
-            opt(svc).SetupProperty(m => m.CloudTable, tbl.Object);
-            opt(svc).SetupProperty(m => m.TableEntity, (req, ctx) => new DynamicTableEntity("PK1", "RK1"));
+            cmd(svc).Setup(m => m.ExecuteAsync(It.IsAny<TMessage>(), CancellationToken.None)).Returns(Task.CompletedTask);
 
             await act(svc, CancellationToken.None);
 
@@ -192,9 +156,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
         [Theory(DisplayName = "Extension handles exceptions"), MemberData(nameof(TestData))]
         public async Task Test2<TMessage>(Func<IServiceProvider, CancellationToken, Task> act,
-            Func<IServiceProvider, Mock<InsertEntityOptions<TMessage>>> opt)
+            Func<IServiceProvider, Mock<InsertEntityCommand<TMessage>>> cmd)
         {
-            opt(svc).SetupProperty(m => m.IsEnabled, true);
+            cmd(svc).Setup(m => m.ExecuteAsync(It.IsAny<TMessage>(), CancellationToken.None)).Throws(new ArgumentNullException());
 
             await act(svc, CancellationToken.None);
 
@@ -208,9 +172,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
         [Theory(DisplayName = "Extension handles cancellations"), MemberData(nameof(TestData))]
         public async Task Test3<TMessage>(Func<IServiceProvider, CancellationToken, Task> act,
-            Func<IServiceProvider, Mock<InsertEntityOptions<TMessage>>> opt)
+            Func<IServiceProvider, Mock<InsertEntityCommand<TMessage>>> cmd)
         {
-            _ = opt(svc);
+            _ = cmd(svc);
 
             var src = new CancellationTokenSource(0);
 

@@ -1,8 +1,6 @@
-﻿using Azure.Storage.Queues;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -26,37 +24,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
             svc = new ServiceCollection()
 
-                .AddSingleton<Mock<QueueMessageOptions<TestCommand>>>()
-                .AddSingleton<Mock<QueueMessageOptions<Unit>>>()
-                .AddSingleton<Mock<QueueMessageOptions<TestQuery>>>()
-                .AddSingleton<Mock<QueueMessageOptions<TestResult>>>()
-
-                .AddTransient<IOptions<QueueMessageOptions<TestCommand>>>(sp =>
-                {
-                    var optionsMock = sp.GetRequiredService<Mock<QueueMessageOptions<TestCommand>>>();
-
-                    return Options.Create(optionsMock.Object);
-                })
-                .AddTransient<IOptions<QueueMessageOptions<Unit>>>(sp =>
-                {
-                    var optionsMock = sp.GetRequiredService<Mock<QueueMessageOptions<Unit>>>();
-
-                    return Options.Create(optionsMock.Object);
-                })
-                .AddTransient<IOptions<QueueMessageOptions<TestQuery>>>(sp =>
-                {
-                    var optionsMock = sp.GetRequiredService<Mock<QueueMessageOptions<TestQuery>>>();
-
-                    return Options.Create(optionsMock.Object);
-                })
-                .AddTransient<IOptions<QueueMessageOptions<TestResult>>>(sp =>
-                {
-                    var optionsMock = sp.GetRequiredService<Mock<QueueMessageOptions<TestResult>>>();
-
-                    return Options.Create(optionsMock.Object);
-                })
-
-                .AddQueueExtensions<TestCommand>()
+                .AddQueueExtensions<TestCommand, Unit>()
                 .AddQueueExtensions<TestQuery, TestResult>()
 
                 .AddTransient<PipelineContext>(sp => ctx.Object)
@@ -75,9 +43,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Handle(TestCommand.Default, tkn, () => Unit.Task);
                 }),
-                new Func<IServiceProvider, Mock<QueueMessageOptions<TestCommand>>>(svc =>
+                new Func<IServiceProvider, Mock<SendMessageCommand<TestCommand>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<QueueMessageOptions<TestCommand>>>();
+                    return svc.GetRequiredService<Mock<SendMessageCommand<TestCommand>>>();
                 })
             };
             yield return new object[]
@@ -88,9 +56,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Handle(TestQuery.Default, tkn, () => Task.FromResult(TestResult.Default));
                 }),
-                new Func<IServiceProvider, Mock<QueueMessageOptions<TestQuery>>>(svc =>
+                new Func<IServiceProvider, Mock<SendMessageCommand<TestQuery>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<QueueMessageOptions<TestQuery>>>();
+                    return svc.GetRequiredService<Mock<SendMessageCommand<TestQuery>>>();
                 })
             };
             yield return new object[]
@@ -101,9 +69,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Handle(TestCommand.Default, tkn, () => Unit.Task);
                 }),
-                new Func<IServiceProvider, Mock<QueueMessageOptions<Unit>>>(svc =>
+                new Func<IServiceProvider, Mock<SendMessageCommand<Unit>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<QueueMessageOptions<Unit>>>();
+                    return svc.GetRequiredService<Mock<SendMessageCommand<Unit>>>();
                 })
             };
             yield return new object[]
@@ -114,9 +82,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Handle(TestQuery.Default, tkn, () => Task.FromResult(TestResult.Default));
                 }),
-                new Func<IServiceProvider, Mock<QueueMessageOptions<TestResult>>>(svc =>
+                new Func<IServiceProvider, Mock<SendMessageCommand<TestResult>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<QueueMessageOptions<TestResult>>>();
+                    return svc.GetRequiredService<Mock<SendMessageCommand<TestResult>>>();
                 })
             };
             yield return new object[]
@@ -127,9 +95,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Process(TestCommand.Default, tkn);
                 }),
-                new Func<IServiceProvider, Mock<QueueMessageOptions<TestCommand>>>(svc =>
+                new Func<IServiceProvider, Mock<SendMessageCommand<TestCommand>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<QueueMessageOptions<TestCommand>>>();
+                    return svc.GetRequiredService<Mock<SendMessageCommand<TestCommand>>>();
                 })
             };
             yield return new object[]
@@ -140,9 +108,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Process(TestQuery.Default, tkn);
                 }),
-                new Func<IServiceProvider, Mock<QueueMessageOptions<TestQuery>>>(svc =>
+                new Func<IServiceProvider, Mock<SendMessageCommand<TestQuery>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<QueueMessageOptions<TestQuery>>>();
+                    return svc.GetRequiredService<Mock<SendMessageCommand<TestQuery>>>();
                 })
             };
             yield return new object[]
@@ -153,9 +121,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Process(TestCommand.Default, Unit.Value, tkn);
                 }),
-                new Func<IServiceProvider, Mock<QueueMessageOptions<Unit>>>(svc =>
+                new Func<IServiceProvider, Mock<SendMessageCommand<Unit>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<QueueMessageOptions<Unit>>>();
+                    return svc.GetRequiredService<Mock<SendMessageCommand<Unit>>>();
                 })
             };
             yield return new object[]
@@ -166,22 +134,18 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
                     await bvr.Process(TestQuery.Default, TestResult.Default, tkn);
                 }),
-                new Func<IServiceProvider, Mock<QueueMessageOptions<TestResult>>>(svc =>
+                new Func<IServiceProvider, Mock<SendMessageCommand<TestResult>>>(svc =>
                 {
-                    return svc.GetRequiredService<Mock<QueueMessageOptions<TestResult>>>();
+                    return svc.GetRequiredService<Mock<SendMessageCommand<TestResult>>>();
                 })
             };
         }
 
         [Theory(DisplayName = "Extension executes successfully"), MemberData(nameof(TestData))]
         public async Task Test1<TMessage>(Func<IServiceProvider, CancellationToken, Task> act,
-            Func<IServiceProvider, Mock<QueueMessageOptions<TMessage>>> opt)
+            Func<IServiceProvider, Mock<SendMessageCommand<TMessage>>> cmd)
         {
-            var que = new Mock<QueueClient>("UseDevelopmentStorage=true", "queue1");
-
-            opt(svc).SetupProperty(m => m.IsEnabled, true);
-            opt(svc).SetupProperty(m => m.QueueClient, que.Object);
-            opt(svc).SetupProperty(m => m.QueueMessage, (req, ctx) => BinaryData.FromString("Hello world"));
+            cmd(svc).Setup(m => m.ExecuteAsync(It.IsAny<TMessage>(), CancellationToken.None)).Returns(Task.CompletedTask);
 
             await act(svc, CancellationToken.None);
 
@@ -192,9 +156,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
         [Theory(DisplayName = "Extension handles exceptions"), MemberData(nameof(TestData))]
         public async Task Test2<TMessage>(Func<IServiceProvider, CancellationToken, Task> act,
-            Func<IServiceProvider, Mock<QueueMessageOptions<TMessage>>> opt)
+            Func<IServiceProvider, Mock<SendMessageCommand<TMessage>>> cmd)
         {
-            opt(svc).SetupProperty(m => m.IsEnabled, true);
+            cmd(svc).Setup(m => m.ExecuteAsync(It.IsAny<TMessage>(), CancellationToken.None)).Throws(new ArgumentNullException());
 
             await act(svc, CancellationToken.None);
 
@@ -208,9 +172,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
         [Theory(DisplayName = "Extension handles cancellations"), MemberData(nameof(TestData))]
         public async Task Test3<TMessage>(Func<IServiceProvider, CancellationToken, Task> act,
-            Func<IServiceProvider, Mock<QueueMessageOptions<TMessage>>> opt)
+            Func<IServiceProvider, Mock<SendMessageCommand<TMessage>>> cmd)
         {
-            _ = opt(svc);
+            _ = cmd(svc);
 
             var src = new CancellationTokenSource(0);
 
