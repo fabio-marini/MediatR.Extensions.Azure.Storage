@@ -28,7 +28,9 @@ namespace ClassLibrary1
         // 7. claim check pipeline
 
         // TODO: add implementation of remaining blob/queue commands
+        // TODO: add implementation of remaining behaviors/processors
 
+        // TODO: review ServiceCollectionExtensions extension methods - behaviors are added explicitly, processors automatically?
         // TODO: add commands to all DEMO ServiceCollectionExtensions extension methods so they can be injected
 
         // TODO: rename behaviors (delete request applies to blob/table/queue)

@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,26 +12,80 @@ namespace MediatR.Extensions.Azure.Storage
         private readonly PipelineContext ctx;
         private readonly ILogger log;
 
-        public ResponseBehaviorBase(IOptions<InsertEntityOptions<TResponse>> opt, PipelineContext ctx = null, ILogger log = null)
+        #region Table Constructors
+
+        public ResponseBehaviorBase(InsertEntityCommand<TResponse> cmd, PipelineContext ctx = null, ILogger log = null)
         {
-            this.cmd = new InsertEntityCommand<TResponse>(opt, ctx, log);
+            this.cmd = cmd;
             this.ctx = ctx;
             this.log = log ?? NullLogger.Instance;
         }
 
-        public ResponseBehaviorBase(IOptions<UploadBlobOptions<TResponse>> opt, PipelineContext ctx = null, ILogger log = null)
+        public ResponseBehaviorBase(RetrieveEntityCommand<TResponse> cmd, PipelineContext ctx = null, ILogger log = null)
         {
-            this.cmd = new UploadBlobCommand<TResponse>(opt, ctx, log);
+            this.cmd = cmd;
             this.ctx = ctx;
             this.log = log ?? NullLogger.Instance;
         }
 
-        public ResponseBehaviorBase(IOptions<QueueMessageOptions<TResponse>> opt, PipelineContext ctx = null, ILogger log = null)
+        public ResponseBehaviorBase(DeleteEntityCommand<TResponse> cmd, PipelineContext ctx = null, ILogger log = null)
         {
-            this.cmd = new SendMessageCommand<TResponse>(opt, ctx, log);
+            this.cmd = cmd;
             this.ctx = ctx;
             this.log = log ?? NullLogger.Instance;
         }
+
+        #endregion
+
+        #region Blob Constructors
+
+        public ResponseBehaviorBase(UploadBlobCommand<TResponse> cmd, PipelineContext ctx = null, ILogger log = null)
+        {
+            this.cmd = cmd;
+            this.ctx = ctx;
+            this.log = log ?? NullLogger.Instance;
+        }
+
+        public ResponseBehaviorBase(DeleteBlobCommand<TResponse> cmd, PipelineContext ctx = null, ILogger log = null)
+        {
+            this.cmd = cmd;
+            this.ctx = ctx;
+            this.log = log ?? NullLogger.Instance;
+        }
+
+        public ResponseBehaviorBase(DownloadBlobCommand<TResponse> cmd, PipelineContext ctx = null, ILogger log = null)
+        {
+            this.cmd = cmd;
+            this.ctx = ctx;
+            this.log = log ?? NullLogger.Instance;
+        }
+
+        #endregion
+
+        #region Queue Constructors
+
+        public ResponseBehaviorBase(SendMessageCommand<TResponse> cmd, PipelineContext ctx = null, ILogger log = null)
+        {
+            this.cmd = cmd;
+            this.ctx = ctx;
+            this.log = log ?? NullLogger.Instance;
+        }
+
+        public ResponseBehaviorBase(ReceiveMessageCommand<TResponse> cmd, PipelineContext ctx = null, ILogger log = null)
+        {
+            this.cmd = cmd;
+            this.ctx = ctx;
+            this.log = log ?? NullLogger.Instance;
+        }
+
+        public ResponseBehaviorBase(DeleteMessageCommand<TResponse> cmd, PipelineContext ctx = null, ILogger log = null)
+        {
+            this.cmd = cmd;
+            this.ctx = ctx;
+            this.log = log ?? NullLogger.Instance;
+        }
+
+        #endregion
 
         public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
         {

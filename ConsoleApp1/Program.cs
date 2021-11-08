@@ -266,7 +266,7 @@ namespace ConsoleApp1
                 // run query
                 //.AddBlobTrackingProcessors()
 
-                .AddClaimCheckPipeline()
+                //.AddClaimCheckPipeline()
 
                 .BuildServiceProvider();
 
