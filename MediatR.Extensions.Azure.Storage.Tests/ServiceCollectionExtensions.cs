@@ -6,12 +6,30 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddTableExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
+        //public static IServiceCollection AddTableExtensions<TRequest, TResponse>(this IServiceCollection services, 
+        //    Action<InsertEntityOptions<TRequest>, IServiceProvider> requestOptions = null,
+        //    Action<InsertEntityOptions<TResponse>, IServiceProvider> responseOptions = null) where TRequest : IRequest<TResponse>
+        public static IServiceCollection AddTableExtensions<TRequest, TResponse>(this IServiceCollection services)
         {
-            return services
+            //if (requestOptions == null)
+            //{
+            //    services.AddOptions<InsertEntityOptions<TRequest>>();
+            //}
+            //else
+            //{
+            //    services.AddOptions<InsertEntityOptions<TRequest>>().Configure<IServiceProvider>((opt, svc) => requestOptions(opt, svc));
+            //}
 
-                .AddOptions<InsertEntityOptions<TRequest>>().Services
-                .AddOptions<InsertEntityOptions<TResponse>>().Services
+            //if (responseOptions == null)
+            //{
+            //    services.AddOptions<InsertEntityOptions<TResponse>>();
+            //}
+            //else
+            //{
+            //    services.AddOptions<InsertEntityOptions<TResponse>>().Configure<IServiceProvider>((opt, svc) => responseOptions(opt, svc));
+            //}
+
+            return services
 
                 .AddSingleton<Mock<InsertEntityCommand<TRequest>>>(sp =>
                 {

@@ -236,6 +236,32 @@ namespace ConsoleApp1
             Console.WriteLine(JsonConvert.SerializeObject(res, Formatting.Indented));
         }
 
+        private static async Task RunDemo4(IMediator mediator)
+        {
+            var activityId = Guid.NewGuid().ToString();
+
+            var cmd1 = new SourceCustomerCommand
+            {
+                MessageId = activityId,
+                SourceCustomer = new SourceCustomer
+                {
+                    FirstName = "Fabio",
+                    LastName = "Marini",
+                    Email = "fm@example.com"
+                }
+            };
+
+            _ = await mediator.Send(cmd1);
+
+            // pretend this is coming from the customers queue...
+            var cmd2 = new TargetCustomerCommand
+            {
+                MessageId = activityId
+            };
+
+            _ = await mediator.Send(cmd2);
+        }
+
         static async Task Main(string[] args)
         {
             var serviceProvider = new ServiceCollection()
@@ -266,13 +292,21 @@ namespace ConsoleApp1
                 // run query
                 //.AddBlobTrackingProcessors()
 
+                .AddTableClaimCheckPipeline()
+                //.AddBlobClaimCheckPipeline()
+
                 .BuildServiceProvider();
 
             var mediator = serviceProvider.GetRequiredService<IMediator>();
 
-            await RunDemo2(mediator);
+            // command pipeline
+            //await RunDemo2(mediator);
 
+            // query pipeline
             //await RunDemo3(mediator);
+
+            // claim check pipeline (target message has only messageId, canonical customer is retrieved from blob/table)
+            await RunDemo4(mediator);
 
             Console.Read();
         }

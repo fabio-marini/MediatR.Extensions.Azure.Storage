@@ -55,9 +55,16 @@ namespace MediatR.Extensions.Azure.Storage
 
             log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, tableResult.HttpStatusCode);
 
-            if (tableResult.Result != null)
+            var dte = tableResult.Result as DynamicTableEntity;
+
+            if (dte != null)
             {
-                ctx.Entities.Add(tableResult.Result as DynamicTableEntity);
+                ctx.Entities.Add(dte);
+
+                if (opt.Value.Select != null)
+                {
+                    await opt.Value.Select(dte, ctx, message);
+                }
             }
         }
     }

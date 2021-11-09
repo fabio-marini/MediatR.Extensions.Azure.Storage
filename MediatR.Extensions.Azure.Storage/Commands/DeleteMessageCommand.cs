@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace MediatR.Extensions.Azure.Storage
 {
-    public class ReceiveMessageCommand<TMessage> : ICommand<TMessage>
+    public class DeleteMessageCommand<TMessage> : ICommand<TMessage>
     {
         private readonly IOptions<SendMessageOptions<TMessage>> opt;
         private readonly PipelineContext ctx;
         private readonly ILogger log;
 
-        public ReceiveMessageCommand(IOptions<SendMessageOptions<TMessage>> opt, PipelineContext ctx = null, ILogger log = null)
+        public DeleteMessageCommand(IOptions<SendMessageOptions<TMessage>> opt, PipelineContext ctx = null, ILogger log = null)
         {
             this.opt = opt;
             this.ctx = ctx;
@@ -36,14 +36,18 @@ namespace MediatR.Extensions.Azure.Storage
                 throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid QueueClient");
             }
 
-            var receiveResponse = await opt.Value.QueueClient.ReceiveMessageAsync(opt.Value.Visibility, cancellationToken);
+            var msg = ctx?.Messages?.Dequeue();
 
-            if (receiveResponse.Value != null && ctx?.Messages != null)
+            if (msg == null)
             {
-                ctx.Messages.Enqueue(receiveResponse.Value);
+                log.LogDebug("Command {Command} found no message to delete", this.GetType().Name);
+
+                return;
             }
 
-            log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, receiveResponse.GetRawResponse().Status);
+            var deleteResponse = await opt.Value.QueueClient.DeleteMessageAsync(msg.MessageId, msg.PopReceipt, cancellationToken);
+
+            log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, deleteResponse.Status);
         }
     }
 }

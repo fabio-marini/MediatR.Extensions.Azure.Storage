@@ -20,9 +20,32 @@ namespace MediatR.Extensions.Azure.Storage
             this.log = log ?? NullLogger.Instance;
         }
 
-        public Task ExecuteAsync(TMessage message, CancellationToken cancellationToken)
+        public async Task ExecuteAsync(TMessage message, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (opt.Value.IsEnabled == false)
+            {
+                log.LogDebug("Command {Command} is not enabled, returning", this.GetType().Name);
+
+                return;
+            }
+
+            if (opt.Value.BlobClient == null)
+            {
+                throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid BlobClient");
+            }
+
+            var blobClient = opt.Value.BlobClient(message, ctx);
+
+            if (blobClient == null)
+            {
+                throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid BlobClient");
+            }
+
+            var res = await blobClient.DeleteAsync(cancellationToken: cancellationToken);
+
+            log.LogDebug("Command {Command} completed with status {Status}", this.GetType().Name, res.Status);
         }
     }
 }

@@ -13,4 +13,16 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.20" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Blobs\Processors\" />
+    <Folder Include="Blobs\Commands\" />
+    <Folder Include="Blobs\Behaviors\" />
+    <Folder Include="Queues\Behaviors\" />
+    <Folder Include="Queues\Commands\" />
+    <Folder Include="Queues\Processors\" />
+    <Folder Include="Tables\Behaviors\" />
+    <Folder Include="Tables\Commands\" />
+    <Folder Include="Tables\Processors\" />
+  </ItemGroup>
+
 </Project>
