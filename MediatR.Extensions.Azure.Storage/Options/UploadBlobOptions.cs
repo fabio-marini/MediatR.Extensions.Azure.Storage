@@ -9,12 +9,13 @@ namespace MediatR.Extensions.Azure.Storage
     public class UploadBlobOptions<TMessage>
     {
         public virtual bool IsEnabled { get; set; }
+
         public virtual Func<TMessage, PipelineContext, BlobClient> BlobClient { get; set; }
         public virtual Func<TMessage, PipelineContext, BinaryData> BlobContent { get; set; }
         public virtual Func<TMessage, PipelineContext, BlobHttpHeaders> BlobHeaders { get; set; }
         public virtual Func<TMessage, PipelineContext, Dictionary<string, string>> Metadata { get; set; }
 
-        // (optional) use the downloaded blob to update the message
-        public virtual Func<BlobDownloadResult, PipelineContext, TMessage, Task> Select { get; set; }
+        // the event that is raised after the message is received (allows using the message)
+        public virtual Func<BlobDownloadResult, PipelineContext, TMessage, Task> Downloaded { get; set; }
     }
 }

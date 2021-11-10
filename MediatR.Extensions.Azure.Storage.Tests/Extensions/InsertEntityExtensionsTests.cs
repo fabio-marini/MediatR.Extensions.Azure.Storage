@@ -24,8 +24,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 
             svc = new ServiceCollection()
 
-                .AddTableExtensions<TestCommand, Unit>((opt, svc) => { })
-                .AddTableExtensions<TestQuery, TestResult>((opt, svc) => { })
+                .AddTableExtensions<TestCommand, Unit>()
+                .AddTableExtensions<TestQuery, TestResult>()
 
                 .AddTransient<PipelineContext>(sp => ctx.Object)
                 .AddTransient<ILogger>(sp => log.Object)

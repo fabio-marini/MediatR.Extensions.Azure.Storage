@@ -1,6 +1,7 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Queues;
+using Azure.Storage.Queues.Models;
 using MediatR;
 using MediatR.Extensions.Azure.Storage;
 using MediatR.Pipeline;
@@ -11,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -27,6 +29,8 @@ namespace ClassLibrary1
         // 6. use storage behaviors for activity and message tracking (named options)
         // 7. claim check pipeline
 
+        // TODO: add all hooks and remove use of pipeline context from commands (except exceptions)
+
         // TODO: add commands to all DEMO ServiceCollectionExtensions extension methods so they can be injected
 
         // TODO: add command integration tests (insert, retrieve and delete)
@@ -38,6 +42,7 @@ namespace ClassLibrary1
         // TODO: add processors and unit tests for all extensions
         // TODO: make pipeline context a required ctor param for queue receive/delete, retrieve and download
         // TODO: add test for null blob client (not the delegate, but the result)
+        // TODO: commands review - logging, all hooks are invoked and try/catch around the operation (add CommandException)
 
         // TODO: encapsulate all options validation/defaults into own class/method
 
@@ -220,6 +225,54 @@ namespace ClassLibrary1
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, SendRequestBehavior<TargetCustomerCommand>>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddQueueRoutingPipeline2(this IServiceCollection services)
+        {
+            var queueClient = new QueueClient("UseDevelopmentStorage=true", "messages");
+            queueClient.CreateIfNotExists();
+
+            var memoryQueue = new Queue<QueueMessage>();
+
+            services.AddOptions<SendMessageOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            {
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+                opt.QueueClient = queueClient;
+            });
+            services.AddOptions<SendMessageOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            {
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+                opt.QueueClient = queueClient;
+                opt.Received = (msg, ctx, req) =>
+                {
+                    memoryQueue.Enqueue(msg);
+
+                    return Task.CompletedTask;
+                };
+                opt.Delete = (ctx, req) =>
+                {
+                    QueueMessage msg;
+                    
+                    _ = memoryQueue.TryDequeue(out msg);
+
+                    return Task.FromResult(msg);
+                };
+            });
+
+            services.AddTransient<SendMessageCommand<SourceCustomerCommand>>();
+            services.AddTransient<ReceiveMessageCommand<TargetCustomerCommand>>();
+            services.AddTransient<DeleteMessageCommand<TargetCustomerCommand>>();
+
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, SendRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
+
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, ReceiveRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, DeleteMessageRequestBehavior<TargetCustomerCommand>>();
 
             return services;
         }
@@ -458,8 +511,10 @@ namespace ClassLibrary1
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = cloudTable;
                 opt.TableEntity = (req, ctx) => new DynamicTableEntity("SourceCustomerCommand", req.MessageId) { ETag = "*" };
-                opt.Select = (dte, ctx, req) =>
+                opt.Received = (res, ctx, req) =>
                 {
+                    var dte = res.Result as DynamicTableEntity;
+
                     if (dte != null)
                     {
                         var canonicalCustomer = dte["CanonicalCustomer"].StringValue;
@@ -512,7 +567,7 @@ namespace ClassLibrary1
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/canonical/{req.MessageId}.json");
-                opt.Select = (res, ctx, req) =>
+                opt.Downloaded = (res, ctx, req) =>
                 {
                     var canonicalCustomer = res.Content.ToString();
 

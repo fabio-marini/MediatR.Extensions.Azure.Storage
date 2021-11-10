@@ -45,11 +45,9 @@ namespace MediatR.Extensions.Azure.Storage
 
             var res = await blobClient.DownloadContentAsync(cancellationToken);
 
-            ctx.Blobs.Add(blobClient.Name, res.Value);
-
-            if (opt.Value.Select != null)
+            if (opt.Value.Downloaded != null)
             {
-                await opt.Value.Select(res, ctx, message);
+                await opt.Value.Downloaded(res, ctx, message);
             }
 
             log.LogDebug("Command {Command} completed with status {Status}", this.GetType().Name, res.GetRawResponse().Status);

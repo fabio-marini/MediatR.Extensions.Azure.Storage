@@ -14,7 +14,7 @@ namespace MediatR.Extensions.Azure.Storage
         private readonly PipelineContext ctx;
         private readonly ILogger log;
 
-        public RetrieveEntityCommand(IOptions<InsertEntityOptions<TMessage>> opt, PipelineContext ctx, ILogger log = null)
+        public RetrieveEntityCommand(IOptions<InsertEntityOptions<TMessage>> opt, PipelineContext ctx = null, ILogger log = null)
         {
             this.opt = opt;
             this.ctx = ctx ?? throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid PipelineContext");
@@ -55,16 +55,9 @@ namespace MediatR.Extensions.Azure.Storage
 
             log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, tableResult.HttpStatusCode);
 
-            var dte = tableResult.Result as DynamicTableEntity;
-
-            if (dte != null)
+            if (opt.Value.Received != null)
             {
-                ctx.Entities.Add(dte);
-
-                if (opt.Value.Select != null)
-                {
-                    await opt.Value.Select(dte, ctx, message);
-                }
+                await opt.Value.Received(tableResult, ctx, message);
             }
         }
     }

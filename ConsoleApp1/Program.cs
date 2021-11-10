@@ -285,6 +285,7 @@ namespace ConsoleApp1
                 //.AddTableTrackingPipeline()
                 //.AddBlobTrackingPipeline()
                 //.AddQueueRoutingPipeline()
+                .AddQueueRoutingPipeline2()
 
                 //.AddActivityTrackingPipeline()
                 //.AddMultiTrackingPipeline()
@@ -292,7 +293,7 @@ namespace ConsoleApp1
                 // run query
                 //.AddBlobTrackingProcessors()
 
-                .AddTableClaimCheckPipeline()
+                //.AddTableClaimCheckPipeline()
                 //.AddBlobClaimCheckPipeline()
 
                 .BuildServiceProvider();
@@ -300,13 +301,13 @@ namespace ConsoleApp1
             var mediator = serviceProvider.GetRequiredService<IMediator>();
 
             // command pipeline
-            //await RunDemo2(mediator);
+            await RunDemo2(mediator);
 
             // query pipeline
             //await RunDemo3(mediator);
 
             // claim check pipeline (target message has only messageId, canonical customer is retrieved from blob/table)
-            await RunDemo4(mediator);
+            //await RunDemo4(mediator);
 
             Console.Read();
         }

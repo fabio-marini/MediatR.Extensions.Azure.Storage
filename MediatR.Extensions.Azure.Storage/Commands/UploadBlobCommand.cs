@@ -74,7 +74,7 @@ namespace MediatR.Extensions.Azure.Storage
                 throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid BlobContent");
             }
 
-            await blobClient.UploadAsync(blobContent, cancellationToken);
+            var res = await blobClient.UploadAsync(blobContent, cancellationToken);
 
             if (opt.Value.BlobHeaders != null)
             {

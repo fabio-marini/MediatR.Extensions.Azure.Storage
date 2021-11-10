@@ -36,18 +36,21 @@ namespace MediatR.Extensions.Azure.Storage
                 throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid QueueClient");
             }
 
-            var msg = ctx?.Messages?.Dequeue();
-
-            if (msg == null)
+            if (opt.Value.Delete != null)
             {
-                log.LogDebug("Command {Command} found no message to delete", this.GetType().Name);
+                var msg = await opt.Value.Delete(ctx, message);
 
-                return;
+                if (msg == null)
+                {
+                    log.LogDebug("Command {Command} found no message to delete", this.GetType().Name);
+
+                    return;
+                }
+
+                var deleteResponse = await opt.Value.QueueClient.DeleteMessageAsync(msg.MessageId, msg.PopReceipt, cancellationToken);
+
+                log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, deleteResponse.Status);
             }
-
-            var deleteResponse = await opt.Value.QueueClient.DeleteMessageAsync(msg.MessageId, msg.PopReceipt, cancellationToken);
-
-            log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, deleteResponse.Status);
         }
     }
 }

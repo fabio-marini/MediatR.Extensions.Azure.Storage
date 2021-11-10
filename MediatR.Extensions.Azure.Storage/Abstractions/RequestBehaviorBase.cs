@@ -34,6 +34,10 @@ namespace MediatR.Extensions.Azure.Storage
         {
         }
 
+        public RequestBehaviorBase(DeleteMessageCommand<TRequest> cmd, PipelineContext ctx = null, ILogger log = null) : base(cmd, ctx, log)
+        {
+        }
+
         #endregion
 
         #region Blob Constructors
@@ -119,6 +123,13 @@ namespace MediatR.Extensions.Azure.Storage
         }
 
         public RequestBehaviorBase(ReceiveMessageCommand<TRequest> cmd, PipelineContext ctx = null, ILogger log = null)
+        {
+            this.cmd = cmd;
+            this.ctx = ctx;
+            this.log = log ?? NullLogger.Instance;
+        }
+
+        public RequestBehaviorBase(DeleteMessageCommand<TRequest> cmd, PipelineContext ctx = null, ILogger log = null)
         {
             this.cmd = cmd;
             this.ctx = ctx;

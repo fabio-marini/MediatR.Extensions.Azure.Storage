@@ -38,12 +38,12 @@ namespace MediatR.Extensions.Azure.Storage
 
             var receiveResponse = await opt.Value.QueueClient.ReceiveMessageAsync(opt.Value.Visibility, cancellationToken);
 
-            if (receiveResponse.Value != null && ctx?.Messages != null)
-            {
-                ctx.Messages.Enqueue(receiveResponse.Value);
-            }
-
             log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, receiveResponse.GetRawResponse().Status);
+
+            if (opt.Value.Received != null)
+            {
+                await opt.Value.Received(receiveResponse.Value, ctx, message);
+            }
         }
     }
 }
