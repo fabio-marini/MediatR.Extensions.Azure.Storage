@@ -9,6 +9,7 @@ using Xunit;
 
 namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
 {
+    [Trait("TestCategory", "Integration")]
     public class IntegrationTests
     {
         private readonly BlobContainerClient containerClient;
