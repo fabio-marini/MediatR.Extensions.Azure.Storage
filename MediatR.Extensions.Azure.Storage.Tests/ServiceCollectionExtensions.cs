@@ -29,10 +29,10 @@ namespace MediatR.Extensions.Azure.Storage.Tests
                 .AddTransient<InsertEntityCommand<TRequest>>(sp => sp.GetRequiredService<Mock<InsertEntityCommand<TRequest>>>().Object)
                 .AddTransient<InsertEntityCommand<TResponse>>(sp => sp.GetRequiredService<Mock<InsertEntityCommand<TResponse>>>().Object)
 
-                .AddTransient<InsertRequestBehavior<TRequest, TResponse>>()
-                .AddTransient<InsertResponseBehavior<TRequest, TResponse>>()
-                .AddTransient<InsertRequestProcessor<TRequest>>()
-                .AddTransient<InsertResponseProcessor<TRequest, TResponse>>()
+                .AddTransient<InsertEntityRequestBehavior<TRequest, TResponse>>()
+                .AddTransient<InsertEntityResponseBehavior<TRequest, TResponse>>()
+                .AddTransient<InsertEntityRequestProcessor<TRequest>>()
+                .AddTransient<InsertEntityResponseProcessor<TRequest, TResponse>>()
 
                 ;
         }
@@ -60,10 +60,10 @@ namespace MediatR.Extensions.Azure.Storage.Tests
                 .AddTransient<UploadBlobCommand<TRequest>>(sp => sp.GetRequiredService<Mock<UploadBlobCommand<TRequest>>>().Object)
                 .AddTransient<UploadBlobCommand<TResponse>>(sp => sp.GetRequiredService<Mock<UploadBlobCommand<TResponse>>>().Object)
 
-                .AddTransient<UploadRequestBehavior<TRequest, TResponse>>()
-                .AddTransient<UploadResponseBehavior<TRequest, TResponse>>()
-                .AddTransient<UploadRequestProcessor<TRequest>>()
-                .AddTransient<UploadResponseProcessor<TRequest, TResponse>>()
+                .AddTransient<UploadBlobRequestBehavior<TRequest, TResponse>>()
+                .AddTransient<UploadBlobResponseBehavior<TRequest, TResponse>>()
+                .AddTransient<UploadBlobRequestProcessor<TRequest>>()
+                .AddTransient<UploadBlobResponseProcessor<TRequest, TResponse>>()
 
                 ;
         }
@@ -91,10 +91,10 @@ namespace MediatR.Extensions.Azure.Storage.Tests
                 .AddTransient<SendMessageCommand<TRequest>>(sp => sp.GetRequiredService<Mock<SendMessageCommand<TRequest>>>().Object)
                 .AddTransient<SendMessageCommand<TResponse>>(sp => sp.GetRequiredService<Mock<SendMessageCommand<TResponse>>>().Object)
 
-                .AddTransient<SendRequestBehavior<TRequest, TResponse>>()
-                .AddTransient<SendResponseBehavior<TRequest, TResponse>>()
-                .AddTransient<SendRequestProcessor<TRequest>>()
-                .AddTransient<SendResponseProcessor<TRequest, TResponse>>()
+                .AddTransient<SendMessageRequestBehavior<TRequest, TResponse>>()
+                .AddTransient<SendMessageResponseBehavior<TRequest, TResponse>>()
+                .AddTransient<SendMessageRequestProcessor<TRequest>>()
+                .AddTransient<SendMessageResponseProcessor<TRequest, TResponse>>()
 
                 ;
         }

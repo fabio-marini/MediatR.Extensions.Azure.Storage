@@ -34,10 +34,10 @@ namespace ClassLibrary1
         // TODO: add command integration tests (insert, retrieve and delete)
         // TODO: add behaviors/processors integration tests?
 
+        // TODO: document options (they are used for insert/delete/retrieve) + update README
         // TODO: add factory method to configure options to DI extension methods...
         // TODO: encapsulate all options validation/defaults into own class/method
 
-        // TODO: finish commands, add demos (requires adding behaviors)
         // TODO: add processors and unit tests for all extensions
         // TODO: add test for null blob client (not the delegate, but the result)
         // TODO: commands review - logging, hooks are invoked and try/catch around the operation (add CommandException)
@@ -46,14 +46,9 @@ namespace ClassLibrary1
         // TODO: implement and add tests for receive queue message command
         // TODO: implement and add tests for download/delete blob commands
         // TODO: add implementation of remaining behaviors/processors
-        // TODO: give delete queue message another shot (receive and send are decoupled, but receive and delete must not be)
-
-        // TODO: reorganize class files and namespaces in Tables/Blobs/Queues
 
         // TODO: add src and examples folders + add code examples to README...
         // TODO: log operation results (see table commands) + wrap command operations in try/catch and rethrow consistent exception
-        // TODO: rename/document options (they are used for insert/delete/retrieve) + update README
-        // TODO: add OnInsert, OnDelete and OnRetrieve hooks to all options + ensure all hooks behave consistently, i.e. run after...
         // TODO: add generic param constraint to ICommand and implement ICommandOptions? Will make config a lot more complex!
         //       (different commands use different options, e.g. retrieve/delete are different from insert)
 
@@ -129,15 +124,15 @@ namespace ClassLibrary1
                 };
             });
 
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertEntityRequestBehavior<SourceCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertEntityRequestBehavior<SourceCustomerCommand>>();
 
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertEntityRequestBehavior<TargetCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertEntityRequestBehavior<TargetCustomerCommand>>();
 
             return services;
         }
@@ -169,15 +164,15 @@ namespace ClassLibrary1
                 opt.BlobHeaders = (req, ctx) => new BlobHttpHeaders { ContentType = "application/xml" };
             });
 
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, UploadRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, UploadBlobRequestBehavior<SourceCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, UploadRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, UploadBlobRequestBehavior<SourceCustomerCommand>>();
 
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, UploadRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, UploadBlobRequestBehavior<TargetCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, UploadRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, UploadBlobRequestBehavior<TargetCustomerCommand>>();
 
             return services;
         }
@@ -210,15 +205,15 @@ namespace ClassLibrary1
                 };
             });
 
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, SendRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, SendMessageRequestBehavior<SourceCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, SendRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, SendMessageRequestBehavior<SourceCustomerCommand>>();
 
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, SendRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, SendMessageRequestBehavior<TargetCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, SendRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, SendMessageRequestBehavior<TargetCustomerCommand>>();
 
             return services;
         }
@@ -259,11 +254,11 @@ namespace ClassLibrary1
             services.AddTransient<ReceiveMessageCommand<TargetCustomerCommand>>();
             services.AddTransient<DeleteMessageCommand<TargetCustomerCommand>>();
 
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, SendRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, SendMessageRequestBehavior<SourceCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
 
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, ReceiveRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, ReceiveMessageRequestBehavior<TargetCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, DeleteMessageRequestBehavior<TargetCustomerCommand>>();
@@ -277,8 +272,8 @@ namespace ClassLibrary1
             container.CreateIfNotExists();
 
             // register pre/post processors to track messages in blob storage
-            services.AddTransient<IRequestPreProcessor<RetrieveCustomerQuery>, UploadRequestProcessor<RetrieveCustomerQuery>>();
-            services.AddTransient<IRequestPostProcessor<RetrieveCustomerQuery, RetrieveCustomerResult>, UploadResponseProcessor<RetrieveCustomerQuery, RetrieveCustomerResult>>();
+            services.AddTransient<IRequestPreProcessor<RetrieveCustomerQuery>, UploadBlobRequestProcessor<RetrieveCustomerQuery>>();
+            services.AddTransient<IRequestPostProcessor<RetrieveCustomerQuery, RetrieveCustomerResult>, UploadBlobResponseProcessor<RetrieveCustomerQuery, RetrieveCustomerResult>>();
 
             services.AddOptions<BlobOptions<RetrieveCustomerQuery>>().Configure<IConfiguration>((opt, cfg) =>
             {
@@ -310,7 +305,7 @@ namespace ClassLibrary1
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/result/{Guid.NewGuid().ToString()}.json");
             });
 
-            services.AddTransient<IPipelineBehavior<RetrieveCustomerQuery, RetrieveCustomerResult>, UploadRequestBehavior<RetrieveCustomerQuery, RetrieveCustomerResult>>();
+            services.AddTransient<IPipelineBehavior<RetrieveCustomerQuery, RetrieveCustomerResult>, UploadBlobRequestBehavior<RetrieveCustomerQuery, RetrieveCustomerResult>>();
 
             return services;
         }
@@ -355,11 +350,11 @@ namespace ClassLibrary1
 
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertEntityRequestBehavior<SourceCustomerCommand>>();
 
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertEntityRequestBehavior<TargetCustomerCommand>>();
 
             return services;
         }
@@ -428,46 +423,46 @@ namespace ClassLibrary1
                 };
             });
 
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertRequestBehavior<SourceCustomerCommand>>(sp =>
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertEntityRequestBehavior<SourceCustomerCommand>>(sp =>
             {
                 var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<SourceCustomerCommand>>>().Get("Messages");
 
-                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<SourceCustomerCommand>>(sp, Options.Create(opt));
+                return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<SourceCustomerCommand>>(sp, Options.Create(opt));
             });
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertRequestBehavior<SourceCustomerCommand>>(sp =>
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertEntityRequestBehavior<SourceCustomerCommand>>(sp =>
             {
                 var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<SourceCustomerCommand>>>().Get("Messages");
 
-                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<SourceCustomerCommand>>(sp, Options.Create(opt));
+                return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<SourceCustomerCommand>>(sp, Options.Create(opt));
             });
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertRequestBehavior<SourceCustomerCommand>>(sp =>
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertEntityRequestBehavior<SourceCustomerCommand>>(sp =>
             {
                 var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<SourceCustomerCommand>>>().Get("Source");
 
-                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<SourceCustomerCommand>>(sp, Options.Create(opt));
+                return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<SourceCustomerCommand>>(sp, Options.Create(opt));
             });
 
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertRequestBehavior<TargetCustomerCommand>>(sp =>
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertEntityRequestBehavior<TargetCustomerCommand>>(sp =>
             {
                 var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<TargetCustomerCommand>>>().Get("Messages");
 
-                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
+                return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
             });
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertRequestBehavior<TargetCustomerCommand>>(sp =>
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertEntityRequestBehavior<TargetCustomerCommand>>(sp =>
             {
                 var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<TargetCustomerCommand>>>().Get("Messages");
 
-                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
+                return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
             });
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertRequestBehavior<TargetCustomerCommand>>(sp =>
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertEntityRequestBehavior<TargetCustomerCommand>>(sp =>
             {
                 var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<TargetCustomerCommand>>>().Get("Target");
 
-                return ActivatorUtilities.CreateInstance<InsertRequestBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
+                return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
             });
 
             return services;
@@ -522,10 +517,10 @@ namespace ClassLibrary1
 
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertEntityRequestBehavior<SourceCustomerCommand>>();
 
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, RetrieveRequestBehavior<TargetCustomerCommand>>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, DeleteRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, RetrieveEntityRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, DeleteEntityRequestBehavior<TargetCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
 
@@ -573,9 +568,9 @@ namespace ClassLibrary1
 
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, UploadRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, UploadBlobRequestBehavior<SourceCustomerCommand>>();
 
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, DownloadRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, DownloadBlobRequestBehavior<TargetCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, DeleteBlobRequestBehavior<TargetCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();

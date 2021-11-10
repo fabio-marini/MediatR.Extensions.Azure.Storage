@@ -39,7 +39,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
             {
                 new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
                 {
-                    var bvr = svc.GetRequiredService<SendRequestBehavior<TestCommand, Unit>>();
+                    var bvr = svc.GetRequiredService<SendMessageRequestBehavior<TestCommand, Unit>>();
 
                     await bvr.Handle(TestCommand.Default, tkn, () => Unit.Task);
                 }),
@@ -52,7 +52,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
             {
                 new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
                 {
-                    var bvr = svc.GetRequiredService<SendRequestBehavior<TestQuery, TestResult>>();
+                    var bvr = svc.GetRequiredService<SendMessageRequestBehavior<TestQuery, TestResult>>();
 
                     await bvr.Handle(TestQuery.Default, tkn, () => Task.FromResult(TestResult.Default));
                 }),
@@ -65,7 +65,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
             {
                 new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
                 {
-                    var bvr = svc.GetRequiredService<SendResponseBehavior<TestCommand, Unit>>();
+                    var bvr = svc.GetRequiredService<SendMessageResponseBehavior<TestCommand, Unit>>();
 
                     await bvr.Handle(TestCommand.Default, tkn, () => Unit.Task);
                 }),
@@ -78,7 +78,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
             {
                 new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
                 {
-                    var bvr = svc.GetRequiredService<SendResponseBehavior<TestQuery, TestResult>>();
+                    var bvr = svc.GetRequiredService<SendMessageResponseBehavior<TestQuery, TestResult>>();
 
                     await bvr.Handle(TestQuery.Default, tkn, () => Task.FromResult(TestResult.Default));
                 }),
@@ -91,7 +91,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
             {
                 new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
                 {
-                    var bvr = svc.GetRequiredService<SendRequestProcessor<TestCommand>>();
+                    var bvr = svc.GetRequiredService<SendMessageRequestProcessor<TestCommand>>();
 
                     await bvr.Process(TestCommand.Default, tkn);
                 }),
@@ -104,7 +104,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
             {
                 new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
                 {
-                    var bvr = svc.GetRequiredService<SendRequestProcessor<TestQuery>>();
+                    var bvr = svc.GetRequiredService<SendMessageRequestProcessor<TestQuery>>();
 
                     await bvr.Process(TestQuery.Default, tkn);
                 }),
@@ -117,7 +117,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
             {
                 new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
                 {
-                    var bvr = svc.GetRequiredService<SendResponseProcessor<TestCommand, Unit>>();
+                    var bvr = svc.GetRequiredService<SendMessageResponseProcessor<TestCommand, Unit>>();
 
                     await bvr.Process(TestCommand.Default, Unit.Value, tkn);
                 }),
@@ -130,7 +130,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
             {
                 new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
                 {
-                    var bvr = svc.GetRequiredService<SendResponseProcessor<TestQuery, TestResult>>();
+                    var bvr = svc.GetRequiredService<SendMessageResponseProcessor<TestQuery, TestResult>>();
 
                     await bvr.Process(TestQuery.Default, TestResult.Default, tkn);
                 }),

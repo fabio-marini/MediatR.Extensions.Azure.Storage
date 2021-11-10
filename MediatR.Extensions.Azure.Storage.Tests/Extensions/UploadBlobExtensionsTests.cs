@@ -40,7 +40,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
             {
                 new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
                 {
-                    var bvr = svc.GetRequiredService<UploadRequestBehavior<TestCommand, Unit>>();
+                    var bvr = svc.GetRequiredService<UploadBlobRequestBehavior<TestCommand, Unit>>();
 
                     await bvr.Handle(TestCommand.Default, tkn, () => Unit.Task);
                 }),
@@ -53,7 +53,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
             {
                 new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
                 {
-                    var bvr = svc.GetRequiredService<UploadRequestBehavior<TestQuery, TestResult>>();
+                    var bvr = svc.GetRequiredService<UploadBlobRequestBehavior<TestQuery, TestResult>>();
 
                     await bvr.Handle(TestQuery.Default, tkn, () => Task.FromResult(TestResult.Default));
                 }),
@@ -66,7 +66,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
             {
                 new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
                 {
-                    var bvr = svc.GetRequiredService<UploadResponseBehavior<TestCommand, Unit>>();
+                    var bvr = svc.GetRequiredService<UploadBlobResponseBehavior<TestCommand, Unit>>();
 
                     await bvr.Handle(TestCommand.Default, tkn, () => Unit.Task);
                 }),
@@ -79,7 +79,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
             {
                 new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
                 {
-                    var bvr = svc.GetRequiredService<UploadResponseBehavior<TestQuery, TestResult>>();
+                    var bvr = svc.GetRequiredService<UploadBlobResponseBehavior<TestQuery, TestResult>>();
 
                     await bvr.Handle(TestQuery.Default, tkn, () => Task.FromResult(TestResult.Default));
                 }),
@@ -92,7 +92,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
             {
                 new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
                 {
-                    var bvr = svc.GetRequiredService<UploadRequestProcessor<TestCommand>>();
+                    var bvr = svc.GetRequiredService<UploadBlobRequestProcessor<TestCommand>>();
 
                     await bvr.Process(TestCommand.Default, tkn);
                 }),
@@ -105,7 +105,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
             {
                 new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
                 {
-                    var bvr = svc.GetRequiredService<UploadRequestProcessor<TestQuery>>();
+                    var bvr = svc.GetRequiredService<UploadBlobRequestProcessor<TestQuery>>();
 
                     await bvr.Process(TestQuery.Default, tkn);
                 }),
@@ -118,7 +118,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
             {
                 new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
                 {
-                    var bvr = svc.GetRequiredService<UploadResponseProcessor<TestCommand, Unit>>();
+                    var bvr = svc.GetRequiredService<UploadBlobResponseProcessor<TestCommand, Unit>>();
 
                     await bvr.Process(TestCommand.Default, Unit.Value, tkn);
                 }),
@@ -131,7 +131,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
             {
                 new Func<IServiceProvider, CancellationToken, Task> (async (svc, tkn) =>
                 {
-                    var bvr = svc.GetRequiredService<UploadResponseProcessor<TestQuery, TestResult>>();
+                    var bvr = svc.GetRequiredService<UploadBlobResponseProcessor<TestQuery, TestResult>>();
 
                     await bvr.Process(TestQuery.Default, TestResult.Default, tkn);
                 }),
