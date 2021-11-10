@@ -112,12 +112,12 @@ namespace ClassLibrary1
             var cloudTable = storageAccount.CreateCloudTableClient().GetTableReference("Messages");
             cloudTable.CreateIfNotExists();
 
-            services.AddOptions<InsertEntityOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = cloudTable;
             });
-            services.AddOptions<InsertEntityOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = cloudTable;
@@ -153,12 +153,12 @@ namespace ClassLibrary1
             var container = new BlobContainerClient("UseDevelopmentStorage=true", "messages");
             container.CreateIfNotExists();
 
-            services.AddOptions<UploadBlobOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<BlobOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/source/{Guid.NewGuid().ToString()}.json");
             });
-            services.AddOptions<UploadBlobOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<BlobOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/target/{Guid.NewGuid().ToString()}.xml");
@@ -193,12 +193,12 @@ namespace ClassLibrary1
             var queueClient = new QueueClient("UseDevelopmentStorage=true", "messages");
             queueClient.CreateIfNotExists();
 
-            services.AddOptions<SendMessageOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<QueueOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.QueueClient = queueClient;
             });
-            services.AddOptions<SendMessageOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<QueueOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.QueueClient = queueClient;
@@ -236,12 +236,12 @@ namespace ClassLibrary1
 
             var memoryQueue = new Queue<QueueMessage>();
 
-            services.AddOptions<SendMessageOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<QueueOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.QueueClient = queueClient;
             });
-            services.AddOptions<SendMessageOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<QueueOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.QueueClient = queueClient;
@@ -286,12 +286,12 @@ namespace ClassLibrary1
             services.AddTransient<IRequestPreProcessor<RetrieveCustomerQuery>, UploadRequestProcessor<RetrieveCustomerQuery>>();
             services.AddTransient<IRequestPostProcessor<RetrieveCustomerQuery, RetrieveCustomerResult>, UploadResponseProcessor<RetrieveCustomerQuery, RetrieveCustomerResult>>();
 
-            services.AddOptions<UploadBlobOptions<RetrieveCustomerQuery>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<BlobOptions<RetrieveCustomerQuery>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/query/{Guid.NewGuid().ToString()}.json");
             });
-            services.AddOptions<UploadBlobOptions<RetrieveCustomerResult>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<BlobOptions<RetrieveCustomerResult>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/result/{Guid.NewGuid().ToString()}.json");
@@ -305,12 +305,12 @@ namespace ClassLibrary1
             var container = new BlobContainerClient("UseDevelopmentStorage=true", "messages");
             container.CreateIfNotExists();
 
-            services.AddOptions<UploadBlobOptions<RetrieveCustomerQuery>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<BlobOptions<RetrieveCustomerQuery>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/query/{Guid.NewGuid().ToString()}.json");
             });
-            services.AddOptions<UploadBlobOptions<RetrieveCustomerResult>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<BlobOptions<RetrieveCustomerResult>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/result/{Guid.NewGuid().ToString()}.json");
@@ -327,7 +327,7 @@ namespace ClassLibrary1
             var cloudTable = storageAccount.CreateCloudTableClient().GetTableReference("Activities");
             cloudTable.CreateIfNotExists();
 
-            services.AddOptions<InsertEntityOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = cloudTable;
@@ -343,7 +343,7 @@ namespace ClassLibrary1
                     };
                 };
             });
-            services.AddOptions<InsertEntityOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = cloudTable;
@@ -380,12 +380,12 @@ namespace ClassLibrary1
             var activitiesTable = storageAccount.CreateCloudTableClient().GetTableReference("Activities");
             activitiesTable.CreateIfNotExists();
 
-            services.AddOptions<InsertEntityOptions<SourceCustomerCommand>>("Messages").Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<SourceCustomerCommand>>("Messages").Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = messagesTable;
             });
-            services.AddOptions<InsertEntityOptions<TargetCustomerCommand>>("Messages").Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<TargetCustomerCommand>>("Messages").Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = messagesTable;
@@ -402,7 +402,7 @@ namespace ClassLibrary1
                     return tableEntity;
                 };
             });
-            services.AddOptions<InsertEntityOptions<SourceCustomerCommand>>("Source").Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<SourceCustomerCommand>>("Source").Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = activitiesTable;
@@ -418,7 +418,7 @@ namespace ClassLibrary1
                     };
                 };
             });
-            services.AddOptions<InsertEntityOptions<TargetCustomerCommand>>("Target").Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<TargetCustomerCommand>>("Target").Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = activitiesTable;
@@ -436,7 +436,7 @@ namespace ClassLibrary1
 
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertRequestBehavior<SourceCustomerCommand>>(sp =>
             {
-                var opt = sp.GetRequiredService<IOptionsSnapshot<InsertEntityOptions<SourceCustomerCommand>>>().Get("Messages");
+                var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<SourceCustomerCommand>>>().Get("Messages");
 
                 return ActivatorUtilities.CreateInstance<InsertRequestBehavior<SourceCustomerCommand>>(sp, Options.Create(opt));
             });
@@ -444,20 +444,20 @@ namespace ClassLibrary1
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertRequestBehavior<SourceCustomerCommand>>(sp =>
             {
-                var opt = sp.GetRequiredService<IOptionsSnapshot<InsertEntityOptions<SourceCustomerCommand>>>().Get("Messages");
+                var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<SourceCustomerCommand>>>().Get("Messages");
 
                 return ActivatorUtilities.CreateInstance<InsertRequestBehavior<SourceCustomerCommand>>(sp, Options.Create(opt));
             });
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertRequestBehavior<SourceCustomerCommand>>(sp =>
             {
-                var opt = sp.GetRequiredService<IOptionsSnapshot<InsertEntityOptions<SourceCustomerCommand>>>().Get("Source");
+                var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<SourceCustomerCommand>>>().Get("Source");
 
                 return ActivatorUtilities.CreateInstance<InsertRequestBehavior<SourceCustomerCommand>>(sp, Options.Create(opt));
             });
 
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertRequestBehavior<TargetCustomerCommand>>(sp =>
             {
-                var opt = sp.GetRequiredService<IOptionsSnapshot<InsertEntityOptions<TargetCustomerCommand>>>().Get("Messages");
+                var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<TargetCustomerCommand>>>().Get("Messages");
 
                 return ActivatorUtilities.CreateInstance<InsertRequestBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
             });
@@ -465,13 +465,13 @@ namespace ClassLibrary1
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertRequestBehavior<TargetCustomerCommand>>(sp =>
             {
-                var opt = sp.GetRequiredService<IOptionsSnapshot<InsertEntityOptions<TargetCustomerCommand>>>().Get("Messages");
+                var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<TargetCustomerCommand>>>().Get("Messages");
 
                 return ActivatorUtilities.CreateInstance<InsertRequestBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
             });
             services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertRequestBehavior<TargetCustomerCommand>>(sp =>
             {
-                var opt = sp.GetRequiredService<IOptionsSnapshot<InsertEntityOptions<TargetCustomerCommand>>>().Get("Target");
+                var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<TargetCustomerCommand>>>().Get("Target");
 
                 return ActivatorUtilities.CreateInstance<InsertRequestBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
             });
@@ -491,7 +491,7 @@ namespace ClassLibrary1
             services.AddTransient<RetrieveEntityCommand<TargetCustomerCommand>>();
             services.AddTransient<DeleteEntityCommand<TargetCustomerCommand>>();
 
-            services.AddOptions<InsertEntityOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = cloudTable;
@@ -506,7 +506,7 @@ namespace ClassLibrary1
                     return tableEntity;
                 };
             });
-            services.AddOptions<InsertEntityOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = cloudTable;
@@ -549,7 +549,7 @@ namespace ClassLibrary1
             services.AddTransient<DownloadBlobCommand<TargetCustomerCommand>>();
             services.AddTransient<DeleteBlobCommand<TargetCustomerCommand>>();
 
-            services.AddOptions<UploadBlobOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<BlobOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/canonical/{req.MessageId}.json");
@@ -563,7 +563,7 @@ namespace ClassLibrary1
                     return BinaryData.FromString(canonicalCustomer);
                 };
             });
-            services.AddOptions<UploadBlobOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<BlobOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/canonical/{req.MessageId}.json");

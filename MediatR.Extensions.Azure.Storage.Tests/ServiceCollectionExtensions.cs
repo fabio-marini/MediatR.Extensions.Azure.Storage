@@ -10,18 +10,18 @@ namespace MediatR.Extensions.Azure.Storage.Tests
         {
             return services
 
-                .AddOptions<InsertEntityOptions<TRequest>>().Services
-                .AddOptions<InsertEntityOptions<TResponse>>().Services
+                .AddOptions<TableOptions<TRequest>>().Services
+                .AddOptions<TableOptions<TResponse>>().Services
 
                 .AddSingleton<Mock<InsertEntityCommand<TRequest>>>(sp =>
                 {
-                    var opt = sp.GetRequiredService<IOptions<InsertEntityOptions<TRequest>>>();
+                    var opt = sp.GetRequiredService<IOptions<TableOptions<TRequest>>>();
 
                     return new Mock<InsertEntityCommand<TRequest>>(opt, null, null);
                 })
                 .AddSingleton<Mock<InsertEntityCommand<TResponse>>>(sp =>
                 {
-                    var opt = sp.GetRequiredService<IOptions<InsertEntityOptions<TResponse>>>();
+                    var opt = sp.GetRequiredService<IOptions<TableOptions<TResponse>>>();
 
                     return new Mock<InsertEntityCommand<TResponse>>(opt, null, null);
                 })
@@ -41,18 +41,18 @@ namespace MediatR.Extensions.Azure.Storage.Tests
         {
             return services
 
-                .AddOptions<UploadBlobOptions<TRequest>>().Services
-                .AddOptions<UploadBlobOptions<TResponse>>().Services
+                .AddOptions<BlobOptions<TRequest>>().Services
+                .AddOptions<BlobOptions<TResponse>>().Services
 
                 .AddSingleton<Mock<UploadBlobCommand<TRequest>>>(sp =>
                 {
-                    var opt = sp.GetRequiredService<IOptions<UploadBlobOptions<TRequest>>>();
+                    var opt = sp.GetRequiredService<IOptions<BlobOptions<TRequest>>>();
 
                     return new Mock<UploadBlobCommand<TRequest>>(opt, null, null);
                 })
                 .AddSingleton<Mock<UploadBlobCommand<TResponse>>>(sp =>
                 {
-                    var opt = sp.GetRequiredService<IOptions<UploadBlobOptions<TResponse>>>();
+                    var opt = sp.GetRequiredService<IOptions<BlobOptions<TResponse>>>();
 
                     return new Mock<UploadBlobCommand<TResponse>>(opt, null, null);
                 })
@@ -72,18 +72,18 @@ namespace MediatR.Extensions.Azure.Storage.Tests
         {
             return services
 
-                .AddOptions<SendMessageOptions<TRequest>>().Services
-                .AddOptions<SendMessageOptions<TResponse>>().Services
+                .AddOptions<QueueOptions<TRequest>>().Services
+                .AddOptions<QueueOptions<TResponse>>().Services
 
                 .AddSingleton<Mock<SendMessageCommand<TRequest>>>(sp =>
                 {
-                    var opt = sp.GetRequiredService<IOptions<SendMessageOptions<TRequest>>>();
+                    var opt = sp.GetRequiredService<IOptions<QueueOptions<TRequest>>>();
 
                     return new Mock<SendMessageCommand<TRequest>>(opt, null, null);
                 })
                 .AddSingleton<Mock<SendMessageCommand<TResponse>>>(sp =>
                 {
-                    var opt = sp.GetRequiredService<IOptions<SendMessageOptions<TResponse>>>();
+                    var opt = sp.GetRequiredService<IOptions<QueueOptions<TResponse>>>();
 
                     return new Mock<SendMessageCommand<TResponse>>(opt, null, null);
                 })

@@ -8,7 +8,7 @@ namespace MediatR.Extensions.Azure.Storage
     /// The options used to configure the table storage extensions 
     /// </summary>
     /// <typeparam name="TMessage">The type of message being stored. While this is not constrained, in practice it will be a MediatR request or response.</typeparam>
-    public class InsertEntityOptions<TMessage>
+    public class TableOptions<TMessage>
     {
         /// <summary>
         /// true to enable execution of the extension, false to disable it

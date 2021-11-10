@@ -9,11 +9,11 @@ namespace MediatR.Extensions.Azure.Storage
 {
     public class ReceiveMessageCommand<TMessage> : ICommand<TMessage>
     {
-        private readonly IOptions<SendMessageOptions<TMessage>> opt;
+        private readonly IOptions<QueueOptions<TMessage>> opt;
         private readonly PipelineContext ctx;
         private readonly ILogger log;
 
-        public ReceiveMessageCommand(IOptions<SendMessageOptions<TMessage>> opt, PipelineContext ctx = null, ILogger log = null)
+        public ReceiveMessageCommand(IOptions<QueueOptions<TMessage>> opt, PipelineContext ctx = null, ILogger log = null)
         {
             this.opt = opt;
             this.ctx = ctx;

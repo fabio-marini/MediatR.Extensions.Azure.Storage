@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace MediatR.Extensions.Azure.Storage
 {
-    public class SendMessageOptions<TMessage>
+    public class QueueOptions<TMessage>
     {
         public virtual bool IsEnabled { get; set; }
 

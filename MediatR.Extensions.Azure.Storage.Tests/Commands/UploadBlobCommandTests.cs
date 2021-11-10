@@ -15,20 +15,20 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
     public class UploadBlobCommandTests
     {
         private readonly IServiceProvider svc;
-        private readonly Mock<UploadBlobOptions<TestMessage>> opt;
+        private readonly Mock<BlobOptions<TestMessage>> opt;
         private readonly Mock<BlobClient> blb;
 
         private readonly UploadBlobCommand<TestMessage> cmd;
 
         public UploadBlobCommandTests()
         {
-            opt = new Mock<UploadBlobOptions<TestMessage>>();
+            opt = new Mock<BlobOptions<TestMessage>>();
             blb = new Mock<BlobClient>("UseDevelopmentStorage=true", "container1", "blob1.txt");
 
             svc = new ServiceCollection()
 
                 .AddTransient<UploadBlobCommand<TestMessage>>()
-                .AddTransient<IOptions<UploadBlobOptions<TestMessage>>>(sp => Options.Create(opt.Object))
+                .AddTransient<IOptions<BlobOptions<TestMessage>>>(sp => Options.Create(opt.Object))
 
                 .BuildServiceProvider();
 

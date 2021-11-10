@@ -15,7 +15,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
     public class QueueMessageCommandTests
     {
         private readonly IServiceProvider svc;
-        private readonly Mock<SendMessageOptions<TestMessage>> opt;
+        private readonly Mock<QueueOptions<TestMessage>> opt;
         private readonly Mock<QueueClient> que;
         private readonly Mock<ILogger> log;
 
@@ -23,7 +23,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
 
         public QueueMessageCommandTests()
         {
-            opt = new Mock<SendMessageOptions<TestMessage>>();
+            opt = new Mock<QueueOptions<TestMessage>>();
             que = new Mock<QueueClient>("UseDevelopmentStorage=true", "queue1");
             log = new Mock<ILogger>();
 
@@ -31,7 +31,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
 
                 .AddTransient<ILogger>(sp => log.Object)
                 .AddTransient<SendMessageCommand<TestMessage>>()
-                .AddTransient<IOptions<SendMessageOptions<TestMessage>>>(sp => Options.Create(opt.Object))
+                .AddTransient<IOptions<QueueOptions<TestMessage>>>(sp => Options.Create(opt.Object))
 
                 .BuildServiceProvider();
 

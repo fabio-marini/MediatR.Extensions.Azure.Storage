@@ -10,11 +10,11 @@ namespace MediatR.Extensions.Azure.Storage
 {
     public class RetrieveEntityCommand<TMessage> : ICommand<TMessage>
     {
-        private readonly IOptions<InsertEntityOptions<TMessage>> opt;
+        private readonly IOptions<TableOptions<TMessage>> opt;
         private readonly PipelineContext ctx;
         private readonly ILogger log;
 
-        public RetrieveEntityCommand(IOptions<InsertEntityOptions<TMessage>> opt, PipelineContext ctx = null, ILogger log = null)
+        public RetrieveEntityCommand(IOptions<TableOptions<TMessage>> opt, PipelineContext ctx = null, ILogger log = null)
         {
             this.opt = opt;
             this.ctx = ctx ?? throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid PipelineContext");

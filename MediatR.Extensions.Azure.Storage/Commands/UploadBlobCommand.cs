@@ -11,11 +11,11 @@ namespace MediatR.Extensions.Azure.Storage
 {
     public class UploadBlobCommand<TMessage> : ICommand<TMessage>
     {
-        private readonly IOptions<UploadBlobOptions<TMessage>> opt;
+        private readonly IOptions<BlobOptions<TMessage>> opt;
         private readonly PipelineContext ctx;
         private readonly ILogger log;
 
-        public UploadBlobCommand(IOptions<UploadBlobOptions<TMessage>> opt, PipelineContext ctx = null, ILogger log = null)
+        public UploadBlobCommand(IOptions<BlobOptions<TMessage>> opt, PipelineContext ctx = null, ILogger log = null)
         {
             this.opt = opt;
             this.ctx = ctx;

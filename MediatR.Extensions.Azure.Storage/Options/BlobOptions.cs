@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MediatR.Extensions.Azure.Storage
 {
-    public class UploadBlobOptions<TMessage>
+    public class BlobOptions<TMessage>
     {
         public virtual bool IsEnabled { get; set; }
 

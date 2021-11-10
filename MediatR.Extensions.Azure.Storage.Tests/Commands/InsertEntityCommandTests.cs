@@ -15,20 +15,20 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
     public class InsertEntityCommandTests
     {
         private readonly IServiceProvider svc;
-        private readonly Mock<InsertEntityOptions<TestMessage>> opt;
+        private readonly Mock<TableOptions<TestMessage>> opt;
         private readonly Mock<CloudTable> tbl;
 
         private readonly InsertEntityCommand<TestMessage> cmd;
 
         public InsertEntityCommandTests()
         {
-            opt = new Mock<InsertEntityOptions<TestMessage>>();
+            opt = new Mock<TableOptions<TestMessage>>();
             tbl = new Mock<CloudTable>(new Uri("http://127.0.0.1:10002/devstoreaccount1/table1"), null);
 
             svc = new ServiceCollection()
 
                 .AddTransient<InsertEntityCommand<TestMessage>>()
-                .AddTransient<IOptions<InsertEntityOptions<TestMessage>>>(sp => Options.Create(opt.Object))
+                .AddTransient<IOptions<TableOptions<TestMessage>>>(sp => Options.Create(opt.Object))
 
                 .BuildServiceProvider();
 

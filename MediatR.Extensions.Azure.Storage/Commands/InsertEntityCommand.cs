@@ -11,11 +11,11 @@ namespace MediatR.Extensions.Azure.Storage
 {
     public class InsertEntityCommand<TMessage> : ICommand<TMessage>
     {
-        private readonly IOptions<InsertEntityOptions<TMessage>> opt;
+        private readonly IOptions<TableOptions<TMessage>> opt;
         private readonly PipelineContext ctx;
         private readonly ILogger log;
 
-        public InsertEntityCommand(IOptions<InsertEntityOptions<TMessage>> opt, PipelineContext ctx = null, ILogger log = null)
+        public InsertEntityCommand(IOptions<TableOptions<TMessage>> opt, PipelineContext ctx = null, ILogger log = null)
         {
             this.opt = opt;
             this.ctx = ctx;
