@@ -29,24 +29,18 @@ namespace ClassLibrary1
         // 6. use storage behaviors for activity and message tracking (named options)
         // 7. claim check pipeline
 
-        // TODO: add all hooks and remove use of pipeline context from commands (except exceptions)
-
         // TODO: add commands to all DEMO ServiceCollectionExtensions extension methods so they can be injected
 
         // TODO: add command integration tests (insert, retrieve and delete)
         // TODO: add behaviors/processors integration tests?
 
         // TODO: add factory method to configure options to DI extension methods...
+        // TODO: encapsulate all options validation/defaults into own class/method
 
         // TODO: finish commands, add demos (requires adding behaviors)
         // TODO: add processors and unit tests for all extensions
-        // TODO: make pipeline context a required ctor param for queue receive/delete, retrieve and download
         // TODO: add test for null blob client (not the delegate, but the result)
-        // TODO: commands review - logging, all hooks are invoked and try/catch around the operation (add CommandException)
-
-        // TODO: encapsulate all options validation/defaults into own class/method
-
-        // TODO: split abstractions, table, blob and queue extensions into separate assemblies
+        // TODO: commands review - logging, hooks are invoked and try/catch around the operation (add CommandException)
 
         // TODO: add tests for retrieve/delete entity commands
         // TODO: implement and add tests for receive queue message command

@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClassLibrary1", "ClassLibra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FunctionApp2", "FunctionApp2\FunctionApp2.csproj", "{401F542D-A3F6-438C-AAB9-1178DC357FCC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediatR.Extensions.Azure.Storage", "MediatR.Extensions.Azure.Storage\MediatR.Extensions.Azure.Storage.csproj", "{FE5B8ECB-2D24-4777-A04B-A30772345A2C}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{4C09278C-E77A-40E6-9F4D-E229F12C148D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediatR.Extensions.Azure.Storage.Tests", "MediatR.Extensions.Azure.Storage.Tests\MediatR.Extensions.Azure.Storage.Tests.csproj", "{678083D7-1CE2-4C8A-8573-D04062B965E6}"
@@ -19,6 +17,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediatR.Extensions.Azure.Storage.Abstractions", "MediatR.Extensions.Azure.Storage.Abstractions\MediatR.Extensions.Azure.Storage.Abstractions.csproj", "{51C6BF26-8C24-4D31-918C-5253458170B7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediatR.Extensions.Azure.Storage.Blobs", "MediatR.Extensions.Azure.Storage.Blobs\MediatR.Extensions.Azure.Storage.Blobs.csproj", "{2DB021A9-D06D-4183-9588-383D629A1354}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediatR.Extensions.Azure.Storage.Queues", "MediatR.Extensions.Azure.Storage.Queues\MediatR.Extensions.Azure.Storage.Queues.csproj", "{CAB65138-6442-4033-AC1F-1DCAE3FD7278}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediatR.Extensions.Azure.Storage.Tables", "MediatR.Extensions.Azure.Storage.Tables\MediatR.Extensions.Azure.Storage.Tables.csproj", "{24B9AA35-7E7D-4833-B4CB-254499AA88EC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,14 +44,26 @@ Global
 		{401F542D-A3F6-438C-AAB9-1178DC357FCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{401F542D-A3F6-438C-AAB9-1178DC357FCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{401F542D-A3F6-438C-AAB9-1178DC357FCC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FE5B8ECB-2D24-4777-A04B-A30772345A2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FE5B8ECB-2D24-4777-A04B-A30772345A2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FE5B8ECB-2D24-4777-A04B-A30772345A2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FE5B8ECB-2D24-4777-A04B-A30772345A2C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{678083D7-1CE2-4C8A-8573-D04062B965E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{678083D7-1CE2-4C8A-8573-D04062B965E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{678083D7-1CE2-4C8A-8573-D04062B965E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{678083D7-1CE2-4C8A-8573-D04062B965E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51C6BF26-8C24-4D31-918C-5253458170B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51C6BF26-8C24-4D31-918C-5253458170B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51C6BF26-8C24-4D31-918C-5253458170B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51C6BF26-8C24-4D31-918C-5253458170B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DB021A9-D06D-4183-9588-383D629A1354}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DB021A9-D06D-4183-9588-383D629A1354}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DB021A9-D06D-4183-9588-383D629A1354}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DB021A9-D06D-4183-9588-383D629A1354}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAB65138-6442-4033-AC1F-1DCAE3FD7278}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAB65138-6442-4033-AC1F-1DCAE3FD7278}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAB65138-6442-4033-AC1F-1DCAE3FD7278}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAB65138-6442-4033-AC1F-1DCAE3FD7278}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24B9AA35-7E7D-4833-B4CB-254499AA88EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24B9AA35-7E7D-4833-B4CB-254499AA88EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24B9AA35-7E7D-4833-B4CB-254499AA88EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24B9AA35-7E7D-4833-B4CB-254499AA88EC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
