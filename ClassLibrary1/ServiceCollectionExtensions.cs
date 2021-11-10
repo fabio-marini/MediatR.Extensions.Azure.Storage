@@ -29,6 +29,9 @@ namespace ClassLibrary1
         // 6. use storage behaviors for activity and message tracking (named options)
         // 7. claim check pipeline
 
+        // FIXME: why no error without options<TResponse>?!? Also works without options<TRequest> (when using .AddOptions)
+        //        when using AddTransient<IOptions> an error occurs...
+
         // TODO: add commands to all DEMO ServiceCollectionExtensions extension methods so they can be injected
 
         // TODO: add command integration tests (insert, retrieve and delete)

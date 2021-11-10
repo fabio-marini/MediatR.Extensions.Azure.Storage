@@ -14,7 +14,7 @@ namespace MediatR.Extensions.Azure.Storage
         public virtual TimeSpan? Visibility { get; set; }
         public virtual TimeSpan? TimeToLive { get; set; }
 
-        // the event that is raised after the message is received (allows using the message)
+        // the event that is raised after the message is received (allows using the queue message to modify TMessage)
         public virtual Func<QueueMessage, PipelineContext, TMessage, Task> Received { get; set; }
 
         // the event that is raised before the message is deleted (allows retrieving the message to be deleted)
