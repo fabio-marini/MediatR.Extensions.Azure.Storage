@@ -27,8 +27,6 @@ namespace MediatR.Extensions.Azure.Storage
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // blob name and content are required - defaults will be supplied if not specified
-            // a container client is also required, but a default will not be supplied; instead the command will not execute (as if disabled)
             if (opt.Value.IsEnabled == false)
             {
                 log.LogDebug("Command {Command} is not enabled, returning", this.GetType().Name);
@@ -60,35 +58,39 @@ namespace MediatR.Extensions.Azure.Storage
                 }
             }
 
-            var blobClient = opt.Value.BlobClient(message, ctx);
-
-            if (blobClient == null)
+            try
             {
-                throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid BlobClient");
+                var blobClient = opt.Value.BlobClient(message, ctx);
+
+                var blobContent = opt.Value.BlobContent(message, ctx);
+
+                var res = await blobClient.UploadAsync(blobContent, cancellationToken);
+
+                if (opt.Value.BlobHeaders != null)
+                {
+                    var blobHeaders = opt.Value.BlobHeaders(message, ctx);
+
+                    await blobClient.SetHttpHeadersAsync(blobHeaders, cancellationToken: cancellationToken);
+
+                    log.LogDebug("Command {Command} set the specified blob HTTP headers", this.GetType().Name);
+                }
+
+                if (opt.Value.Metadata != null)
+                {
+                    var blobMetadata = opt.Value.Metadata(message, ctx);
+
+                    await blobClient.SetMetadataAsync(blobMetadata, cancellationToken: cancellationToken);
+
+                    log.LogDebug("Command {Command} set the specified blob metadata", this.GetType().Name);
+                }
+
+                log.LogDebug("Command {Command} completed with status {Status}", this.GetType().Name, res.GetRawResponse().Status);
             }
-
-            var blobContent = opt.Value.BlobContent(message, ctx);
-
-            if (blobContent == null)
+            catch (Exception ex)
             {
-                // UploadAsync will throw a NullReferenceException if this is null - this message is a bit more helpful hopefully...
-                throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid BlobContent");
-            }
+                log.LogDebug(ex, "Command {Command} failed with message: {Message}", this.GetType().Name, ex.Message);
 
-            var res = await blobClient.UploadAsync(blobContent, cancellationToken);
-
-            if (opt.Value.BlobHeaders != null)
-            {
-                var blobHeaders = opt.Value.BlobHeaders(message, ctx);
-
-                await blobClient.SetHttpHeadersAsync(blobHeaders, cancellationToken: cancellationToken);
-            }
-
-            if (opt.Value.Metadata != null)
-            {
-                var blobMetadata = opt.Value.Metadata(message, ctx);
-
-                await blobClient.SetMetadataAsync(blobMetadata, cancellationToken: cancellationToken);
+                throw new CommandException($"Command {this.GetType().Name} failed, see inner exception for details", ex);
             }
         }
     }

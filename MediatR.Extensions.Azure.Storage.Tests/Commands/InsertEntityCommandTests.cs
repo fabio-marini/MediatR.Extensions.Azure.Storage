@@ -1,4 +1,5 @@
 using FluentAssertions;
+using MediatR.Extensions.Azure.Storage.Abstractions;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -78,6 +79,10 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
             opt.SetupProperty(m => m.CloudTable, tbl.Object);
             opt.SetupProperty(m => m.TableEntity, null);
 
+            var res = new TableResult { HttpStatusCode = 200 };
+
+            tbl.Setup(m => m.ExecuteAsync(It.IsAny<TableOperation>(), CancellationToken.None)).ReturnsAsync(res);
+
             await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
 
             var tableOperations = new List<TableOperation>();
@@ -103,7 +108,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
 
             Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
 
-            await act.Should().ThrowAsync<ArgumentNullException>();
+            await act.Should().ThrowAsync<CommandException>();
 
             var tableOperations = new List<TableOperation>();
 
@@ -124,6 +129,10 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.CloudTable, tbl.Object);
             opt.SetupProperty(m => m.TableEntity, (cmd, ctx) => new DynamicTableEntity("PK1", "RK1"));
+
+            var res = new TableResult { HttpStatusCode = 200 };
+
+            tbl.Setup(m => m.ExecuteAsync(It.IsAny<TableOperation>(), CancellationToken.None)).ReturnsAsync(res);
 
             await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
 

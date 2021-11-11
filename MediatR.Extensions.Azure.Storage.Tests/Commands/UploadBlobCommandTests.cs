@@ -1,4 +1,5 @@
-﻿using Azure.Storage.Blobs;
+﻿using Azure;
+using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -84,6 +85,12 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
             opt.SetupProperty(m => m.BlobHeaders, null);
             opt.SetupProperty(m => m.Metadata, null);
 
+            var res = new Mock<Response>();
+            res.SetupGet(r => r.Status).Returns(200);
+
+            blb.Setup(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None))
+                .ReturnsAsync(Response.FromValue<BlobContentInfo>(default, res.Object));
+
             await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
@@ -100,33 +107,6 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
             blb.Verify(m => m.SetMetadataAsync(It.IsAny<IDictionary<string, string>>(), null, CancellationToken.None), Times.Never);
         }
 
-        [Fact(DisplayName = "BlobContent delegate returns null")]
-        public async Task Test4()
-        {
-            opt.SetupProperty(m => m.IsEnabled, true);
-            opt.SetupProperty(m => m.BlobClient, (req, ctx) => blb.Object);
-            opt.SetupProperty(m => m.BlobContent, (req, ctx) => null);
-            opt.SetupProperty(m => m.BlobHeaders, null);
-            opt.SetupProperty(m => m.Metadata, null);
-
-            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
-
-            await act.Should().ThrowAsync<ArgumentNullException>();
-
-            opt.VerifyGet(m => m.IsEnabled, Times.Once);
-            opt.VerifyGet(m => m.BlobClient, Times.Exactly(2));
-            opt.VerifyGet(m => m.Metadata, Times.Never);
-            opt.VerifyGet(m => m.BlobContent, Times.Exactly(2));
-            opt.VerifyGet(m => m.BlobHeaders, Times.Never);
-
-            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<TestMessage, PipelineContext, BinaryData>>(), Times.Never);
-            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<TestMessage, PipelineContext, BlobHttpHeaders>>(), Times.Never);
-
-            blb.Verify(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None), Times.Never);
-            blb.Verify(m => m.SetHttpHeadersAsync(It.IsAny<BlobHttpHeaders>(), null, CancellationToken.None), Times.Never);
-            blb.Verify(m => m.SetMetadataAsync(It.IsAny<IDictionary<string, string>>(), null, CancellationToken.None), Times.Never);
-        }
-
         [Fact(DisplayName = "Command uses specified BlobContent")]
         public async Task Test5()
         {
@@ -135,6 +115,12 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
             opt.SetupProperty(m => m.BlobContent, (req, ctx) => BinaryData.FromString("Hello world! :)"));
             opt.SetupProperty(m => m.BlobHeaders, null);
             opt.SetupProperty(m => m.Metadata, null);
+
+            var res = new Mock<Response>();
+            res.SetupGet(r => r.Status).Returns(200);
+
+            blb.Setup(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None))
+                .ReturnsAsync(Response.FromValue<BlobContentInfo>(default, res.Object));
 
             await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
 
@@ -161,6 +147,12 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
             opt.SetupProperty(m => m.BlobHeaders, (req, ctx) => new BlobHttpHeaders { CacheControl = "no-cache" });
             opt.SetupProperty(m => m.Metadata, null);
 
+            var res = new Mock<Response>();
+            res.SetupGet(r => r.Status).Returns(200);
+
+            blb.Setup(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None))
+                .ReturnsAsync(Response.FromValue<BlobContentInfo>(default, res.Object));
+
             await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
@@ -186,6 +178,12 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
             opt.SetupProperty(m => m.BlobHeaders, (req, ctx) => new BlobHttpHeaders { CacheControl = "no-cache" });
             opt.SetupProperty(m => m.Metadata, null);
 
+            var res = new Mock<Response>();
+            res.SetupGet(r => r.Status).Returns(200);
+
+            blb.Setup(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None))
+                .ReturnsAsync(Response.FromValue<BlobContentInfo>(default, res.Object));
+
             await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
@@ -210,6 +208,12 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
             opt.SetupProperty(m => m.BlobContent, (req, ctx) => BinaryData.FromString("Hello world! :)"));
             opt.SetupProperty(m => m.BlobHeaders, (req, ctx) => new BlobHttpHeaders { CacheControl = "no-cache" });
             opt.SetupProperty(m => m.Metadata, (req, ctx) => new Dictionary<string, string> { { "Powered-By", "MediatR" } });
+
+            var res = new Mock<Response>();
+            res.SetupGet(r => r.Status).Returns(200);
+
+            blb.Setup(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None))
+                .ReturnsAsync(Response.FromValue<BlobContentInfo>(default, res.Object));
 
             await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
 

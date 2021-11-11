@@ -37,13 +37,22 @@ namespace MediatR.Extensions.Azure.Storage
                 throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid QueueClient");
             }
 
-            var receiveResponse = await opt.Value.QueueClient.ReceiveMessageAsync(opt.Value.Visibility, cancellationToken);
-
-            log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, receiveResponse.GetRawResponse().Status);
-
-            if (opt.Value.Received != null)
+            try
             {
-                await opt.Value.Received(receiveResponse.Value, ctx, message);
+                var res = await opt.Value.QueueClient.ReceiveMessageAsync(opt.Value.Visibility, cancellationToken);
+
+                if (opt.Value.Received != null)
+                {
+                    await opt.Value.Received(res.Value, ctx, message);
+                }
+
+                log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, res.GetRawResponse().Status);
+            }
+            catch (Exception ex)
+            {
+                log.LogDebug(ex, "Command {Command} failed with message: {Message}", this.GetType().Name, ex.Message);
+
+                throw new CommandException($"Command {this.GetType().Name} failed, see inner exception for details", ex);
             }
         }
     }

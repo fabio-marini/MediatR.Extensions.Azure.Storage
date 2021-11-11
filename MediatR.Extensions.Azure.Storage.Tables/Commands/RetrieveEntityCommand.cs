@@ -43,22 +43,26 @@ namespace MediatR.Extensions.Azure.Storage
                 throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid TableEntity");
             }
 
-            var tableEntity = opt.Value.TableEntity(message, ctx);
-
-            if (tableEntity == null)
+            try
             {
-                throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid TableEntity value");
+                var tableEntity = opt.Value.TableEntity(message, ctx);
+
+                var retrieveOperation = TableOperation.Retrieve(tableEntity.PartitionKey, tableEntity.RowKey);
+
+                var res = await opt.Value.CloudTable.ExecuteAsync(retrieveOperation, cancellationToken);
+
+                if (opt.Value.Retrieved != null)
+                {
+                    await opt.Value.Retrieved(res, ctx, message);
+                }
+
+                log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, res.HttpStatusCode);
             }
-
-            var retrieveOperation = TableOperation.Retrieve(tableEntity.PartitionKey, tableEntity.RowKey);
-
-            var tableResult = await opt.Value.CloudTable.ExecuteAsync(retrieveOperation, cancellationToken);
-
-            log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, tableResult.HttpStatusCode);
-
-            if (opt.Value.Retrieved != null)
+            catch (Exception ex)
             {
-                await opt.Value.Retrieved(tableResult, ctx, message);
+                log.LogDebug(ex, "Command {Command} failed with message: {Message}", this.GetType().Name, ex.Message);
+
+                throw new CommandException($"Command {this.GetType().Name} failed, see inner exception for details", ex);
             }
         }
     }

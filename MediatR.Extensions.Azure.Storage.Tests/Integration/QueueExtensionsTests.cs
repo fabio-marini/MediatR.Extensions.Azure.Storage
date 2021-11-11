@@ -1,6 +1,7 @@
 ﻿using Azure.Storage.Queues.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading;
@@ -49,7 +50,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 
             var serviceProvider = new ServiceCollection()
 
-                .AddQueueExtensions(opt, new QueueOptions<TResponse>())
+                .AddQueueExtensions<TRequest, TResponse>(sp => Options.Create(opt))
                 .BuildServiceProvider();
 
             var sendExtension = serviceProvider.GetRequiredService<SendMessageRequestBehavior<TRequest, TResponse>>();
@@ -93,7 +94,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 
             var serviceProvider = new ServiceCollection()
 
-                .AddQueueExtensions(new QueueOptions<TRequest>(), opt)
+                .AddQueueExtensions<TRequest, TResponse>(sp => Options.Create(opt))
                 .BuildServiceProvider();
 
             var sendExtension = serviceProvider.GetRequiredService<SendMessageResponseBehavior<TRequest, TResponse>>();
@@ -137,7 +138,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 
             var serviceProvider = new ServiceCollection()
 
-                .AddQueueExtensions(opt, new QueueOptions<TResponse>())
+                .AddQueueExtensions<TRequest, TResponse>(sp => Options.Create(opt))
                 .BuildServiceProvider();
 
             var sendExtension = serviceProvider.GetRequiredService<SendMessageRequestProcessor<TRequest>>();
@@ -181,7 +182,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 
             var serviceProvider = new ServiceCollection()
 
-                .AddQueueExtensions(new QueueOptions<TRequest>(), opt)
+                .AddQueueExtensions<TRequest, TResponse>(sp => Options.Create(opt))
                 .BuildServiceProvider();
 
             var sendExtension = serviceProvider.GetRequiredService<SendMessageResponseProcessor<TRequest, TResponse>>();

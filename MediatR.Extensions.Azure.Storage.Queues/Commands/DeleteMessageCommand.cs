@@ -37,7 +37,12 @@ namespace MediatR.Extensions.Azure.Storage
                 throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid QueueClient");
             }
 
-            if (opt.Value.Delete != null)
+            if (opt.Value.Delete == null)
+            {
+                throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid Delete delegate");
+            }
+
+            try
             {
                 var msg = await opt.Value.Delete(ctx, message);
 
@@ -48,9 +53,15 @@ namespace MediatR.Extensions.Azure.Storage
                     return;
                 }
 
-                var deleteResponse = await opt.Value.QueueClient.DeleteMessageAsync(msg.MessageId, msg.PopReceipt, cancellationToken);
+                var res = await opt.Value.QueueClient.DeleteMessageAsync(msg.MessageId, msg.PopReceipt, cancellationToken);
 
-                log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, deleteResponse.Status);
+                log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, res.Status);
+            }
+            catch (Exception ex)
+            {
+                log.LogDebug(ex, "Command {Command} failed with message: {Message}", this.GetType().Name, ex.Message);
+
+                throw new CommandException($"Command {this.GetType().Name} failed, see inner exception for details", ex);
             }
         }
     }

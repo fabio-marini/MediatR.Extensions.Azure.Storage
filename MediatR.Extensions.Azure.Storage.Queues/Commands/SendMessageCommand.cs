@@ -50,15 +50,26 @@ namespace MediatR.Extensions.Azure.Storage
                 };
             }
 
-            var msg = opt.Value.QueueMessage(message, ctx);
-
-            if (msg == null)
+            try
             {
-                // the queue client supports null messages - don't throw, but log a warning...
-                log.LogWarning($"The QueueMessage delegate of Command {this.GetType().Name} returned a null message");
-            }
+                var msg = opt.Value.QueueMessage(message, ctx);
 
-            await opt.Value.QueueClient.SendMessageAsync(msg, opt.Value.Visibility, opt.Value.TimeToLive, cancellationToken);
+                if (msg == null)
+                {
+                    // the queue client supports null messages - don't throw, but log a warning...
+                    log.LogWarning($"The QueueMessage delegate of Command {this.GetType().Name} returned a null message");
+                }
+
+                var res = await opt.Value.QueueClient.SendMessageAsync(msg, opt.Value.Visibility, opt.Value.TimeToLive, cancellationToken);
+
+                log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, res.GetRawResponse().Status);
+            }
+            catch (Exception ex)
+            {
+                log.LogDebug(ex, "Command {Command} failed with message: {Message}", this.GetType().Name, ex.Message);
+
+                throw new CommandException($"Command {this.GetType().Name} failed, see inner exception for details", ex);
+            }
         }
     }
 }

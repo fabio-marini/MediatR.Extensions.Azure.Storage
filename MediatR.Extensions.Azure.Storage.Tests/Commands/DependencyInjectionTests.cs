@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using Xunit;
 
-namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
+namespace MediatR.Extensions.Azure.Storage.Tests.Commands
 {
     public class DependencyInjectionTests
     {

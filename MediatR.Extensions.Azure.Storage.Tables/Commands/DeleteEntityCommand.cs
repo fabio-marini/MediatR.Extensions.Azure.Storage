@@ -43,18 +43,22 @@ namespace MediatR.Extensions.Azure.Storage
                 throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid TableEntity");
             }
 
-            var tableEntity = opt.Value.TableEntity(message, ctx);
-
-            if (tableEntity == null)
+            try
             {
-                throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid TableEntity value");
+                var tableEntity = opt.Value.TableEntity(message, ctx);
+
+                var deleteOperation = TableOperation.Delete(tableEntity);
+
+                var res = await opt.Value.CloudTable.ExecuteAsync(deleteOperation, cancellationToken);
+
+                log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, res.HttpStatusCode);
             }
+            catch (Exception ex)
+            {
+                log.LogDebug(ex, "Command {Command} failed with message: {Message}", this.GetType().Name, ex.Message);
 
-            var deleteOperation = TableOperation.Delete(tableEntity);
-
-            var tableResult = await opt.Value.CloudTable.ExecuteAsync(deleteOperation, cancellationToken);
-
-            log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, tableResult.HttpStatusCode);
+                throw new CommandException($"Command {this.GetType().Name} failed, see inner exception for details", ex);
+            }
         }
     }
 }

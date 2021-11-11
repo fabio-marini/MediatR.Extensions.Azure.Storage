@@ -27,34 +27,27 @@ namespace ClassLibrary1
         // 4. add storage processors to track GET response
         // 5. use storage behaviors for activity tracking (BAM)
         // 6. use storage behaviors for activity and message tracking (named options)
-        // 7. claim check pipeline
+        // 7. claim check pipeline (blob and table)
+
+        // TODO: unit tests for all commands and base extensions in Abstractions project + integration tests for everything else...
+
+        // TODO: add test for null blob client (not the delegate, but the result)
+        // TODO: simplify extensions unit tests to work with abstractions directly and use test command/query
+        // TODO: remove all unit tests for specific extensions, they are covered by DI and integration tests...
+        // TODO: reorganize test classes to mirror the projects file structure
+
+        // TODO: update existing first, then add remaining commands tests 
 
         // FIXME: why no error without options<TResponse>?!? Also works without options<TRequest> (when using .AddOptions)
         //        however, when using AddTransient<IOptions> an error does occur...
 
         // TODO: add commands to all DEMO ServiceCollectionExtensions extension methods so they can be injected
 
-        // TODO: add command integration tests (insert, retrieve and delete)
-        // TODO: add behaviors/processors integration tests?
-
         // TODO: document options (they are used for insert/delete/retrieve) + update README
-        // TODO: add factory method to configure options to DI extension methods...
-        // TODO: encapsulate all options validation/defaults into own class/method
-
-        // TODO: add processors and unit tests for all extensions
-        // TODO: add test for null blob client (not the delegate, but the result)
-        // TODO: commands review - logging, hooks are invoked and try/catch around the operation (add CommandException)
-
-        // TODO: add tests for retrieve/delete entity commands
-        // TODO: implement and add tests for receive queue message command
-        // TODO: implement and add tests for download/delete blob commands
-        // TODO: add implementation of remaining behaviors/processors
+        // TODO: encapsulate all options validation/defaults into own class/method - same option can be used for different operations!
+        //       e.g. ValidateForInsert(), ValidateForRetrieve() and ValidateForDelete()?
 
         // TODO: add src and examples folders + add code examples to README...
-        // TODO: log operation results (see table commands) + wrap command operations in try/catch and rethrow consistent exception
-        // TODO: add generic param constraint to ICommand and implement ICommandOptions? Will make config a lot more complex!
-        //       (different commands use different options, e.g. retrieve/delete are different from insert)
-
         // TODO: create simple diagrams?
         // TODO: add projects for Service Bus (messaging and management?) and HttpClient?
         // TODO: delete from table/blob for maintenance (using retention days?)

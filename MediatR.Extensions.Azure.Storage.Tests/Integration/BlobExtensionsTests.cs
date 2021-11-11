@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -46,7 +47,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 
             var serviceProvider = new ServiceCollection()
 
-                .AddBlobExtensions(opt, new BlobOptions<TResponse>())
+                .AddBlobExtensions<TRequest, TResponse>(sp => Options.Create(opt))
                 .BuildServiceProvider();
 
             var uploadExtension = serviceProvider.GetRequiredService<UploadBlobRequestBehavior<TRequest, TResponse>>();
@@ -87,7 +88,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 
             var serviceProvider = new ServiceCollection()
 
-                .AddBlobExtensions(new BlobOptions<TRequest>(), opt)
+                .AddBlobExtensions<TRequest, TResponse>(sp => Options.Create(opt))
                 .BuildServiceProvider();
 
             var uploadExtension = serviceProvider.GetRequiredService<UploadBlobResponseBehavior<TRequest, TResponse>>();
@@ -128,7 +129,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 
             var serviceProvider = new ServiceCollection()
 
-                .AddBlobExtensions(opt, new BlobOptions<TResponse>())
+                .AddBlobExtensions<TRequest, TResponse>(sp => Options.Create(opt))
                 .BuildServiceProvider();
 
             var uploadExtension = serviceProvider.GetRequiredService<UploadBlobRequestProcessor<TRequest>>();
@@ -169,7 +170,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 
             var serviceProvider = new ServiceCollection()
 
-                .AddBlobExtensions(new BlobOptions<TRequest>(), opt)
+                .AddBlobExtensions<TRequest, TResponse>(sp => Options.Create(opt))
                 .BuildServiceProvider();
 
             var uploadExtension = serviceProvider.GetRequiredService<UploadBlobResponseProcessor<TRequest, TResponse>>();

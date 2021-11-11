@@ -57,19 +57,22 @@ namespace MediatR.Extensions.Azure.Storage
                 };
             }
 
-            var tableEntity = opt.Value.TableEntity(message, ctx);
-
-            if (tableEntity == null)
+            try
             {
-                // Insert will throw an ArgumentNullException if this is null - this message is a bit more helpful hopefully...
-                throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid TableEntity value");
+                var tableEntity = opt.Value.TableEntity(message, ctx);
+
+                var insertOperation = TableOperation.Insert(tableEntity);
+
+                var res = await opt.Value.CloudTable.ExecuteAsync(insertOperation, cancellationToken);
+
+                log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, res.HttpStatusCode);
             }
+            catch (Exception ex)
+            {
+                log.LogDebug(ex, "Command {Command} failed with message: {Message}", this.GetType().Name, ex.Message);
 
-            var insertOperation = TableOperation.Insert(tableEntity);
-
-            var tableResult = await opt.Value.CloudTable.ExecuteAsync(insertOperation, cancellationToken);
-
-            //log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, tableResult.HttpStatusCode);
+                throw new CommandException($"Command {this.GetType().Name} failed, see inner exception for details", ex);
+            }
         }
     }
 }

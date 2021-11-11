@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -52,7 +53,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 
             var serviceProvider = new ServiceCollection()
 
-                .AddTableExtensions(opt, new TableOptions<TResponse>())
+                .AddTableExtensions<TRequest, TResponse>(sp => Options.Create(opt))
                 .BuildServiceProvider();
 
             var insertExtension = serviceProvider.GetRequiredService<InsertEntityRequestBehavior<TRequest, TResponse>>();
@@ -98,7 +99,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 
             var serviceProvider = new ServiceCollection()
 
-                .AddTableExtensions(new TableOptions<TRequest>(), opt)
+                .AddTableExtensions<TRequest, TResponse>(sp => Options.Create(opt))
                 .BuildServiceProvider();
 
             var insertExtension = serviceProvider.GetRequiredService<InsertEntityResponseBehavior<TRequest, TResponse>>();
@@ -144,7 +145,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 
             var serviceProvider = new ServiceCollection()
 
-                .AddTableExtensions(opt, new TableOptions<TResponse>())
+                .AddTableExtensions<TRequest, TResponse>(sp => Options.Create(opt))
                 .BuildServiceProvider();
 
             var insertExtension = serviceProvider.GetRequiredService<InsertEntityRequestProcessor<TRequest>>();
@@ -190,7 +191,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 
             var serviceProvider = new ServiceCollection()
 
-                .AddTableExtensions(new TableOptions<TRequest>(), opt)
+                .AddTableExtensions<TRequest, TResponse>(sp => Options.Create(opt))
                 .BuildServiceProvider();
 
             var insertExtension = serviceProvider.GetRequiredService<InsertEntityResponseProcessor<TRequest, TResponse>>();

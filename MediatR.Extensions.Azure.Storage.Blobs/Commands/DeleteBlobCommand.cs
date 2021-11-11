@@ -37,16 +37,20 @@ namespace MediatR.Extensions.Azure.Storage
                 throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid BlobClient");
             }
 
-            var blobClient = opt.Value.BlobClient(message, ctx);
-
-            if (blobClient == null)
+            try
             {
-                throw new ArgumentNullException($"Command {this.GetType().Name} requires a valid BlobClient");
+                var blobClient = opt.Value.BlobClient(message, ctx);
+
+                var res = await blobClient.DeleteAsync(cancellationToken: cancellationToken);
+
+                log.LogDebug("Command {Command} completed with status {Status}", this.GetType().Name, res.Status);
             }
+            catch (Exception ex)
+            {
+                log.LogDebug(ex, "Command {Command} failed with message: {Message}", this.GetType().Name, ex.Message);
 
-            var res = await blobClient.DeleteAsync(cancellationToken: cancellationToken);
-
-            log.LogDebug("Command {Command} completed with status {Status}", this.GetType().Name, res.Status);
+                throw new CommandException($"Command {this.GetType().Name} failed, see inner exception for details", ex);
+            }
         }
     }
 }
