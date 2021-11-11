@@ -25,7 +25,7 @@ namespace MediatR.Extensions.Azure.Storage
         /// </summary>
         public virtual Func<TMessage, PipelineContext, ITableEntity> TableEntity { get; set; }
 
-        // the event that is raised after the message is received (allows using the received entity to modify TMessage)
-        public virtual Func<TableResult, PipelineContext, TMessage, Task> Received { get; set; }
+        // the event that is raised after the entity is retrieved (allows using the entity to modify TMessage)
+        public virtual Func<TableResult, PipelineContext, TMessage, Task> Retrieved { get; set; }
     }
 }

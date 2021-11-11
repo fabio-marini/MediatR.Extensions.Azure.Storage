@@ -1,20 +1,21 @@
 ﻿using Azure.Storage.Blobs;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
+namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 {
     [Trait("TestCategory", "Integration")]
-    public class IntegrationTests
+    public class BlobExtensionsTests
     {
         private readonly BlobContainerClient containerClient;
 
-        public IntegrationTests()
+        public BlobExtensionsTests()
         {
             containerClient = new BlobContainerClient("UseDevelopmentStorage=true", "integration-tests");
             containerClient.CreateIfNotExists();
@@ -29,7 +30,6 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
         [Theory(DisplayName = "All BlobRequestBehaviors execute correctly"), MemberData(nameof(TestData))]
         public async Task Test1<TRequest, TResponse>(TRequest req, TResponse res) where TRequest : IRequest<TResponse>
         {
-            // TODO: assert more details in downloaded delegate!
             var blobName = Guid.NewGuid().ToString() + ".json";
 
             var opt = new BlobOptions<TRequest>
@@ -38,8 +38,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
                 BlobClient = (req, ctx) => containerClient.GetBlobClient(blobName),
                 Downloaded = (res, req, ctx) =>
                 {
-                    res.Content.Should().NotBeNull().ToString();
-                    res.Content.Should().ToString().Length.Should().BeGreaterThan(0);
+                    var obj = JsonConvert.DeserializeObject<TRequest>(res.Content.ToString());
+
+                    obj.Should().NotBeNull();
 
                     return Task.CompletedTask;
                 }
@@ -70,7 +71,6 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
         [Theory(DisplayName = "All BlobResponseBehaviors execute correctly"), MemberData(nameof(TestData))]
         public async Task Test2<TRequest, TResponse>(TRequest req, TResponse res) where TRequest : IRequest<TResponse>
         {
-            // TODO: assert more details in downloaded delegate!
             var blobName = Guid.NewGuid().ToString() + ".json";
 
             var opt = new BlobOptions<TResponse>
@@ -79,8 +79,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
                 BlobClient = (req, ctx) => containerClient.GetBlobClient(blobName),
                 Downloaded = (res, req, ctx) =>
                 {
-                    res.Content.Should().NotBeNull();
-                    res.Content.Should().ToString().Length.Should().BeGreaterThan(0);
+                    var obj = JsonConvert.DeserializeObject<TResponse>(res.Content.ToString());
+
+                    obj.Should().NotBeNull();
 
                     return Task.CompletedTask;
                 }
@@ -111,7 +112,6 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
         [Theory(DisplayName = "All BlobRequestProcessors execute correctly"), MemberData(nameof(TestData))]
         public async Task Test3<TRequest, TResponse>(TRequest req, TResponse res) where TRequest : IRequest<TResponse>
         {
-            // TODO: assert more details in downloaded delegate!
             var blobName = Guid.NewGuid().ToString() + ".json";
 
             var opt = new BlobOptions<TRequest>
@@ -120,8 +120,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
                 BlobClient = (req, ctx) => containerClient.GetBlobClient(blobName),
                 Downloaded = (res, req, ctx) =>
                 {
-                    res.Content.Should().NotBeNull().ToString();
-                    res.Content.Should().ToString().Length.Should().BeGreaterThan(0);
+                    var obj = JsonConvert.DeserializeObject<TRequest>(res.Content.ToString());
+
+                    obj.Should().NotBeNull();
 
                     return Task.CompletedTask;
                 }
@@ -152,7 +153,6 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
         [Theory(DisplayName = "All BlobResponseProcessors execute correctly"), MemberData(nameof(TestData))]
         public async Task Test4<TRequest, TResponse>(TRequest req, TResponse res) where TRequest : IRequest<TResponse>
         {
-            // TODO: assert more details in downloaded delegate!
             var blobName = Guid.NewGuid().ToString() + ".json";
 
             var opt = new BlobOptions<TResponse>
@@ -161,8 +161,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Extensions
                 BlobClient = (req, ctx) => containerClient.GetBlobClient(blobName),
                 Downloaded = (res, req, ctx) =>
                 {
-                    res.Content.Should().NotBeNull();
-                    res.Content.Should().ToString().Length.Should().BeGreaterThan(0);
+                    var obj = JsonConvert.DeserializeObject<TResponse>(res.Content.ToString());
+
+                    obj.Should().NotBeNull();
 
                     return Task.CompletedTask;
                 }

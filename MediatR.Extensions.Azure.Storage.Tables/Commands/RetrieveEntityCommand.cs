@@ -56,9 +56,9 @@ namespace MediatR.Extensions.Azure.Storage
 
             log.LogDebug("Command {Command} completed with status {StatusCode}", this.GetType().Name, tableResult.HttpStatusCode);
 
-            if (opt.Value.Received != null)
+            if (opt.Value.Retrieved != null)
             {
-                await opt.Value.Received(tableResult, ctx, message);
+                await opt.Value.Retrieved(tableResult, ctx, message);
             }
         }
     }

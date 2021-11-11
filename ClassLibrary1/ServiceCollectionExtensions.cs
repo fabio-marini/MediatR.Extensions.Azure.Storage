@@ -21,6 +21,8 @@ namespace ClassLibrary1
 {
     public static class ServiceCollectionExtensions
     {
+        // TODO: integration tests - move table/queue/container creation to class fixture
+
         // 1. walk through the models, pipeline (commands/query and behaviors) and functions
         // 2. simple pipeline (without any storage behaviors/processors)
         // 3. table, blob and queue tracking pipelines (default/custom)
@@ -30,7 +32,7 @@ namespace ClassLibrary1
         // 7. claim check pipeline
 
         // FIXME: why no error without options<TResponse>?!? Also works without options<TRequest> (when using .AddOptions)
-        //        when using AddTransient<IOptions> an error occurs...
+        //        however, when using AddTransient<IOptions> an error does occur...
 
         // TODO: add commands to all DEMO ServiceCollectionExtensions extension methods so they can be injected
 
@@ -503,7 +505,7 @@ namespace ClassLibrary1
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = cloudTable;
                 opt.TableEntity = (req, ctx) => new DynamicTableEntity("SourceCustomerCommand", req.MessageId) { ETag = "*" };
-                opt.Received = (res, ctx, req) =>
+                opt.Retrieved = (res, ctx, req) =>
                 {
                     var dte = res.Result as DynamicTableEntity;
 

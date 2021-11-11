@@ -68,7 +68,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests
                 ;
         }
 
-        // options don't matter, commands are mocks
+        // for unit tests - options don't matter, commands are mocked
         public static IServiceCollection AddBlobExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
         {
             return services
@@ -100,7 +100,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests
                 ;
         }
 
-        // options are required, commands are real instances
+        // for integration tests - real options and commands are used
         public static IServiceCollection AddBlobExtensions<TRequest, TResponse>(this IServiceCollection services, BlobOptions<TRequest> req, BlobOptions<TResponse> res) where TRequest : IRequest<TResponse>
         {
             return services
@@ -131,6 +131,40 @@ namespace MediatR.Extensions.Azure.Storage.Tests
                 .AddTransient<DownloadBlobResponseProcessor<TRequest, TResponse>>()
                 .AddTransient<DeleteBlobResponseProcessor<TRequest, TResponse>>()
  
+                ;
+        }
+
+        // for integration tests - real options and commands are used
+        public static IServiceCollection AddTableExtensions<TRequest, TResponse>(this IServiceCollection services, TableOptions<TRequest> req, TableOptions<TResponse> res) where TRequest : IRequest<TResponse>
+        {
+            return services
+
+                .AddTransient<IOptions<TableOptions<TRequest>>>(sp => Options.Create(req))
+                .AddTransient<InsertEntityCommand<TRequest>>()
+                .AddTransient<RetrieveEntityCommand<TRequest>>()
+                .AddTransient<DeleteEntityCommand<TRequest>>()
+
+                .AddTransient<IOptions<TableOptions<TResponse>>>(sp => Options.Create(res))
+                .AddTransient<InsertEntityCommand<TResponse>>()
+                .AddTransient<RetrieveEntityCommand<TResponse>>()
+                .AddTransient<DeleteEntityCommand<TResponse>>()
+
+                .AddTransient<InsertEntityRequestBehavior<TRequest, TResponse>>()
+                .AddTransient<RetrieveEntityRequestBehavior<TRequest, TResponse>>()
+                .AddTransient<DeleteEntityRequestBehavior<TRequest, TResponse>>()
+
+                .AddTransient<InsertEntityResponseBehavior<TRequest, TResponse>>()
+                .AddTransient<RetrieveEntityResponseBehavior<TRequest, TResponse>>()
+                .AddTransient<DeleteEntityResponseBehavior<TRequest, TResponse>>()
+
+                .AddTransient<InsertEntityRequestProcessor<TRequest>>()
+                .AddTransient<RetrieveEntityRequestProcessor<TRequest>>()
+                .AddTransient<DeleteEntityRequestProcessor<TRequest>>()
+
+                .AddTransient<InsertEntityResponseProcessor<TRequest, TResponse>>()
+                .AddTransient<RetrieveEntityResponseProcessor<TRequest, TResponse>>()
+                .AddTransient<DeleteEntityResponseProcessor<TRequest, TResponse>>()
+
                 ;
         }
     }
