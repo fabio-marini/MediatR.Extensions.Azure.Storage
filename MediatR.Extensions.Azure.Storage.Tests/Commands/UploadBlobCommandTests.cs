@@ -2,6 +2,7 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using FluentAssertions;
+using MediatR.Extensions.Azure.Storage.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -104,6 +105,36 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
 
             blb.Verify(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None), Times.Once);
             blb.Verify(m => m.SetHttpHeadersAsync(It.IsAny<BlobHttpHeaders>(), null, CancellationToken.None), Times.Once);
+            blb.Verify(m => m.SetMetadataAsync(It.IsAny<IDictionary<string, string>>(), null, CancellationToken.None), Times.Never);
+        }
+
+        [Fact(DisplayName = "Exceptions are wrapped in a CommandException")]
+        public async Task Test3b()
+        {
+            opt.SetupProperty(m => m.IsEnabled, true);
+            opt.SetupProperty(m => m.BlobClient, (req, ctx) => blb.Object);
+            opt.SetupProperty(m => m.BlobContent, null);
+            opt.SetupProperty(m => m.BlobHeaders, null);
+            opt.SetupProperty(m => m.Metadata, null);
+
+            blb.Setup(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None))
+                .ThrowsAsync(new ArgumentNullException());
+
+            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+
+            await act.Should().ThrowAsync<CommandException>();
+
+            opt.VerifyGet(m => m.IsEnabled, Times.Once);
+            opt.VerifyGet(m => m.BlobClient, Times.Exactly(2));
+            opt.VerifyGet(m => m.Metadata, Times.Never);
+            opt.VerifyGet(m => m.BlobContent, Times.Exactly(2));
+            opt.VerifyGet(m => m.BlobHeaders, Times.Exactly(1));
+
+            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<TestMessage, PipelineContext, BinaryData>>(), Times.Once);
+            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<TestMessage, PipelineContext, BlobHttpHeaders>>(), Times.Once);
+
+            blb.Verify(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None), Times.Once);
+            blb.Verify(m => m.SetHttpHeadersAsync(It.IsAny<BlobHttpHeaders>(), null, CancellationToken.None), Times.Never);
             blb.Verify(m => m.SetMetadataAsync(It.IsAny<IDictionary<string, string>>(), null, CancellationToken.None), Times.Never);
         }
 
