@@ -21,8 +21,6 @@ namespace ClassLibrary1
 {
     public static class ServiceCollectionExtensions
     {
-        // TODO: integration tests - move table/queue/container creation to class fixture
-
         // 1. walk through the models, pipeline (commands/query and behaviors) and functions
         // 2. simple pipeline (without any storage behaviors/processors)
         // 3. table, blob and queue tracking pipelines (default/custom)

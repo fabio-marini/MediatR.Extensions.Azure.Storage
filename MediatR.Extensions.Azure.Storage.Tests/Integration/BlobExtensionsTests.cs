@@ -1,5 +1,4 @@
-﻿using Azure.Storage.Blobs;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
@@ -11,14 +10,13 @@ using Xunit;
 namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 {
     [Trait("TestCategory", "Integration")]
-    public class BlobExtensionsTests
+    public class BlobExtensionsTests : IClassFixture<BlobFixture>
     {
-        private readonly BlobContainerClient containerClient;
+        private readonly BlobFixture blobFixture;
 
-        public BlobExtensionsTests()
+        public BlobExtensionsTests(BlobFixture blobFixture)
         {
-            containerClient = new BlobContainerClient("UseDevelopmentStorage=true", "integration-tests");
-            containerClient.CreateIfNotExists();
+            this.blobFixture = blobFixture;
         }
 
         public static IEnumerable<object[]> TestData()
@@ -35,7 +33,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
             var opt = new BlobOptions<TRequest>
             {
                 IsEnabled = true,
-                BlobClient = (req, ctx) => containerClient.GetBlobClient(blobName),
+                BlobClient = (req, ctx) => blobFixture.ContainerClient.GetBlobClient(blobName),
                 Downloaded = (res, req, ctx) =>
                 {
                     var obj = JsonConvert.DeserializeObject<TRequest>(res.Content.ToString());
@@ -76,7 +74,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
             var opt = new BlobOptions<TResponse>
             {
                 IsEnabled = true,
-                BlobClient = (req, ctx) => containerClient.GetBlobClient(blobName),
+                BlobClient = (req, ctx) => blobFixture.ContainerClient.GetBlobClient(blobName),
                 Downloaded = (res, req, ctx) =>
                 {
                     var obj = JsonConvert.DeserializeObject<TResponse>(res.Content.ToString());
@@ -117,7 +115,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
             var opt = new BlobOptions<TRequest>
             {
                 IsEnabled = true,
-                BlobClient = (req, ctx) => containerClient.GetBlobClient(blobName),
+                BlobClient = (req, ctx) => blobFixture.ContainerClient.GetBlobClient(blobName),
                 Downloaded = (res, req, ctx) =>
                 {
                     var obj = JsonConvert.DeserializeObject<TRequest>(res.Content.ToString());
@@ -158,7 +156,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
             var opt = new BlobOptions<TResponse>
             {
                 IsEnabled = true,
-                BlobClient = (req, ctx) => containerClient.GetBlobClient(blobName),
+                BlobClient = (req, ctx) => blobFixture.ContainerClient.GetBlobClient(blobName),
                 Downloaded = (res, req, ctx) =>
                 {
                     var obj = JsonConvert.DeserializeObject<TResponse>(res.Content.ToString());

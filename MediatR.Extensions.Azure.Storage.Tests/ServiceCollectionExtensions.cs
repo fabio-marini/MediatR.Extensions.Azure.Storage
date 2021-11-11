@@ -167,5 +167,39 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
                 ;
         }
+
+        // for integration tests - real options and commands are used
+        public static IServiceCollection AddQueueExtensions<TRequest, TResponse>(this IServiceCollection services, QueueOptions<TRequest> req, QueueOptions<TResponse> res) where TRequest : IRequest<TResponse>
+        {
+            return services
+
+                .AddTransient<IOptions<QueueOptions<TRequest>>>(sp => Options.Create(req))
+                .AddTransient<SendMessageCommand<TRequest>>()
+                .AddTransient<ReceiveMessageCommand<TRequest>>()
+                .AddTransient<DeleteMessageCommand<TRequest>>()
+
+                .AddTransient<IOptions<QueueOptions<TResponse>>>(sp => Options.Create(res))
+                .AddTransient<SendMessageCommand<TResponse>>()
+                .AddTransient<ReceiveMessageCommand<TResponse>>()
+                .AddTransient<DeleteMessageCommand<TResponse>>()
+
+                .AddTransient<SendMessageRequestBehavior<TRequest, TResponse>>()
+                .AddTransient<ReceiveMessageRequestBehavior<TRequest, TResponse>>()
+                .AddTransient<DeleteMessageRequestBehavior<TRequest, TResponse>>()
+
+                .AddTransient<SendMessageResponseBehavior<TRequest, TResponse>>()
+                .AddTransient<ReceiveMessageResponseBehavior<TRequest, TResponse>>()
+                .AddTransient<DeleteMessageResponseBehavior<TRequest, TResponse>>()
+
+                .AddTransient<SendMessageRequestProcessor<TRequest>>()
+                .AddTransient<ReceiveMessageRequestProcessor<TRequest>>()
+                .AddTransient<DeleteMessageRequestProcessor<TRequest>>()
+
+                .AddTransient<SendMessageResponseProcessor<TRequest, TResponse>>()
+                .AddTransient<ReceiveMessageResponseProcessor<TRequest, TResponse>>()
+                .AddTransient<DeleteMessageResponseProcessor<TRequest, TResponse>>()
+
+                ;
+        }
     }
 }

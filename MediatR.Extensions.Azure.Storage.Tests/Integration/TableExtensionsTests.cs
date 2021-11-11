@@ -11,20 +11,17 @@ using Xunit;
 namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 {
     [Trait("TestCategory", "Integration")]
-    public class TableExtensionsTests
+    public class TableExtensionsTests : IClassFixture<TableFixture>
     {
-        private readonly CloudTable cloudTable;
+        private readonly TableFixture tableFixture;
 
-        public TableExtensionsTests()
+        public TableExtensionsTests(TableFixture tableFixture)
         {
-            var storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
-
-            cloudTable = storageAccount.CreateCloudTableClient().GetTableReference("IntegrationTests");
-            cloudTable.CreateIfNotExists();
+            this.tableFixture = tableFixture;
         }
 
         public static IEnumerable<object[]> TestData()
-        {
+        { 
             yield return new object[] { TestCommand.Default, Unit.Value };
             yield return new object[] { TestQuery.Default, TestResult.Default };
         }
@@ -37,7 +34,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
             var opt = new TableOptions<TRequest>
             {
                 IsEnabled = true,
-                CloudTable = cloudTable,
+                CloudTable = tableFixture.CloudTable,
                 TableEntity = (req, ctx) => new DynamicTableEntity("IntegrationTests", rk) { ETag = "*" },
                 Retrieved = (res, req, ctx) =>
                 {
@@ -83,7 +80,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
             var opt = new TableOptions<TResponse>
             {
                 IsEnabled = true,
-                CloudTable = cloudTable,
+                CloudTable = tableFixture.CloudTable,
                 TableEntity = (req, ctx) => new DynamicTableEntity("IntegrationTests", rk) { ETag = "*" },
                 Retrieved = (res, req, ctx) =>
                 {
@@ -129,7 +126,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
             var opt = new TableOptions<TRequest>
             {
                 IsEnabled = true,
-                CloudTable = cloudTable,
+                CloudTable = tableFixture.CloudTable,
                 TableEntity = (req, ctx) => new DynamicTableEntity("IntegrationTests", rk) { ETag = "*" },
                 Retrieved = (res, req, ctx) =>
                 {
@@ -175,7 +172,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
             var opt = new TableOptions<TResponse>
             {
                 IsEnabled = true,
-                CloudTable = cloudTable,
+                CloudTable = tableFixture.CloudTable,
                 TableEntity = (req, ctx) => new DynamicTableEntity("IntegrationTests", rk) { ETag = "*" },
                 Retrieved = (res, req, ctx) =>
                 {

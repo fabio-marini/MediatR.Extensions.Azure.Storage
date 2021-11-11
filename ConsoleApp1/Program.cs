@@ -285,7 +285,7 @@ namespace ConsoleApp1
                 //.AddTableTrackingPipeline()
                 //.AddBlobTrackingPipeline()
                 //.AddQueueRoutingPipeline()
-                .AddQueueRoutingPipeline2()
+                //.AddQueueRoutingPipeline2()
 
                 //.AddActivityTrackingPipeline()
                 //.AddMultiTrackingPipeline()
