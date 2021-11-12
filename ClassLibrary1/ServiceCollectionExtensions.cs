@@ -29,20 +29,22 @@ namespace ClassLibrary1
         // 6. use storage behaviors for activity and message tracking (named options)
         // 7. claim check pipeline (blob and table)
 
-        // DOCS: unit tests for all commands and base extensions in Abstractions project + integration tests for everything else...
+        // FIXME: refactor all extensions to take options, not commands (avoid having to add them to DI container)?
 
-        // TODO: reorganize test classes to mirror the projects file structure
+        // TODO: retest all demos (both console and function apps) and add commands where required
+
+        // TODO: can remove ILogger and PipelineContext deps from ctors and move them to methods? Will have to be passed in
+        //       when method is invoked! But method is invoked by mediator...
 
         // FIXME: why no error without options<TResponse>?!? Also works without options<TRequest> (when using .AddOptions)
         //        however, when using AddTransient<IOptions> an error does occur...
 
-        // TODO: add commands to all DEMO ServiceCollectionExtensions extension methods so they can be injected
-
+        // TODO: add src and examples folders + add code examples to README...
+        // TODO: README - unit tests for all commands and base extensions in Abstractions project + integration tests for everything else...
         // TODO: document options (they are used for insert/delete/retrieve) + update README
         // TODO: encapsulate all options validation/defaults into own class/method - same option can be used for different operations!
         //       e.g. ValidateForInsert(), ValidateForRetrieve() and ValidateForDelete()?
 
-        // TODO: add src and examples folders + add code examples to README...
         // TODO: create simple diagrams?
         // TODO: add projects for Service Bus (messaging and management?) and HttpClient?
         // TODO: delete from table/blob for maintenance (using retention days?)

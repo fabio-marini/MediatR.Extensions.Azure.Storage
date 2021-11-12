@@ -1,8 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using MediatR.Extensions.Azure.Storage.Abstractions;
+using Microsoft.Extensions.Logging;
 
 namespace MediatR.Extensions.Azure.Storage
 {
-    public class DeleteBlobResponseProcessor<TRequest, TResponse> : BlobResponseProcessorBase<TRequest, TResponse> where TRequest : IRequest<TResponse>
+    public class DeleteBlobResponseProcessor<TRequest, TResponse> : ResponseProcessorBase<TRequest, TResponse> where TRequest : IRequest<TResponse>
     {
         public DeleteBlobResponseProcessor(DeleteBlobCommand<TResponse> cmd, PipelineContext ctx = null, ILogger log = null) : base(cmd, ctx, log)
         {

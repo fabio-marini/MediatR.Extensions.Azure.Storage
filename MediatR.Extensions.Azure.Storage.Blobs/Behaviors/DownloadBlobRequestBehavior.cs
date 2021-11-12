@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using MediatR.Extensions.Azure.Storage.Abstractions;
+using Microsoft.Extensions.Logging;
 
 namespace MediatR.Extensions.Azure.Storage
 {
@@ -10,7 +11,7 @@ namespace MediatR.Extensions.Azure.Storage
         }
     }
 
-    public class DownloadBlobRequestBehavior<TRequest, TResponse> : BlobRequestBehaviorBase<TRequest, TResponse> where TRequest : IRequest<TResponse>
+    public class DownloadBlobRequestBehavior<TRequest, TResponse> : RequestBehaviorBase<TRequest, TResponse> where TRequest : IRequest<TResponse>
     {
         public DownloadBlobRequestBehavior(DownloadBlobCommand<TRequest> cmd, PipelineContext ctx = null, ILogger log = null)
             : base(cmd, ctx, log)
