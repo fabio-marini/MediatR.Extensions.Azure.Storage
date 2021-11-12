@@ -29,14 +29,9 @@ namespace ClassLibrary1
         // 6. use storage behaviors for activity and message tracking (named options)
         // 7. claim check pipeline (blob and table)
 
-        // TODO: unit tests for all commands and base extensions in Abstractions project + integration tests for everything else...
+        // DOCS: unit tests for all commands and base extensions in Abstractions project + integration tests for everything else...
 
-        // TODO: add test for null blob client (not the delegate, but the result)
-        // TODO: simplify extensions unit tests to work with abstractions directly and use test command/query
-        // TODO: remove all unit tests for specific extensions, they are covered by DI and integration tests...
         // TODO: reorganize test classes to mirror the projects file structure
-
-        // TODO: update existing first, then add remaining commands tests 
 
         // FIXME: why no error without options<TResponse>?!? Also works without options<TRequest> (when using .AddOptions)
         //        however, when using AddTransient<IOptions> an error does occur...
