@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using MediatR.Extensions.Azure.Storage.Abstractions;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,27 +13,27 @@ using Xunit;
 
 namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Tables
 {
-    public class InsertEntityCommandTests
+    public class RetrieveEntityCommandTests
     {
         private readonly IServiceProvider svc;
         private readonly Mock<TableOptions<TestMessage>> opt;
         private readonly Mock<CloudTable> tbl;
 
-        private readonly InsertEntityCommand<TestMessage> cmd;
+        private readonly RetrieveEntityCommand<TestMessage> cmd;
 
-        public InsertEntityCommandTests()
+        public RetrieveEntityCommandTests()
         {
             opt = new Mock<TableOptions<TestMessage>>();
             tbl = new Mock<CloudTable>(new Uri("http://127.0.0.1:10002/devstoreaccount1/table1"), null);
 
             svc = new ServiceCollection()
 
-                .AddTransient<InsertEntityCommand<TestMessage>>()
+                .AddTransient<RetrieveEntityCommand<TestMessage>>()
                 .AddTransient<IOptions<TableOptions<TestMessage>>>(sp => Options.Create(opt.Object))
 
                 .BuildServiceProvider();
 
-            cmd = svc.GetRequiredService<InsertEntityCommand<TestMessage>>();
+            cmd = svc.GetRequiredService<RetrieveEntityCommand<TestMessage>>();
         }
 
         [Fact(DisplayName = "Command is disabled")]
@@ -72,31 +72,20 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Tables
             opt.VerifyGet(m => m.TableEntity, Times.Never);
         }
 
-        [Fact(DisplayName = "Command uses default TableEntity")]
+        [Fact(DisplayName = "TableEntity is not specified")]
         public async Task Test3()
         {
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.CloudTable, tbl.Object);
             opt.SetupProperty(m => m.TableEntity, null);
 
-            var res = new TableResult { HttpStatusCode = 200 };
+            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
 
-            tbl.Setup(m => m.ExecuteAsync(It.IsAny<TableOperation>(), CancellationToken.None)).ReturnsAsync(res);
-
-            await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
-
-            var tableOperations = new List<TableOperation>();
+            await act.Should().ThrowAsync<ArgumentNullException>();
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
-            opt.VerifyGet(m => m.CloudTable, Times.Exactly(2));
-            opt.VerifyGet(m => m.TableEntity, Times.Exactly(2));
-
-            opt.VerifySet(m => m.TableEntity = It.IsAny<Func<TestMessage, PipelineContext, ITableEntity>>(), Times.Once);
-
-            opt.Verify(m => m.CloudTable.ExecuteAsync(Capture.In(tableOperations), CancellationToken.None), Times.Once);
-
-            tableOperations.Should().HaveCount(1);
-            tableOperations.Single().OperationType.Should().Be(TableOperationType.Insert);
+            opt.VerifyGet(m => m.CloudTable, Times.Once);
+            opt.VerifyGet(m => m.TableEntity, Times.Once);
         }
 
         [Fact(DisplayName = "Exceptions are wrapped in a CommandException")]
@@ -104,7 +93,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Tables
         {
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.CloudTable, tbl.Object);
-            opt.SetupProperty(m => m.TableEntity, null);
+            opt.SetupProperty(m => m.TableEntity, (req, ctx) => new DynamicTableEntity("PK1", "RK1"));
 
             tbl.Setup(m => m.ExecuteAsync(It.IsAny<TableOperation>(), CancellationToken.None))
                 .ThrowsAsync(new ArgumentNullException());
@@ -119,20 +108,18 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Tables
             opt.VerifyGet(m => m.CloudTable, Times.Exactly(2));
             opt.VerifyGet(m => m.TableEntity, Times.Exactly(2));
 
-            opt.VerifySet(m => m.TableEntity = It.IsAny<Func<TestMessage, PipelineContext, ITableEntity>>(), Times.Once);
-
             opt.Verify(m => m.CloudTable.ExecuteAsync(Capture.In(tableOperations), CancellationToken.None), Times.Once);
 
             tableOperations.Should().HaveCount(1);
-            tableOperations.Single().OperationType.Should().Be(TableOperationType.Insert);
+            tableOperations.Single().OperationType.Should().Be(TableOperationType.Retrieve);
         }
 
-        [Fact(DisplayName = "Command uses specified TableEntity")]
+        [Fact(DisplayName = "Command completes successfully")]
         public async Task Test5()
         {
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.CloudTable, tbl.Object);
-            opt.SetupProperty(m => m.TableEntity, (cmd, ctx) => new DynamicTableEntity("PK1", "RK1"));
+            opt.SetupProperty(m => m.TableEntity, (req, ctx) => new DynamicTableEntity("PK1", "RK1"));
 
             var res = new TableResult { HttpStatusCode = 200 };
 
@@ -145,13 +132,12 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Tables
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.CloudTable, Times.Exactly(2));
             opt.VerifyGet(m => m.TableEntity, Times.Exactly(2));
-
-            opt.VerifySet(m => m.TableEntity = It.IsAny<Func<TestMessage, PipelineContext, ITableEntity>>(), Times.Never);
+            opt.VerifyGet(m => m.Retrieved, Times.Once);
 
             opt.Verify(m => m.CloudTable.ExecuteAsync(Capture.In(tableOperations), CancellationToken.None), Times.Once);
 
             tableOperations.Should().HaveCount(1);
-            tableOperations.Single().OperationType.Should().Be(TableOperationType.Insert);
+            tableOperations.Single().OperationType.Should().Be(TableOperationType.Retrieve);
         }
     }
 }

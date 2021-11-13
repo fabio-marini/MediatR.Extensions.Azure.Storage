@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace MediatR.Extensions.Azure.Storage.Tests.Commands
+namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Tables
 {
     public class DeleteEntityCommandTests
     {
