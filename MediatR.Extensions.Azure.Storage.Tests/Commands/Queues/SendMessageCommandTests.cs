@@ -4,7 +4,6 @@ using Azure.Storage.Queues.Models;
 using FluentAssertions;
 using MediatR.Extensions.Azure.Storage.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using System;
@@ -12,14 +11,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace MediatR.Extensions.Azure.Storage.Tests.Commands
+namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Queues
 {
     public class SendMessageCommandTests
     {
         private readonly IServiceProvider svc;
         private readonly Mock<QueueOptions<TestMessage>> opt;
         private readonly Mock<QueueClient> que;
-        private readonly Mock<ILogger> log;
 
         private readonly SendMessageCommand<TestMessage> cmd;
 
@@ -27,11 +25,9 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
         {
             opt = new Mock<QueueOptions<TestMessage>>();
             que = new Mock<QueueClient>("UseDevelopmentStorage=true", "queue1");
-            log = new Mock<ILogger>();
 
             svc = new ServiceCollection()
 
-                .AddTransient<ILogger>(sp => log.Object)
                 .AddTransient<SendMessageCommand<TestMessage>>()
                 .AddTransient<IOptions<QueueOptions<TestMessage>>>(sp => Options.Create(opt.Object))
 

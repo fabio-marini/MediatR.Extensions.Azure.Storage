@@ -29,6 +29,12 @@ namespace ClassLibrary1
         // 6. use storage behaviors for activity and message tracking (named options)
         // 7. claim check pipeline (blob and table)
 
+        // TODO: matrix of commands and options used/not used and required/optional + review against unit tests
+
+        // TODO: rename tests 1a and 1b + shorten exception test display name
+        // TODO: download blob command tests - completes (downloaded is called) and throws
+        // TODO: delete blob command tests - completes and throws
+
         // TODO: design/implement NuGet pipeline
         // FIXME: refactor all extensions to take options, not commands (avoid having to add them to DI container)?
         //        or design DI methods to add extension, e.g. AddBehavior<TRequest> with factory method for options 
