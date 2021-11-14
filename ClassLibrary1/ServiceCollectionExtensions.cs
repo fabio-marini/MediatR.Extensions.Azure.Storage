@@ -29,26 +29,15 @@ namespace ClassLibrary1
         // 6. use storage behaviors for activity and message tracking (named options)
         // 7. claim check pipeline (blob and table)
 
-        // TODO: matrix of commands and options used/not used and required/optional + review against unit tests
+        // TODO: review options matrix against unit tests
 
-        // TODO: rename tests 1a and 1b + shorten exception test display name
-        // TODO: download blob command tests - completes (downloaded is called) and throws
-        // TODO: delete blob command tests - completes and throws
+        // TODO: design/implement NuGet pipeline - one package for Abstractions and one for storage extensions...
 
-        // TODO: design/implement NuGet pipeline
-        // FIXME: refactor all extensions to take options, not commands (avoid having to add them to DI container)?
-        //        or design DI methods to add extension, e.g. AddBehavior<TRequest> with factory method for options 
+        // TODO: design DI methods to add extensions, e.g. AddDownloadBehavior<TRequest> with factory method for options?
 
         // TODO: retest all demos (both console and function apps) and add commands where required
 
-        // TODO: can remove ILogger and PipelineContext deps from ctors and move them to methods? Will have to be passed in
-        //       when method is invoked! But method is invoked by mediator...
-
-        // FIXME: why no error without options<TResponse>?!? Also works without options<TRequest> (when using .AddOptions)
-        //        however, when using AddTransient<IOptions> an error does occur...
-
-        // TODO: add src and examples folders + add code examples to README...
-        // TODO: README - unit tests for all commands and base extensions in Abstractions project + integration tests for everything else...
+        // TODO: add src, docs and examples folders + add code examples to README + move abstractions to own repo
         // TODO: document options (they are used for insert/delete/retrieve) + update README
         // TODO: encapsulate all options validation/defaults into own class/method - same option can be used for different operations!
         //       e.g. ValidateForInsert(), ValidateForRetrieve() and ValidateForDelete()?

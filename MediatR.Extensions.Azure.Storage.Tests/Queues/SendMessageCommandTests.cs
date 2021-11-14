@@ -37,7 +37,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Queues
         }
 
         [Fact(DisplayName = "Command is disabled")]
-        public async Task Test1a()
+        public async Task Test1()
         {
             await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
 
@@ -47,7 +47,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Queues
         }
 
         [Fact(DisplayName = "Command is cancelled")]
-        public async Task Test1b()
+        public async Task Test2()
         {
             var src = new CancellationTokenSource(0);
 
@@ -59,7 +59,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Queues
         }
 
         [Fact(DisplayName = "QueueClient is not specified")]
-        public async Task Test2()
+        public async Task Test3()
         {
             opt.SetupProperty(m => m.IsEnabled, true);
 
@@ -73,7 +73,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Queues
         }
 
         [Fact(DisplayName = "Command uses default QueueMessage")]
-        public async Task Test3()
+        public async Task Test4()
         {
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.QueueClient, que.Object);
@@ -97,7 +97,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Queues
         }
 
         [Fact(DisplayName = "Command uses specified QueueMessage")]
-        public async Task Test4()
+        public async Task Test5()
         {
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.QueueClient, que.Object);
@@ -120,8 +120,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Queues
             opt.Verify(m => m.QueueClient.SendMessageAsync(It.IsAny<BinaryData>(), opt.Object.Visibility, opt.Object.TimeToLive, CancellationToken.None), Times.Once);
         }
 
-        [Fact(DisplayName = "Exceptions are wrapped in a CommandException")]
-        public async Task Test5()
+        [Fact(DisplayName = "Command throws CommandException")]
+        public async Task Test6()
         {
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.QueueClient, que.Object);
