@@ -29,18 +29,16 @@ namespace ClassLibrary1
         // 6. use storage behaviors for activity and message tracking (named options)
         // 7. claim check pipeline (blob and table)
 
-        // TODO: review options matrix against unit tests
+        // TODO: review options matrix against commands (!) and unit tests
 
-        // TODO: design/implement NuGet pipeline - one package for Abstractions and one for storage extensions...
+        // TODO: move abstractions to own repo + implement NuGet pipeline
+        // TODO: update storage extensions to use abstractions package + implement NuGet pipeline
 
         // TODO: design DI methods to add extensions, e.g. AddDownloadBehavior<TRequest> with factory method for options?
 
         // TODO: retest all demos (both console and function apps) and add commands where required
 
-        // TODO: add src, docs and examples folders + add code examples to README + move abstractions to own repo
-        // TODO: document options (they are used for insert/delete/retrieve) + update README
-        // TODO: encapsulate all options validation/defaults into own class/method - same option can be used for different operations!
-        //       e.g. ValidateForInsert(), ValidateForRetrieve() and ValidateForDelete()?
+        // TODO: add src and examples folders + add code examples to README + DI section (how to use)?
 
         // TODO: create simple diagrams?
         // TODO: add projects for Service Bus (messaging and management?) and HttpClient?
