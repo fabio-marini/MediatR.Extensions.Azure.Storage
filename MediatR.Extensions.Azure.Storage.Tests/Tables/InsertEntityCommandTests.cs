@@ -1,5 +1,5 @@
 using FluentAssertions;
-using MediatR.Extensions.Azure.Storage.Abstractions;
+using MediatR.Extensions.Abstractions;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;

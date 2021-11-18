@@ -3,6 +3,7 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using MediatR;
+using MediatR.Extensions.Abstractions;
 using MediatR.Extensions.Azure.Storage;
 using MediatR.Pipeline;
 using Microsoft.Azure.Cosmos.Table;
@@ -31,16 +32,21 @@ namespace ClassLibrary1
 
         // TODO: review options matrix against commands (!) and unit tests
 
-        // TODO: move abstractions to own repo + implement NuGet pipeline
-        // TODO: update storage extensions to use abstractions package + implement NuGet pipeline
+        // TODO: making extensions abstract will prevent AddMediatR(this, storage DLLs) from picking up processors automatically...
+        //       but will require new classes to be created every time? YES, abstract classes can never be instantiated...
 
+        // TODO: update integration tests to use AddMediatR(this) and mediator.Send() - test both positives (expected extensions
+        //       are executed) and negatives (ONLY expected extensions are executed) + test with multiple messages so that when options
+        //       are added for a specific message, they don't trigger any other extension
+        // TODO: delete TableCommandFixture if not used?
+
+        // TODO: ***retest all demos (both console and function apps) and add commands where required***
+
+        // TODO: add code examples to README + DI section (how to use)?
         // TODO: design DI methods to add extensions, e.g. AddDownloadBehavior<TRequest> with factory method for options?
 
-        // TODO: retest all demos (both console and function apps) and add commands where required
+        // TODO: add src and examples folders?
 
-        // TODO: add src and examples folders + add code examples to README + DI section (how to use)?
-
-        // TODO: create simple diagrams?
         // TODO: add projects for Service Bus (messaging and management?) and HttpClient?
         // TODO: delete from table/blob for maintenance (using retention days?)
 
@@ -111,6 +117,9 @@ namespace ClassLibrary1
                     return tableEntity;
                 };
             });
+
+            services.AddTransient<InsertEntityCommand<SourceCustomerCommand>>();
+            services.AddTransient<InsertEntityCommand<TargetCustomerCommand>>();
 
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertEntityRequestBehavior<SourceCustomerCommand>>();
             services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
@@ -258,6 +267,9 @@ namespace ClassLibrary1
         {
             var container = new BlobContainerClient("UseDevelopmentStorage=true", "messages");
             container.CreateIfNotExists();
+
+            services.AddTransient<UploadBlobCommand<RetrieveCustomerQuery>>();
+            services.AddTransient<UploadBlobCommand<RetrieveCustomerResult>>();
 
             // register pre/post processors to track messages in blob storage
             services.AddTransient<IRequestPreProcessor<RetrieveCustomerQuery>, UploadBlobRequestProcessor<RetrieveCustomerQuery>>();

@@ -2,7 +2,7 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using FluentAssertions;
-using MediatR.Extensions.Azure.Storage.Abstractions;
+using MediatR.Extensions.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;

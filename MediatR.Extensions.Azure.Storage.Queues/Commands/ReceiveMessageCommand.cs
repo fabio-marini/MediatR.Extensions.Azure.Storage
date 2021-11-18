@@ -1,4 +1,4 @@
-﻿using MediatR.Extensions.Azure.Storage.Abstractions;
+﻿using MediatR.Extensions.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;

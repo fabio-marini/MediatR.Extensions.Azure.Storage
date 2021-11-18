@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.Cosmos.Table;
+﻿using MediatR.Extensions.Abstractions;
+using Microsoft.Azure.Cosmos.Table;
 using System;
 using System.Threading.Tasks;
 

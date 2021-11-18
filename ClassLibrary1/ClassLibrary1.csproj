@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MediatR.Extensions.Azure.Storage.Abstractions\MediatR.Extensions.Azure.Storage.Abstractions.csproj" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
     <ProjectReference Include="..\MediatR.Extensions.Azure.Storage.Blobs\MediatR.Extensions.Azure.Storage.Blobs.csproj" />
     <ProjectReference Include="..\MediatR.Extensions.Azure.Storage.Queues\MediatR.Extensions.Azure.Storage.Queues.csproj" />
     <ProjectReference Include="..\MediatR.Extensions.Azure.Storage.Tables\MediatR.Extensions.Azure.Storage.Tables.csproj" />

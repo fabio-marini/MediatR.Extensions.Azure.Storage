@@ -1,4 +1,4 @@
-﻿using MediatR.Extensions.Azure.Storage.Abstractions;
+﻿using MediatR.Extensions.Abstractions;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

@@ -1,5 +1,6 @@
 ﻿using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
+using MediatR.Extensions.Abstractions;
 using System;
 using System.Threading.Tasks;
 

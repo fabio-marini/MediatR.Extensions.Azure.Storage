@@ -11,6 +11,7 @@
     <PackageReference Include="FluentAssertions" Version="6.2.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
     <PackageReference Include="Moq" Version="4.16.1" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -23,7 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MediatR.Extensions.Azure.Storage.Abstractions\MediatR.Extensions.Azure.Storage.Abstractions.csproj" />
     <ProjectReference Include="..\MediatR.Extensions.Azure.Storage.Blobs\MediatR.Extensions.Azure.Storage.Blobs.csproj" />
     <ProjectReference Include="..\MediatR.Extensions.Azure.Storage.Queues\MediatR.Extensions.Azure.Storage.Queues.csproj" />
     <ProjectReference Include="..\MediatR.Extensions.Azure.Storage.Tables\MediatR.Extensions.Azure.Storage.Tables.csproj" />

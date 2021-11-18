@@ -1,5 +1,6 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using MediatR.Extensions.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
