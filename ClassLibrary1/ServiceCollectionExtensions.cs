@@ -32,6 +32,10 @@ namespace ClassLibrary1
 
         // TODO: review options matrix against commands (!) and unit tests
 
+        // TODO: given/when/then orderer?
+
+        // TODO: design DI extension methods (how to select command to use?)
+
         // TODO: making extensions abstract will prevent AddMediatR(this, storage DLLs) from picking up processors automatically...
         //       but will require new classes to be created every time? YES, abstract classes can never be instantiated...
 
@@ -42,7 +46,7 @@ namespace ClassLibrary1
 
         // TODO: ***retest all demos (both console and function apps) and add commands where required***
 
-        // TODO: add code examples to README + DI section (how to use)?
+        // TODO: add code examples to README + DI section (how to use and how NOT to use)
         // TODO: design DI methods to add extensions, e.g. AddDownloadBehavior<TRequest> with factory method for options?
 
         // TODO: add src and examples folders?
