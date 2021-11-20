@@ -35,6 +35,7 @@ namespace ClassLibrary1
         // TODO: given/when/then orderer?
 
         // TODO: design DI extension methods (how to select command to use?)
+        // TODO: ***retest all demos (both console and function apps) and add commands where required***
 
         // TODO: making extensions abstract will prevent AddMediatR(this, storage DLLs) from picking up processors automatically...
         //       but will require new classes to be created every time? YES, abstract classes can never be instantiated...
@@ -43,8 +44,6 @@ namespace ClassLibrary1
         //       are executed) and negatives (ONLY expected extensions are executed) + test with multiple messages so that when options
         //       are added for a specific message, they don't trigger any other extension
         // TODO: delete TableCommandFixture if not used?
-
-        // TODO: ***retest all demos (both console and function apps) and add commands where required***
 
         // TODO: add code examples to README + DI section (how to use and how NOT to use)
         // TODO: design DI methods to add extensions, e.g. AddDownloadBehavior<TRequest> with factory method for options?

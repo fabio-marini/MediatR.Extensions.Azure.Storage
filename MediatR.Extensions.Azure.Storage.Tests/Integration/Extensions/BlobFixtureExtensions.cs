@@ -11,7 +11,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 {
     public static class BlobFixtureExtensions
     {
-        public static IServiceCollection AddExtensionOptions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
+        public static IServiceCollection AddBlobOptions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
         {
             return services
 
@@ -98,7 +98,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 ;
         }
 
-        public static IServiceCollection AddUploadExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
+        public static IServiceCollection AddUploadBlobExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
         {
             return services
 
@@ -138,7 +138,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 ;
         }
 
-        public static IServiceCollection AddDownloadExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
+        public static IServiceCollection AddDownloadBlobExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
         {
             return services
 
@@ -178,7 +178,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 ;
         }
 
-        public static IServiceCollection AddDeleteExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
+        public static IServiceCollection AddDeleteBlobExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
         {
             return services
 

@@ -1,17 +1,15 @@
-﻿using FluentAssertions;
+﻿using Azure.Storage.Blobs;
+using FluentAssertions;
+using MediatR.Extensions.Abstractions;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 {
     [Trait("TestCategory", "Integration")]
+    [TestCaseOrderer("MediatR.Extensions.Tests.TestMethodNameOrderer", "MediatR.Extensions.Azure.Storage.Tests")]
     public class TableExtensionsTests : IClassFixture<TableFixture>
     {
         private readonly TableFixture tableFixture;
@@ -21,194 +19,75 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
             this.tableFixture = tableFixture;
         }
 
-        public static IEnumerable<object[]> TestData()
-        { 
-            yield return new object[] { TestCommand.Default, Unit.Value };
-            yield return new object[] { TestQuery.Default, TestResult.Default };
-        }
+        [Fact(DisplayName = "01. Table is empty")]
+        public void Test1() => tableFixture.GivenTableIsEmpty();
 
-        [Theory(DisplayName = "All TableRequestBehaviors execute correctly"), MemberData(nameof(TestData))]
-        public async Task Test1<TRequest, TResponse>(TRequest req, TResponse res) where TRequest : IRequest<TResponse>
+        [Fact(DisplayName = "02. Entities are inserted")]
+        public async Task Test2()
         {
-            var rk = Guid.NewGuid().ToString();
-
-            var opt = new TableOptions<TRequest>
-            {
-                IsEnabled = true,
-                CloudTable = tableFixture.CloudTable,
-                TableEntity = (req, ctx) => new DynamicTableEntity("IntegrationTests", rk) { ETag = "*" },
-                Retrieved = (res, req, ctx) =>
-                {
-                    var dte = res.Result as DynamicTableEntity;
-
-                    dte.Should().NotBeNull();
-
-                    var obj = JsonConvert.DeserializeObject<TRequest>(dte.Properties["Content"].StringValue);
-
-                    obj.Should().NotBeNull();
-
-                    return Task.CompletedTask;
-                }
-            };
-
             var serviceProvider = new ServiceCollection()
+                
+                .AddMediatR(this.GetType())
+                .AddTransient<CloudTable>(sp => tableFixture.CloudTable)
+                .AddTableOptions<TestQuery, TestResult>()
+                .AddInsertEntityExtensions<TestQuery, TestResult>()
 
-                .AddTableExtensions<TRequest, TResponse>(sp => Options.Create(opt))
                 .BuildServiceProvider();
 
-            var insertExtension = serviceProvider.GetRequiredService<InsertEntityRequestBehavior<TRequest, TResponse>>();
-            var retrieveExtension = serviceProvider.GetRequiredService<RetrieveEntityRequestBehavior<TRequest, TResponse>>();
-            var deleteExtension = serviceProvider.GetRequiredService<DeleteEntityRequestBehavior<TRequest, TResponse>>();
+            var med = serviceProvider.GetRequiredService<IMediator>();
 
-            opt.CloudTable.ExecuteQuery(new TableQuery()).Should().HaveCount(0);
+            var res = await med.Send(TestQuery.Default);
 
-            _ = await insertExtension.Handle(req, CancellationToken.None, () => Task.FromResult(res));
-
-            opt.CloudTable.ExecuteQuery(new TableQuery()).Should().HaveCount(1);
-
-            _ = await retrieveExtension.Handle(req, CancellationToken.None, () => Task.FromResult(res));
-
-            _ = await deleteExtension.Handle(req, CancellationToken.None, () => Task.FromResult(res));
-
-            opt.CloudTable.ExecuteQuery(new TableQuery()).Should().HaveCount(0);
+            res.Length.Should().Be(TestQuery.Default.Message.Length);
         }
 
-        [Theory(DisplayName = "All TableResponseBehaviors execute correctly"), MemberData(nameof(TestData))]
-        public async Task Test2<TRequest, TResponse>(TRequest req, TResponse res) where TRequest : IRequest<TResponse>
+        [Fact(DisplayName = "03. Table has entities")]
+        public void Test3() => tableFixture.ThenTableHasEntities(4);
+
+        [Fact(DisplayName = "04. Entities are retrieved")]
+        public async Task Test4()
         {
-            var rk = Guid.NewGuid().ToString();
-
-            var opt = new TableOptions<TResponse>
-            {
-                IsEnabled = true,
-                CloudTable = tableFixture.CloudTable,
-                TableEntity = (req, ctx) => new DynamicTableEntity("IntegrationTests", rk) { ETag = "*" },
-                Retrieved = (res, req, ctx) =>
-                {
-                    var dte = res.Result as DynamicTableEntity;
-
-                    dte.Should().NotBeNull();
-
-                    var obj = JsonConvert.DeserializeObject<TRequest>(dte.Properties["Content"].StringValue);
-
-                    obj.Should().NotBeNull();
-
-                    return Task.CompletedTask;
-                }
-            };
-
             var serviceProvider = new ServiceCollection()
 
-                .AddTableExtensions<TRequest, TResponse>(sp => Options.Create(opt))
+                .AddMediatR(this.GetType())
+                .AddTransient<CloudTable>(sp => tableFixture.CloudTable)
+                .AddTableOptions<TestQuery, TestResult>()
+                .AddRetrieveEntityExtensions<TestQuery, TestResult>()
+                .AddSingleton<PipelineContext>()
+
                 .BuildServiceProvider();
 
-            var insertExtension = serviceProvider.GetRequiredService<InsertEntityResponseBehavior<TRequest, TResponse>>();
-            var retrieveExtension = serviceProvider.GetRequiredService<RetrieveEntityResponseBehavior<TRequest, TResponse>>();
-            var deleteExtension = serviceProvider.GetRequiredService<DeleteEntityResponseBehavior<TRequest, TResponse>>();
+            var med = serviceProvider.GetRequiredService<IMediator>();
 
-            opt.CloudTable.ExecuteQuery(new TableQuery()).Should().HaveCount(0);
+            var res = await med.Send(TestQuery.Default);
 
-            _ = await insertExtension.Handle(req, CancellationToken.None, () => Task.FromResult(res));
+            res.Length.Should().Be(TestQuery.Default.Message.Length);
 
-            opt.CloudTable.ExecuteQuery(new TableQuery()).Should().HaveCount(1);
+            var ctx = serviceProvider.GetRequiredService<PipelineContext>();
 
-            _ = await retrieveExtension.Handle(req, CancellationToken.None, () => Task.FromResult(res));
-
-            _ = await deleteExtension.Handle(req, CancellationToken.None, () => Task.FromResult(res));
-
-            opt.CloudTable.ExecuteQuery(new TableQuery()).Should().HaveCount(0);
+            ctx.Should().HaveCount(4);
         }
 
-        [Theory(DisplayName = "All TableRequestProcessors execute correctly"), MemberData(nameof(TestData))]
-        public async Task Test3<TRequest, TResponse>(TRequest req, TResponse res) where TRequest : IRequest<TResponse>
+        [Fact(DisplayName = "05. Entities are deleted")]
+        public async Task Test5()
         {
-            var rk = Guid.NewGuid().ToString();
-
-            var opt = new TableOptions<TRequest>
-            {
-                IsEnabled = true,
-                CloudTable = tableFixture.CloudTable,
-                TableEntity = (req, ctx) => new DynamicTableEntity("IntegrationTests", rk) { ETag = "*" },
-                Retrieved = (res, req, ctx) =>
-                {
-                    var dte = res.Result as DynamicTableEntity;
-
-                    dte.Should().NotBeNull();
-
-                    var obj = JsonConvert.DeserializeObject<TRequest>(dte.Properties["Content"].StringValue);
-
-                    obj.Should().NotBeNull();
-
-                    return Task.CompletedTask;
-                }
-            };
-
             var serviceProvider = new ServiceCollection()
 
-                .AddTableExtensions<TRequest, TResponse>(sp => Options.Create(opt))
+                .AddMediatR(this.GetType())
+                .AddTransient<CloudTable>(sp => tableFixture.CloudTable)
+                .AddTableOptions<TestQuery, TestResult>()
+                .AddDeleteEntityExtensions<TestQuery, TestResult>()
+
                 .BuildServiceProvider();
 
-            var insertExtension = serviceProvider.GetRequiredService<InsertEntityRequestProcessor<TRequest>>();
-            var retrieveExtension = serviceProvider.GetRequiredService<RetrieveEntityRequestProcessor<TRequest>>();
-            var deleteExtension = serviceProvider.GetRequiredService<DeleteEntityRequestProcessor<TRequest>>();
+            var med = serviceProvider.GetRequiredService<IMediator>();
 
-            opt.CloudTable.ExecuteQuery(new TableQuery()).Should().HaveCount(0);
+            var res = await med.Send(TestQuery.Default);
 
-            await insertExtension.Process(req, CancellationToken.None);
-
-            opt.CloudTable.ExecuteQuery(new TableQuery()).Should().HaveCount(1);
-
-            await retrieveExtension.Process(req, CancellationToken.None);
-
-            await deleteExtension.Process(req, CancellationToken.None);
-
-            opt.CloudTable.ExecuteQuery(new TableQuery()).Should().HaveCount(0);
+            res.Length.Should().Be(TestQuery.Default.Message.Length);
         }
 
-        [Theory(DisplayName = "All TableResponseProcessors execute correctly"), MemberData(nameof(TestData))]
-        public async Task Test4<TRequest, TResponse>(TRequest req, TResponse res) where TRequest : IRequest<TResponse>
-        {
-            var rk = Guid.NewGuid().ToString();
-
-            var opt = new TableOptions<TResponse>
-            {
-                IsEnabled = true,
-                CloudTable = tableFixture.CloudTable,
-                TableEntity = (req, ctx) => new DynamicTableEntity("IntegrationTests", rk) { ETag = "*" },
-                Retrieved = (res, req, ctx) =>
-                {
-                    var dte = res.Result as DynamicTableEntity;
-
-                    dte.Should().NotBeNull();
-
-                    var obj = JsonConvert.DeserializeObject<TRequest>(dte.Properties["Content"].StringValue);
-
-                    obj.Should().NotBeNull();
-
-                    return Task.CompletedTask;
-                }
-            };
-
-            var serviceProvider = new ServiceCollection()
-
-                .AddTableExtensions<TRequest, TResponse>(sp => Options.Create(opt))
-                .BuildServiceProvider();
-
-            var insertExtension = serviceProvider.GetRequiredService<InsertEntityResponseProcessor<TRequest, TResponse>>();
-            var retrieveExtension = serviceProvider.GetRequiredService<RetrieveEntityResponseProcessor<TRequest, TResponse>>();
-            var deleteExtension = serviceProvider.GetRequiredService<DeleteEntityResponseProcessor<TRequest, TResponse>>();
-
-            opt.CloudTable.ExecuteQuery(new TableQuery()).Should().HaveCount(0);
-
-            await insertExtension.Process(req, res, CancellationToken.None);
-
-            opt.CloudTable.ExecuteQuery(new TableQuery()).Should().HaveCount(1);
-
-            await retrieveExtension.Process(req, res, CancellationToken.None);
-
-            await deleteExtension.Process(req, res, CancellationToken.None);
-
-            opt.CloudTable.ExecuteQuery(new TableQuery()).Should().HaveCount(0);
-        }
+        [Fact(DisplayName = "06. Table is empty")]
+        public void Test6() => tableFixture.ThenTableIsEmpty();
     }
 }
