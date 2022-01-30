@@ -10,7 +10,7 @@ Queue extensions are controlled using [QueueOptions&lt;TMessage&gt;][opt]. Optio
 | IsEnabled    | `true` to enable execution of the extension, `false` to disable it | Default [^1] | Default [^1]  | Default [^1] |
 | QueueClient  | The queue client against which the operation is executed           | Required     | Required      | Required     |
 | QueueMessage | The System.BinaryData containing the content to upload             | Default [^2] | Ignored       | Ignored      |
-| Visibility   | Specifies the visibility delay for the message                     | Optional     | Ignored       | Ignored      |
+| Visibility   | Specifies the visibility delay for the message                     | Optional     | Optional      | Ignored      |
 | TimeToLive   | Specifies the time-to-live interval for the message                | Optional     | Ignored       | Ignored      |
 | Received     | The event that is raised after the message is received             | Ignored      | Ignored       | Optional     |
 | Delete       | The event that identifies the message to be deleted                | Ignored      | Required [^3] | Ignored      |

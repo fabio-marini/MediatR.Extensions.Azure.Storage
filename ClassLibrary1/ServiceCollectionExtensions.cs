@@ -20,6 +20,33 @@ using System.Xml.Serialization;
 
 namespace ClassLibrary1
 {
+    public class MyRequest : IRequest<MyResponse>
+    {
+    }
+
+    public class MyResponse { }
+
+    public class InsertFinanceReportBehavior : InsertEntityRequestBehavior<MyRequest, MyResponse>
+    {
+        public InsertFinanceReportBehavior(InsertEntityCommand<MyRequest> cmd, PipelineContext ctx = null, ILogger log = null) : base(cmd, ctx, log)
+        {
+        }
+    }
+
+    public class InsertFinanceReportPreProcessor : InsertEntityRequestProcessor<MyRequest>
+    {
+        public InsertFinanceReportPreProcessor(InsertEntityCommand<MyRequest> cmd, PipelineContext ctx = null, ILogger log = null) : base(cmd, ctx, log)
+        {
+        }
+    }
+
+    public class InsertFinanceReportPostProcessor : InsertEntityResponseProcessor<MyRequest, MyResponse>
+    {
+        public InsertFinanceReportPostProcessor(InsertEntityCommand<MyResponse> cmd, PipelineContext ctx = null, ILogger log = null) : base(cmd, ctx, log)
+        {
+        }
+    }
+
     public static class ServiceCollectionExtensions
     {
         // 1. walk through the models, pipeline (commands/query and behaviors) and functions
@@ -30,28 +57,16 @@ namespace ClassLibrary1
         // 6. use storage behaviors for activity and message tracking (named options)
         // 7. claim check pipeline (blob and table)
 
-        // TODO: review options matrix against commands (!) and unit tests
+        // TODO: review options matrix against command unit tests
 
-        // TODO: given/when/then orderer?
-
-        // TODO: design DI extension methods (how to select command to use?)
-        // TODO: ***retest all demos (both console and function apps) and add commands where required***
-
-        // TODO: making extensions abstract will prevent AddMediatR(this, storage DLLs) from picking up processors automatically...
-        //       but will require new classes to be created every time? YES, abstract classes can never be instantiated...
-
-        // TODO: update integration tests to use AddMediatR(this) and mediator.Send() - test both positives (expected extensions
-        //       are executed) and negatives (ONLY expected extensions are executed) + test with multiple messages so that when options
-        //       are added for a specific message, they don't trigger any other extension
-        // TODO: delete TableCommandFixture if not used?
-
-        // TODO: add code examples to README + DI section (how to use and how NOT to use)
-        // TODO: design DI methods to add extensions, e.g. AddDownloadBehavior<TRequest> with factory method for options?
-
+        // TODO: refactor demos as integration tests?
+        // TODO: review all demos (both console and function apps) and add commands where required
+        // TODO: review and remove demos that are not useful + retest + document the rest
         // TODO: add src and examples folders?
 
-        // TODO: add projects for Service Bus (messaging and management?) and HttpClient?
-        // TODO: delete from table/blob for maintenance (using retention days?)
+        // TODO: extensions for Service Bus (messaging and management?), HttpClient and storage batching (e.g. using retention days)
+        // TODO: extensions to implement persistence points?
+        // TODO: extensions to sign/encrypt/decrypt/verify using certs
 
         public static IServiceCollection AddCore(this IServiceCollection services)
         {
@@ -95,6 +110,7 @@ namespace ClassLibrary1
         public static IServiceCollection AddTableTrackingPipeline(this IServiceCollection services)
         {
             var storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
+
             var cloudTable = storageAccount.CreateCloudTableClient().GetTableReference("Messages");
             cloudTable.CreateIfNotExists();
 
@@ -105,6 +121,7 @@ namespace ClassLibrary1
             });
             services.AddOptions<TableOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
+                // use custom TableEntity to serialize only the canonical customer
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = cloudTable;
                 opt.TableEntity = (req, ctx) =>
@@ -149,6 +166,7 @@ namespace ClassLibrary1
             });
             services.AddOptions<BlobOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
+                // use custom BlobContent to serialize only the canonical customer (as XML)
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/target/{Guid.NewGuid().ToString()}.xml");
                 opt.BlobContent = (req, ctx) =>
@@ -189,6 +207,7 @@ namespace ClassLibrary1
             });
             services.AddOptions<QueueOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
             {
+                // use custom QueueMessage to serialize only the canonical customer (as XML)
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.QueueClient = queueClient;
                 opt.TimeToLive = TimeSpan.FromDays(1);
@@ -218,6 +237,7 @@ namespace ClassLibrary1
             return services;
         }
 
+        // TODO: how to delete queue messages...
         public static IServiceCollection AddQueueRoutingPipeline2(this IServiceCollection services)
         {
             var queueClient = new QueueClient("UseDevelopmentStorage=true", "messages");
@@ -243,7 +263,7 @@ namespace ClassLibrary1
                 opt.Delete = (ctx, req) =>
                 {
                     QueueMessage msg;
-                    
+
                     _ = memoryQueue.TryDequeue(out msg);
 
                     return Task.FromResult(msg);
@@ -266,8 +286,12 @@ namespace ClassLibrary1
             return services;
         }
 
+        // TODO: explicitly add processor extensions
         public static IServiceCollection AddBlobTrackingProcessors(this IServiceCollection services)
         {
+            services.AddTransient<IRequestPreProcessor<MyRequest>, InsertEntityRequestProcessor<MyRequest>>();
+            services.AddTransient<IRequestPostProcessor<MyRequest, MyResponse>, InsertEntityResponseProcessor<MyRequest, MyResponse>>();
+
             var container = new BlobContainerClient("UseDevelopmentStorage=true", "messages");
             container.CreateIfNotExists();
 
@@ -292,6 +316,7 @@ namespace ClassLibrary1
             return services;
         }
 
+        // TODO: query example - delete me?
         public static IServiceCollection AddBlobTrackingBehaviors(this IServiceCollection services)
         {
             var container = new BlobContainerClient("UseDevelopmentStorage=true", "messages");

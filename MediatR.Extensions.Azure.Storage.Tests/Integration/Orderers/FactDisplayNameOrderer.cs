@@ -9,9 +9,7 @@ namespace MediatR.Extensions.Tests
     {
         public IEnumerable<TTestCase> OrderTestCases<TTestCase>(IEnumerable<TTestCase> testCases) where TTestCase : ITestCase
         {
-            var x = testCases.OrderBy(t => t.DisplayName);
-
-            return x;
+            return testCases.OrderBy(t => t.DisplayName);
         }
     }
 }
