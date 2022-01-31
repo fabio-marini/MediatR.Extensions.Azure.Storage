@@ -10,23 +10,23 @@ using System.Threading.Tasks;
 
 namespace FunctionApp2
 {
-    public class ProcessSourceCustomer
+    public class ProcessCustomer
     {
         private readonly IMediator mediator;
 
-        public ProcessSourceCustomer(IMediator mediator)
+        public ProcessCustomer(IMediator mediator)
         {
             this.mediator = mediator;
         }
 
         [FunctionName(nameof(HttpSourceCustomer))]
         public async Task<IActionResult> HttpSourceCustomer(
-            [HttpTrigger(AuthorizationLevel.Function, "POST", Route = "customers")] SourceCustomer sourceCustomer)
+            [HttpTrigger(AuthorizationLevel.Function, "POST", Route = "customers")] ContosoCustomer sourceCustomer)
         {
-            var cmd = new SourceCustomerCommand
+            var cmd = new ContosoCustomerRequest
             {
                 MessageId = Guid.NewGuid().ToString(),
-                SourceCustomer = sourceCustomer
+                ContosoCustomer = sourceCustomer
             };
 
             _ = await mediator.Send(cmd);
@@ -37,9 +37,9 @@ namespace FunctionApp2
         [FunctionName(nameof(QueueSourceCustomer))]
         public async Task QueueSourceCustomer([QueueTrigger("customers")] string queueMessage)
         {
-            var msg = JsonConvert.DeserializeObject<SourceCustomerCommand>(queueMessage);
+            var msg = JsonConvert.DeserializeObject<ContosoCustomerRequest>(queueMessage);
 
-            var cmd = new TargetCustomerCommand
+            var cmd = new FabrikamCustomerRequest
             {
                 // this is used to correlate source and target commands
                 MessageId = msg.MessageId,
@@ -53,7 +53,7 @@ namespace FunctionApp2
         public async Task<IActionResult> HttpTargetCustomer(
             [HttpTrigger(AuthorizationLevel.Function, "GET", Route = "customers/{messageId}")]HttpRequest req, string messageId)
         {
-            var qry = new RetrieveCustomerQuery
+            var qry = new RetrieveCustomerRequest
             {
                 MessageId = messageId,
             };

@@ -6,21 +6,21 @@ using System.Threading.Tasks;
 
 namespace ClassLibrary1
 {
-    public class TransformSourceCustomerBehavior : IPipelineBehavior<SourceCustomerCommand, Unit>
+    public class TransformContosoCustomerBehavior : IPipelineBehavior<ContosoCustomerRequest, Unit>
     {
         private readonly ILogger log;
 
-        public TransformSourceCustomerBehavior(ILogger log = null)
+        public TransformContosoCustomerBehavior(ILogger log = null)
         {
             this.log = log ?? NullLogger.Instance;
         }
 
-        public Task<Unit> Handle(SourceCustomerCommand request, CancellationToken cancellationToken, RequestHandlerDelegate<Unit> next)
+        public Task<Unit> Handle(ContosoCustomerRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<Unit> next)
         {
             request.CanonicalCustomer = new CanonicalCustomer
             {
-                FullName = $"{request.SourceCustomer.FirstName} {request.SourceCustomer.LastName}",
-                Email = request.SourceCustomer.Email
+                FullName = $"{request.ContosoCustomer.FirstName} {request.ContosoCustomer.LastName}",
+                Email = request.ContosoCustomer.Email
             };
 
             log.LogInformation("Behavior {Behavior} completed, invoking next behavior in the chain", this.GetType().Name);

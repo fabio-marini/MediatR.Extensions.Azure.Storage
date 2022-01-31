@@ -1,15 +1,15 @@
 # MediatR.Extensions.Azure.Storage
 This repository contains [MediatR](https://github.com/jbogard/MediatR) extensions to work with Azure Storage.
 
-In this context, extensions refer to MediatR pipeline **behaviors** and pre or post request **processors**.
+In this context, an extension refers to a MediatR pipeline **behavior** or a request **pre/post processor**.
 
-Each extension works with either a MediatR request or a MediatR response, but never both. For example:
+An extension works with a MediatR request or response, but never both. For example:
 - an InsertEntityRequestBehavior is a *behavior* used to insert the MediatR *request* into the specified table
 - an InsertEntityResponseBehavior is a *behavior* used to insert the MediatR *response* into the specified table
 - an InsertEntityRequestProcessor is a *pre-processor* used to insert the MediatR *request* into the specified table
 - an InsertEntityResponseProcessor is a *post-processor* used to insert the MediatR *response* into the specified table
 
-Extensions depend on commands, i.e. classes that implement `ICommand<TMessage>`, as described [here][1]. Commands execution is configured using generic option classes. The generic type parameter `TMessage` represents the underlying type being stored and is a MediatR request or response (from now on simply referred to as a MediatR message).
+Extensions depend on commands, i.e. classes that implement `ICommand<TMessage>`, as described [here][1]. Commands, in turn, depend on generic option classes. The generic type parameter `TMessage` being a MediatR request or response.
 
 - [TableOptions&lt;TMessage&gt;][2] are used to control table extensions
 - [QueueOptions&lt;TMessage&gt;][3] are used to control queue extensions
@@ -19,16 +19,6 @@ Extensions depend on commands, i.e. classes that implement `ICommand<TMessage>`,
 [2]: ./MediatR.Extensions.Azure.Storage.Tables/Options/TableOptions.cs
 [3]: ./MediatR.Extensions.Azure.Storage.Queues/Options/QueueOptions.cs
 [4]: ./MediatR.Extensions.Azure.Storage.Blobs/Options/BlobOptions.cs
-
-The same option can have different requirements within the scope of different commands. Options requirements are as follows:
-- Required: the value is required and an exception will be thrown if one is not supplied
-- Default: the value is required and a default will be provided if one is not supplied
-- Optional: the value is optional and will be used if one is supplied, ignored otherwise
-- Ignored: the value is not used by the command and supplying one will have no effect
-
-For more information: [Options Pattern in .NET][options].
-
-[options]: https://docs.microsoft.com/en-us/dotnet/core/extensions/options
 
 All extensions take an optional dependency on [PipelineContext](./MediatR.Extensions.Azure.Storage.Abstractions/PipelineContext.cs), which is nothing but a `Dictionary<string, object>` and is used to share context with other behaviors/processors as described [here](https://jimmybogard.com/sharing-context-in-mediatr-pipelines/).
 

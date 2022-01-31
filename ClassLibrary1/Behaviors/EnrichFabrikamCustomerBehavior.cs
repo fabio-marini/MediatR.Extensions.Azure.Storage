@@ -7,18 +7,18 @@ using System.Threading.Tasks;
 
 namespace ClassLibrary1
 {
-    public class EnrichTargetCustomerBehavior : IPipelineBehavior<TargetCustomerCommand, Unit>
+    public class EnrichFabrikamCustomerBehavior : IPipelineBehavior<FabrikamCustomerRequest, Unit>
     {
         private readonly ILogger log;
 
-        public EnrichTargetCustomerBehavior(ILogger log = null)
+        public EnrichFabrikamCustomerBehavior(ILogger log = null)
         {
             this.log = log ?? NullLogger.Instance;
         }
 
-        public Task<Unit> Handle(TargetCustomerCommand request, CancellationToken cancellationToken, RequestHandlerDelegate<Unit> next)
+        public Task<Unit> Handle(FabrikamCustomerRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<Unit> next)
         {
-            request.TargetCustomer.DateOfBirth = new DateTime(1970, 10, 26);
+            request.FabrikamCustomer.DateOfBirth = new DateTime(1970, 10, 26);
 
             log.LogInformation("Behavior {Behavior} completed, invoking next behavior in the chain", this.GetType().Name);
 

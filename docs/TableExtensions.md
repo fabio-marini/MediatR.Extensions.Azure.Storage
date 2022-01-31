@@ -1,7 +1,42 @@
 # Table Extensions
 
+## Behaviors
+This package contains the following behaviors:
+
+- [InsertEntityRequestBehavior][1]: used to insert the MediatR request into the specified table
+- [InsertEntityResponseBehavior][2]: used to insert the MediatR response into the specified table
+- [DeleteEntityRequestBehavior][3]: used to delete the MediatR request from the specified table
+- [DeleteEntityResponseBehavior][4]: used to delete the MediatR response from the specified table
+- [RetrieveEntityRequestBehavior][5]: used to retrieve the MediatR request from the specified table
+- [RetrieveEntityResponseBehavior][6]: used to retrieve the MediatR response from the specified table
+
+## Processors
+This package contains the following processors:
+
+- [InsertEntityRequestProcessor][7]: used to insert the MediatR request into the specified table
+- [InsertEntityResponseProcessor][8]: used to insert the MediatR response into the specified table
+- [DeleteEntityRequestProcessor][9]: used to delete the MediatR request from the specified table
+- [DeleteEntityResponseProcessor][10]: used to delete the MediatR response from the specified table
+- [RetrieveEntityRequestProcessor][11]: used to retrieve the MediatR request from the specified table
+- [RetrieveEntityResponseProcessor][12]: used to retrieve the MediatR response from the specified table
+
+## Commands
+Table extensions depend on table commands, which represent the actual extension implementation:
+
+- [InsertEntityCommand&lt;TMessage&gt;][13]: used to insert an entity into the specified table
+- [DeleteEntityCommand&lt;TMessage&gt;][14]: used to delete an entity from the specified table
+- [RetrieveEntityCommand&lt;TMessage&gt;][15]: used to retrieve an entity from the specified table
+
 ## Options
-Table extensions are controlled using [TableOptions&lt;TMessage&gt;][opt]. Options and their requirements are described in the following table:
+Table extensions are controlled using [TableOptions&lt;TMessage&gt;][opt].
+
+The same option can have different requirements within the scope of different commands. Options requirements are as follows:
+- Required: the value is required and an exception will be thrown if one is not supplied
+- Default: the value is required and a default will be provided if one is not supplied
+- Optional: the value is optional and will be used if one is supplied, ignored otherwise
+- Ignored: the value is not used by the command and supplying one will have no effect
+
+Options and their requirements are described in the following table:
 
 [opt]: ../MediatR.Extensions.Azure.Storage.Tables/Options/TableOptions.cs
 
@@ -16,22 +51,6 @@ Table extensions are controlled using [TableOptions&lt;TMessage&gt;][opt]. Optio
 [^2]: a table entity with auto-generated GUIDs for PartitionKey and RowKey plus properties named Message (full name of the message CLR type) and Content (message content serialized as JSON).
 [^3]: PartitionKey and RowKey are needed to uniquely identify the entity to retrieve/delete
 
-## Behaviors
-- [InsertEntityRequestBehavior][1]: used to insert the MediatR request into the specified table
-- [InsertEntityResponseBehavior][2]: used to insert the MediatR response into the specified table
-- [DeleteEntityRequestBehavior][3]: used to delete the MediatR request from the specified table
-- [DeleteEntityResponseBehavior][4]: used to delete the MediatR response from the specified table
-- [RetrieveEntityRequestBehavior][5]: used to retrieve the MediatR request from the specified table
-- [RetrieveEntityResponseBehavior][6]: used to retrieve the MediatR response from the specified table
-
-## Processors
-- [InsertEntityRequestProcessor][7]: used to insert the MediatR request into the specified table
-- [InsertEntityResponseProcessor][8]: used to insert the MediatR response into the specified table
-- [DeleteEntityRequestProcessor][9]: used to delete the MediatR request from the specified table
-- [DeleteEntityResponseProcessor][10]: used to delete the MediatR response from the specified table
-- [RetrieveEntityRequestProcessor][11]: used to retrieve the MediatR request from the specified table
-- [RetrieveEntityResponseProcessor][12]: used to retrieve the MediatR response from the specified table
-
  [1]: ../MediatR.Extensions.Azure.Storage.Tables/Behaviors/InsertEntityRequestBehavior.cs
  [2]: ../MediatR.Extensions.Azure.Storage.Tables/Behaviors/InsertEntityResponseBehavior.cs
  [3]: ../MediatR.Extensions.Azure.Storage.Tables/Behaviors/DeleteEntityRequestBehavior.cs
@@ -44,3 +63,6 @@ Table extensions are controlled using [TableOptions&lt;TMessage&gt;][opt]. Optio
 [10]: ../MediatR.Extensions.Azure.Storage.Tables/Processors/DeleteEntityResponseProcessor.cs
 [11]: ../MediatR.Extensions.Azure.Storage.Tables/Processors/RetrieveEntityRequestProcessor.cs
 [12]: ../MediatR.Extensions.Azure.Storage.Tables/Processors/RetrieveEntityResponseProcessor.cs
+[13]: ../MediatR.Extensions.Azure.Storage.Tables/Commands/InsertEntityCommand.cs
+[14]: ../MediatR.Extensions.Azure.Storage.Tables/Commands/DeleteEntityCommand.cs
+[15]: ../MediatR.Extensions.Azure.Storage.Tables/Commands/RetrieveEntityCommand.cs

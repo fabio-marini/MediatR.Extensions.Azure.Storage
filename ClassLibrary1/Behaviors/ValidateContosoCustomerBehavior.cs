@@ -6,16 +6,16 @@ using System.Threading.Tasks;
 
 namespace ClassLibrary1
 {
-    public class ValidateSourceCustomerBehavior : IPipelineBehavior<SourceCustomerCommand, Unit>
+    public class ValidateContosoCustomerBehavior : IPipelineBehavior<ContosoCustomerRequest, Unit>
     {
         private readonly ILogger log;
 
-        public ValidateSourceCustomerBehavior(ILogger log = null)
+        public ValidateContosoCustomerBehavior(ILogger log = null)
         {
             this.log = log ?? NullLogger.Instance;
         }
 
-        public Task<Unit> Handle(SourceCustomerCommand request, CancellationToken cancellationToken, RequestHandlerDelegate<Unit> next)
+        public Task<Unit> Handle(ContosoCustomerRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<Unit> next)
         {
             if (string.IsNullOrEmpty(request.MessageId))
             {

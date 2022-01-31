@@ -2,7 +2,7 @@
 
 namespace ClassLibrary1
 {
-    public class SourceCustomer
+    public class ContosoCustomer
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -15,7 +15,7 @@ namespace ClassLibrary1
         public string Email { get; set; }
     }
 
-    public class TargetCustomer
+    public class FabrikamCustomer
     {
         public string FullName { get; set; }
         public DateTime? DateOfBirth { get; set; }

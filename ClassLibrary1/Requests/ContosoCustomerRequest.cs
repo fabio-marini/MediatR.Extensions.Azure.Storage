@@ -10,25 +10,25 @@ using System.Threading.Tasks;
 
 namespace ClassLibrary1
 {
-    public class SourceCustomerCommand : IRequest
+    public class ContosoCustomerRequest : IRequest
     {
         public string MessageId { get; set; }
-        public SourceCustomer SourceCustomer { get; set; }
+        public ContosoCustomer ContosoCustomer { get; set; }
         public CanonicalCustomer CanonicalCustomer { get; set; }
     }
 
-    public class SourceCustomerHandler : IRequestHandler<SourceCustomerCommand>
+    public class ContosoCustomerHandler : IRequestHandler<ContosoCustomerRequest>
     {
         private readonly QueueClient queueClient;
         private readonly ILogger log;
 
-        public SourceCustomerHandler(QueueClient queueClient, ILogger log = null)
+        public ContosoCustomerHandler(QueueClient queueClient, ILogger log = null)
         {
             this.queueClient = queueClient;
             this.log = log ?? NullLogger.Instance;
         }
 
-        public async Task<Unit> Handle(SourceCustomerCommand request, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(ContosoCustomerRequest request, CancellationToken cancellationToken)
         {
             var settings = new JsonSerializerSettings
             {

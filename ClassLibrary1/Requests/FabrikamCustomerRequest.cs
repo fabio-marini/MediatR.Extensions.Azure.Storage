@@ -8,23 +8,23 @@ using System.Threading.Tasks;
 
 namespace ClassLibrary1
 {
-    public class TargetCustomerCommand : IRequest
+    public class FabrikamCustomerRequest : IRequest
     {
         public string MessageId { get; set; }
         public CanonicalCustomer CanonicalCustomer { get; set; }
-        public TargetCustomer TargetCustomer { get; set; }
+        public FabrikamCustomer FabrikamCustomer { get; set; }
     }
 
-    public class TargetCustomerHandler : IRequestHandler<TargetCustomerCommand>
+    public class FabrikamCustomerHandler : IRequestHandler<FabrikamCustomerRequest>
     {
         private readonly ILogger log;
 
-        public TargetCustomerHandler(ILogger log = null)
+        public FabrikamCustomerHandler(ILogger log = null)
         {
             this.log = log ?? NullLogger.Instance;
         }
 
-        public async Task<Unit> Handle(TargetCustomerCommand request, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(FabrikamCustomerRequest request, CancellationToken cancellationToken)
         {
             var json = JsonConvert.SerializeObject(request);
 

@@ -156,7 +156,7 @@ namespace ConsoleApp1
 
     class Program
     {
-        private static async Task RunDemo1()
+        private static async Task RunMediator101Demo()
         {
             var serviceProvider = new ServiceCollection()
 
@@ -194,14 +194,14 @@ namespace ConsoleApp1
             await mediator.Publish(notification);
         }
 
-        private static async Task RunDemo2(IMediator mediator)
+        private static async Task RunCustomerCommandDemo(IMediator mediator)
         {
             var activityId = Guid.NewGuid().ToString();
 
-            var cmd1 = new SourceCustomerCommand
+            var cmd1 = new ContosoCustomerRequest
             {
                 MessageId = activityId,
-                SourceCustomer = new SourceCustomer
+                ContosoCustomer = new ContosoCustomer
                 {
                     FirstName = "Fabio",
                     LastName = "Marini",
@@ -212,7 +212,7 @@ namespace ConsoleApp1
             _ = await mediator.Send(cmd1);
 
             // pretend this is coming from the customers queue...
-            var cmd2 = new TargetCustomerCommand
+            var cmd2 = new FabrikamCustomerRequest
             {
                 MessageId = activityId,
                 CanonicalCustomer = new CanonicalCustomer
@@ -225,25 +225,25 @@ namespace ConsoleApp1
             _ = await mediator.Send(cmd2);
         }
 
-        private static async Task RunDemo3(IMediator mediator)
+        private static async Task RunCustomerQueryDemo(IMediator mediator)
         {
             var activityId = "c6fcc080-d812-4822-97ce-1bfb5e883158";
 
-            var qry = new RetrieveCustomerQuery { MessageId = activityId };
+            var qry = new RetrieveCustomerRequest { MessageId = activityId };
 
             var res = await mediator.Send(qry);
 
             Console.WriteLine(JsonConvert.SerializeObject(res, Formatting.Indented));
         }
 
-        private static async Task RunDemo4(IMediator mediator)
+        private static async Task RunClaimCheckDemo(IMediator mediator)
         {
             var activityId = Guid.NewGuid().ToString();
 
-            var cmd1 = new SourceCustomerCommand
+            var cmd1 = new ContosoCustomerRequest
             {
                 MessageId = activityId,
-                SourceCustomer = new SourceCustomer
+                ContosoCustomer = new ContosoCustomer
                 {
                     FirstName = "Fabio",
                     LastName = "Marini",
@@ -254,7 +254,7 @@ namespace ConsoleApp1
             _ = await mediator.Send(cmd1);
 
             // pretend this is coming from the customers queue...
-            var cmd2 = new TargetCustomerCommand
+            var cmd2 = new FabrikamCustomerRequest
             {
                 MessageId = activityId
             };
@@ -282,7 +282,7 @@ namespace ConsoleApp1
 
                 //.AddSimplePipeline()
 
-                //.AddTableTrackingPipeline()
+                .AddTableTrackingPipeline()
                 //.AddBlobTrackingPipeline()
                 //.AddQueueRoutingPipeline()
                 //.AddQueueRoutingPipeline2()
@@ -291,7 +291,7 @@ namespace ConsoleApp1
                 //.AddMultiTrackingPipeline()
 
                 // run query
-                .AddBlobTrackingProcessors()
+                //.AddBlobTrackingProcessors()
 
                 //.AddTableClaimCheckPipeline()
                 //.AddBlobClaimCheckPipeline()
@@ -301,13 +301,13 @@ namespace ConsoleApp1
             var mediator = serviceProvider.GetRequiredService<IMediator>();
 
             // command pipeline
-            //await RunDemo2(mediator);
+            await RunCustomerCommandDemo(mediator);
 
             // query pipeline
-            await RunDemo3(mediator);
+            //await RunCustomerQueryDemo(mediator);
 
             // claim check pipeline (target message has only messageId, canonical customer is retrieved from blob/table)
-            //await RunDemo4(mediator);
+            //await RunClaimCheckDemo(mediator);
 
             Console.Read();
         }

@@ -57,6 +57,8 @@ namespace ClassLibrary1
         // 6. use storage behaviors for activity and message tracking (named options)
         // 7. claim check pipeline (blob and table)
 
+        // TODO: review DevOps?
+        // TODO: document which extensions depend on which commands?
         // TODO: review options matrix against command unit tests
 
         // TODO: refactor demos as integration tests?
@@ -66,7 +68,7 @@ namespace ClassLibrary1
 
         // TODO: extensions for Service Bus (messaging and management?), HttpClient and storage batching (e.g. using retention days)
         // TODO: extensions to implement persistence points?
-        // TODO: extensions to sign/encrypt/decrypt/verify using certs
+        // TODO: extensions for Key Vault + sign/verify and encrypt/decrypt using certs
 
         public static IServiceCollection AddCore(this IServiceCollection services)
         {
@@ -98,11 +100,11 @@ namespace ClassLibrary1
 
         public static IServiceCollection AddSimplePipeline(this IServiceCollection services)
         {
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
 
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, TransformFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, EnrichFabrikamCustomerBehavior>();
 
             return services;
         }
@@ -114,12 +116,12 @@ namespace ClassLibrary1
             var cloudTable = storageAccount.CreateCloudTableClient().GetTableReference("Messages");
             cloudTable.CreateIfNotExists();
 
-            services.AddOptions<TableOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<ContosoCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = cloudTable;
             });
-            services.AddOptions<TableOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<FabrikamCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 // use custom TableEntity to serialize only the canonical customer
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
@@ -138,18 +140,18 @@ namespace ClassLibrary1
                 };
             });
 
-            services.AddTransient<InsertEntityCommand<SourceCustomerCommand>>();
-            services.AddTransient<InsertEntityCommand<TargetCustomerCommand>>();
+            services.AddTransient<InsertEntityCommand<ContosoCustomerRequest>>();
+            services.AddTransient<InsertEntityCommand<FabrikamCustomerRequest>>();
 
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertEntityRequestBehavior<SourceCustomerCommand>>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertEntityRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, InsertEntityRequestBehavior<ContosoCustomerRequest>>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, InsertEntityRequestBehavior<ContosoCustomerRequest>>();
 
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertEntityRequestBehavior<TargetCustomerCommand>>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertEntityRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, InsertEntityRequestBehavior<FabrikamCustomerRequest>>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, TransformFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, EnrichFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, InsertEntityRequestBehavior<FabrikamCustomerRequest>>();
 
             return services;
         }
@@ -159,12 +161,12 @@ namespace ClassLibrary1
             var container = new BlobContainerClient("UseDevelopmentStorage=true", "messages");
             container.CreateIfNotExists();
 
-            services.AddOptions<BlobOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<BlobOptions<ContosoCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/source/{Guid.NewGuid().ToString()}.json");
             });
-            services.AddOptions<BlobOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<BlobOptions<FabrikamCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 // use custom BlobContent to serialize only the canonical customer (as XML)
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
@@ -182,15 +184,15 @@ namespace ClassLibrary1
                 opt.BlobHeaders = (req, ctx) => new BlobHttpHeaders { ContentType = "application/xml" };
             });
 
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, UploadBlobRequestBehavior<SourceCustomerCommand>>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, UploadBlobRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, UploadBlobRequestBehavior<ContosoCustomerRequest>>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, UploadBlobRequestBehavior<ContosoCustomerRequest>>();
 
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, UploadBlobRequestBehavior<TargetCustomerCommand>>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, UploadBlobRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, UploadBlobRequestBehavior<FabrikamCustomerRequest>>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, TransformFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, EnrichFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, UploadBlobRequestBehavior<FabrikamCustomerRequest>>();
 
             return services;
         }
@@ -200,12 +202,12 @@ namespace ClassLibrary1
             var queueClient = new QueueClient("UseDevelopmentStorage=true", "messages");
             queueClient.CreateIfNotExists();
 
-            services.AddOptions<QueueOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<QueueOptions<ContosoCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.QueueClient = queueClient;
             });
-            services.AddOptions<QueueOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<QueueOptions<FabrikamCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 // use custom QueueMessage to serialize only the canonical customer (as XML)
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
@@ -224,15 +226,15 @@ namespace ClassLibrary1
                 };
             });
 
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, SendMessageRequestBehavior<SourceCustomerCommand>>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, SendMessageRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, SendMessageRequestBehavior<ContosoCustomerRequest>>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, SendMessageRequestBehavior<ContosoCustomerRequest>>();
 
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, SendMessageRequestBehavior<TargetCustomerCommand>>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, SendMessageRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, SendMessageRequestBehavior<FabrikamCustomerRequest>>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, TransformFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, EnrichFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, SendMessageRequestBehavior<FabrikamCustomerRequest>>();
 
             return services;
         }
@@ -245,12 +247,12 @@ namespace ClassLibrary1
 
             var memoryQueue = new Queue<QueueMessage>();
 
-            services.AddOptions<QueueOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<QueueOptions<ContosoCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.QueueClient = queueClient;
             });
-            services.AddOptions<QueueOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<QueueOptions<FabrikamCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.QueueClient = queueClient;
@@ -270,18 +272,18 @@ namespace ClassLibrary1
                 };
             });
 
-            services.AddTransient<SendMessageCommand<SourceCustomerCommand>>();
-            services.AddTransient<ReceiveMessageCommand<TargetCustomerCommand>>();
-            services.AddTransient<DeleteMessageCommand<TargetCustomerCommand>>();
+            services.AddTransient<SendMessageCommand<ContosoCustomerRequest>>();
+            services.AddTransient<ReceiveMessageCommand<FabrikamCustomerRequest>>();
+            services.AddTransient<DeleteMessageCommand<FabrikamCustomerRequest>>();
 
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, SendMessageRequestBehavior<SourceCustomerCommand>>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, SendMessageRequestBehavior<ContosoCustomerRequest>>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
 
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, ReceiveMessageRequestBehavior<TargetCustomerCommand>>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, DeleteMessageRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, ReceiveMessageRequestBehavior<FabrikamCustomerRequest>>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, TransformFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, EnrichFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, DeleteMessageRequestBehavior<FabrikamCustomerRequest>>();
 
             return services;
         }
@@ -295,19 +297,19 @@ namespace ClassLibrary1
             var container = new BlobContainerClient("UseDevelopmentStorage=true", "messages");
             container.CreateIfNotExists();
 
-            services.AddTransient<UploadBlobCommand<RetrieveCustomerQuery>>();
-            services.AddTransient<UploadBlobCommand<RetrieveCustomerResult>>();
+            services.AddTransient<UploadBlobCommand<RetrieveCustomerRequest>>();
+            services.AddTransient<UploadBlobCommand<RetrieveCustomerResponse>>();
 
             // register pre/post processors to track messages in blob storage
-            services.AddTransient<IRequestPreProcessor<RetrieveCustomerQuery>, UploadBlobRequestProcessor<RetrieveCustomerQuery>>();
-            services.AddTransient<IRequestPostProcessor<RetrieveCustomerQuery, RetrieveCustomerResult>, UploadBlobResponseProcessor<RetrieveCustomerQuery, RetrieveCustomerResult>>();
+            services.AddTransient<IRequestPreProcessor<RetrieveCustomerRequest>, UploadBlobRequestProcessor<RetrieveCustomerRequest>>();
+            services.AddTransient<IRequestPostProcessor<RetrieveCustomerRequest, RetrieveCustomerResponse>, UploadBlobResponseProcessor<RetrieveCustomerRequest, RetrieveCustomerResponse>>();
 
-            services.AddOptions<BlobOptions<RetrieveCustomerQuery>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<BlobOptions<RetrieveCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/query/{Guid.NewGuid().ToString()}.json");
             });
-            services.AddOptions<BlobOptions<RetrieveCustomerResult>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<BlobOptions<RetrieveCustomerResponse>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/result/{Guid.NewGuid().ToString()}.json");
@@ -322,18 +324,18 @@ namespace ClassLibrary1
             var container = new BlobContainerClient("UseDevelopmentStorage=true", "messages");
             container.CreateIfNotExists();
 
-            services.AddOptions<BlobOptions<RetrieveCustomerQuery>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<BlobOptions<RetrieveCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/query/{Guid.NewGuid().ToString()}.json");
             });
-            services.AddOptions<BlobOptions<RetrieveCustomerResult>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<BlobOptions<RetrieveCustomerResponse>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/result/{Guid.NewGuid().ToString()}.json");
             });
 
-            services.AddTransient<IPipelineBehavior<RetrieveCustomerQuery, RetrieveCustomerResult>, UploadBlobRequestBehavior<RetrieveCustomerQuery, RetrieveCustomerResult>>();
+            services.AddTransient<IPipelineBehavior<RetrieveCustomerRequest, RetrieveCustomerResponse>, UploadBlobRequestBehavior<RetrieveCustomerRequest, RetrieveCustomerResponse>>();
 
             return services;
         }
@@ -344,7 +346,7 @@ namespace ClassLibrary1
             var cloudTable = storageAccount.CreateCloudTableClient().GetTableReference("Activities");
             cloudTable.CreateIfNotExists();
 
-            services.AddOptions<TableOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<ContosoCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = cloudTable;
@@ -356,11 +358,11 @@ namespace ClassLibrary1
                         RowKey = Guid.NewGuid().ToString(),
                         IsValid = true,
                         CustomerReceivedOn = DateTime.Now,
-                        Email = req.SourceCustomer.Email
+                        Email = req.ContosoCustomer.Email
                     };
                 };
             });
-            services.AddOptions<TableOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<FabrikamCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = cloudTable;
@@ -370,19 +372,19 @@ namespace ClassLibrary1
                     {
                         PartitionKey = req.MessageId,
                         RowKey = Guid.NewGuid().ToString(),
-                        DateOfBirth = req.TargetCustomer.DateOfBirth,
+                        DateOfBirth = req.FabrikamCustomer.DateOfBirth,
                         CustomerPublishedOn = DateTime.Now
                     };
                 };
             });
 
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertEntityRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, InsertEntityRequestBehavior<ContosoCustomerRequest>>();
 
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertEntityRequestBehavior<TargetCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, TransformFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, EnrichFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, InsertEntityRequestBehavior<FabrikamCustomerRequest>>();
 
             return services;
         }
@@ -397,12 +399,12 @@ namespace ClassLibrary1
             var activitiesTable = storageAccount.CreateCloudTableClient().GetTableReference("Activities");
             activitiesTable.CreateIfNotExists();
 
-            services.AddOptions<TableOptions<SourceCustomerCommand>>("Messages").Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<ContosoCustomerRequest>>("Messages").Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = messagesTable;
             });
-            services.AddOptions<TableOptions<TargetCustomerCommand>>("Messages").Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<FabrikamCustomerRequest>>("Messages").Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = messagesTable;
@@ -419,7 +421,7 @@ namespace ClassLibrary1
                     return tableEntity;
                 };
             });
-            services.AddOptions<TableOptions<SourceCustomerCommand>>("Source").Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<ContosoCustomerRequest>>("Source").Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = activitiesTable;
@@ -431,11 +433,11 @@ namespace ClassLibrary1
                         RowKey = Guid.NewGuid().ToString(),
                         IsValid = true,
                         CustomerReceivedOn = DateTime.Now,
-                        Email = req.SourceCustomer.Email
+                        Email = req.ContosoCustomer.Email
                     };
                 };
             });
-            services.AddOptions<TableOptions<TargetCustomerCommand>>("Target").Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<FabrikamCustomerRequest>>("Target").Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = activitiesTable;
@@ -445,52 +447,52 @@ namespace ClassLibrary1
                     {
                         PartitionKey = req.MessageId,
                         RowKey = Guid.NewGuid().ToString(),
-                        DateOfBirth = req.TargetCustomer.DateOfBirth,
+                        DateOfBirth = req.FabrikamCustomer.DateOfBirth,
                         CustomerPublishedOn = DateTime.Now
                     };
                 };
             });
 
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertEntityRequestBehavior<SourceCustomerCommand>>(sp =>
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, InsertEntityRequestBehavior<ContosoCustomerRequest>>(sp =>
             {
-                var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<SourceCustomerCommand>>>().Get("Messages");
+                var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<ContosoCustomerRequest>>>().Get("Messages");
 
-                return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<SourceCustomerCommand>>(sp, Options.Create(opt));
+                return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<ContosoCustomerRequest>>(sp, Options.Create(opt));
             });
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertEntityRequestBehavior<SourceCustomerCommand>>(sp =>
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, InsertEntityRequestBehavior<ContosoCustomerRequest>>(sp =>
             {
-                var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<SourceCustomerCommand>>>().Get("Messages");
+                var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<ContosoCustomerRequest>>>().Get("Messages");
 
-                return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<SourceCustomerCommand>>(sp, Options.Create(opt));
+                return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<ContosoCustomerRequest>>(sp, Options.Create(opt));
             });
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertEntityRequestBehavior<SourceCustomerCommand>>(sp =>
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, InsertEntityRequestBehavior<ContosoCustomerRequest>>(sp =>
             {
-                var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<SourceCustomerCommand>>>().Get("Source");
+                var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<ContosoCustomerRequest>>>().Get("Source");
 
-                return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<SourceCustomerCommand>>(sp, Options.Create(opt));
+                return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<ContosoCustomerRequest>>(sp, Options.Create(opt));
             });
 
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertEntityRequestBehavior<TargetCustomerCommand>>(sp =>
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, InsertEntityRequestBehavior<FabrikamCustomerRequest>>(sp =>
             {
-                var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<TargetCustomerCommand>>>().Get("Messages");
+                var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<FabrikamCustomerRequest>>>().Get("Messages");
 
-                return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
+                return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<FabrikamCustomerRequest>>(sp, Options.Create(opt));
             });
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertEntityRequestBehavior<TargetCustomerCommand>>(sp =>
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, TransformFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, EnrichFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, InsertEntityRequestBehavior<FabrikamCustomerRequest>>(sp =>
             {
-                var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<TargetCustomerCommand>>>().Get("Messages");
+                var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<FabrikamCustomerRequest>>>().Get("Messages");
 
-                return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
+                return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<FabrikamCustomerRequest>>(sp, Options.Create(opt));
             });
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, InsertEntityRequestBehavior<TargetCustomerCommand>>(sp =>
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, InsertEntityRequestBehavior<FabrikamCustomerRequest>>(sp =>
             {
-                var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<TargetCustomerCommand>>>().Get("Target");
+                var opt = sp.GetRequiredService<IOptionsSnapshot<TableOptions<FabrikamCustomerRequest>>>().Get("Target");
 
-                return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<TargetCustomerCommand>>(sp, Options.Create(opt));
+                return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<FabrikamCustomerRequest>>(sp, Options.Create(opt));
             });
 
             return services;
@@ -504,11 +506,11 @@ namespace ClassLibrary1
 
             services.AddScoped<PipelineContext>();
 
-            services.AddTransient<InsertEntityCommand<SourceCustomerCommand>>();
-            services.AddTransient<RetrieveEntityCommand<TargetCustomerCommand>>();
-            services.AddTransient<DeleteEntityCommand<TargetCustomerCommand>>();
+            services.AddTransient<InsertEntityCommand<ContosoCustomerRequest>>();
+            services.AddTransient<RetrieveEntityCommand<FabrikamCustomerRequest>>();
+            services.AddTransient<DeleteEntityCommand<FabrikamCustomerRequest>>();
 
-            services.AddOptions<TableOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<ContosoCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = cloudTable;
@@ -523,7 +525,7 @@ namespace ClassLibrary1
                     return tableEntity;
                 };
             });
-            services.AddOptions<TableOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<TableOptions<FabrikamCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = cloudTable;
@@ -543,14 +545,14 @@ namespace ClassLibrary1
                 };
             });
 
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, InsertEntityRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, InsertEntityRequestBehavior<ContosoCustomerRequest>>();
 
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, RetrieveEntityRequestBehavior<TargetCustomerCommand>>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, DeleteEntityRequestBehavior<TargetCustomerCommand>>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, RetrieveEntityRequestBehavior<FabrikamCustomerRequest>>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, DeleteEntityRequestBehavior<FabrikamCustomerRequest>>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, TransformFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, EnrichFabrikamCustomerBehavior>();
 
             return services;
         }
@@ -562,11 +564,11 @@ namespace ClassLibrary1
 
             services.AddScoped<PipelineContext>();
 
-            services.AddTransient<UploadBlobCommand<SourceCustomerCommand>>();
-            services.AddTransient<DownloadBlobCommand<TargetCustomerCommand>>();
-            services.AddTransient<DeleteBlobCommand<TargetCustomerCommand>>();
+            services.AddTransient<UploadBlobCommand<ContosoCustomerRequest>>();
+            services.AddTransient<DownloadBlobCommand<FabrikamCustomerRequest>>();
+            services.AddTransient<DeleteBlobCommand<FabrikamCustomerRequest>>();
 
-            services.AddOptions<BlobOptions<SourceCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<BlobOptions<ContosoCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/canonical/{req.MessageId}.json");
@@ -575,12 +577,12 @@ namespace ClassLibrary1
                     var canonicalCustomer = JsonConvert.SerializeObject(req.CanonicalCustomer);
 
                     req.CanonicalCustomer = null;
-                    req.SourceCustomer = null;
+                    req.ContosoCustomer = null;
 
                     return BinaryData.FromString(canonicalCustomer);
                 };
             });
-            services.AddOptions<BlobOptions<TargetCustomerCommand>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<BlobOptions<FabrikamCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/canonical/{req.MessageId}.json");
@@ -594,14 +596,14 @@ namespace ClassLibrary1
                 };
             });
 
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, ValidateSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, TransformSourceCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<SourceCustomerCommand, Unit>, UploadBlobRequestBehavior<SourceCustomerCommand>>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, UploadBlobRequestBehavior<ContosoCustomerRequest>>();
 
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, DownloadBlobRequestBehavior<TargetCustomerCommand>>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, DeleteBlobRequestBehavior<TargetCustomerCommand>>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, TransformTargetCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<TargetCustomerCommand, Unit>, EnrichTargetCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, DownloadBlobRequestBehavior<FabrikamCustomerRequest>>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, DeleteBlobRequestBehavior<FabrikamCustomerRequest>>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, TransformFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, EnrichFabrikamCustomerBehavior>();
 
             return services;
         }

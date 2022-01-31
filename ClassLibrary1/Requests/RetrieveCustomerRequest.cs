@@ -7,19 +7,19 @@ using System.Threading.Tasks;
 
 namespace ClassLibrary1
 {
-    public class RetrieveCustomerQuery : IRequest<RetrieveCustomerResult>
+    public class RetrieveCustomerRequest : IRequest<RetrieveCustomerResponse>
     {
         public string MessageId { get; set; }
     }
 
-    public class RetrieveCustomerResult
+    public class RetrieveCustomerResponse
     {
         public string MessageId { get; set; }
 
-        public TargetCustomer Customer { get; set; }
+        public FabrikamCustomer Customer { get; set; }
     }
 
-    public class RetrieveCustomerHandler : IRequestHandler<RetrieveCustomerQuery, RetrieveCustomerResult>
+    public class RetrieveCustomerHandler : IRequestHandler<RetrieveCustomerRequest, RetrieveCustomerResponse>
     {
         private readonly ILogger log;
 
@@ -28,14 +28,14 @@ namespace ClassLibrary1
             this.log = log;
         }
 
-        public async Task<RetrieveCustomerResult> Handle(RetrieveCustomerQuery request, CancellationToken cancellationToken)
+        public async Task<RetrieveCustomerResponse> Handle(RetrieveCustomerRequest request, CancellationToken cancellationToken)
         {
             var json = await File.ReadAllTextAsync($"C:\\Repos\\Customers\\{request.MessageId}.json");
 
-            var result = new RetrieveCustomerResult
+            var result = new RetrieveCustomerResponse
             {
                 MessageId = request.MessageId,
-                Customer = JsonConvert.DeserializeObject<TargetCustomerCommand>(json).TargetCustomer
+                Customer = JsonConvert.DeserializeObject<FabrikamCustomerRequest>(json).FabrikamCustomer
             };
 
             log.LogInformation("Handler {Handler} completed, returning", this.GetType().Name);
