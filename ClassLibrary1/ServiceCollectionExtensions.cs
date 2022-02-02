@@ -20,55 +20,29 @@ using System.Xml.Serialization;
 
 namespace ClassLibrary1
 {
-    public class MyRequest : IRequest<MyResponse>
-    {
-    }
-
-    public class MyResponse { }
-
-    public class InsertFinanceReportBehavior : InsertEntityRequestBehavior<MyRequest, MyResponse>
-    {
-        public InsertFinanceReportBehavior(InsertEntityCommand<MyRequest> cmd, PipelineContext ctx = null, ILogger log = null) : base(cmd, ctx, log)
-        {
-        }
-    }
-
-    public class InsertFinanceReportPreProcessor : InsertEntityRequestProcessor<MyRequest>
-    {
-        public InsertFinanceReportPreProcessor(InsertEntityCommand<MyRequest> cmd, PipelineContext ctx = null, ILogger log = null) : base(cmd, ctx, log)
-        {
-        }
-    }
-
-    public class InsertFinanceReportPostProcessor : InsertEntityResponseProcessor<MyRequest, MyResponse>
-    {
-        public InsertFinanceReportPostProcessor(InsertEntityCommand<MyResponse> cmd, PipelineContext ctx = null, ILogger log = null) : base(cmd, ctx, log)
-        {
-        }
-    }
-
     public static class ServiceCollectionExtensions
     {
+        #region Examples
+
         // 1. walk through the models, pipeline (commands/query and behaviors) and functions
         // 2. simple pipeline (without any storage behaviors/processors)
-        // 3. table, blob and queue tracking pipelines (default/custom)
+        // 3. table, blob and queue tracking pipelines (default/JSON and custom/XML)
         // 4. add storage processors to track GET response
         // 5. use storage behaviors for activity tracking (BAM)
         // 6. use storage behaviors for activity and message tracking (named options)
         // 7. claim check pipeline (blob and table)
+        // TODO: 8. persistence points?
+        // TODO: 9. sign/verify and encrypt/decrypt using certs?
 
-        // TODO: review DevOps?
-        // TODO: document which extensions depend on which commands?
-        // TODO: review options matrix against command unit tests
+        #endregion
 
-        // TODO: refactor demos as integration tests?
+        // TODO: refactor contoso request to return a canonical customer +
+        //       refactor fabrikam request as a canonical request that returns a fabrikam response?
+        //       (will prove whether mapping as a behavior is a viable solution)
+
+        // TODO: refactor demos as integration tests + use default ILogger config?
         // TODO: review all demos (both console and function apps) and add commands where required
         // TODO: review and remove demos that are not useful + retest + document the rest
-        // TODO: add src and examples folders?
-
-        // TODO: extensions for Service Bus (messaging and management?), HttpClient and storage batching (e.g. using retention days)
-        // TODO: extensions to implement persistence points?
-        // TODO: extensions for Key Vault + sign/verify and encrypt/decrypt using certs
 
         public static IServiceCollection AddCore(this IServiceCollection services)
         {
@@ -156,6 +130,7 @@ namespace ClassLibrary1
             return services;
         }
 
+        // TODO: add commands?
         public static IServiceCollection AddBlobTrackingPipeline(this IServiceCollection services)
         {
             var container = new BlobContainerClient("UseDevelopmentStorage=true", "messages");
@@ -197,6 +172,7 @@ namespace ClassLibrary1
             return services;
         }
 
+        // TODO: add commands?
         public static IServiceCollection AddQueueRoutingPipeline(this IServiceCollection services)
         {
             var queueClient = new QueueClient("UseDevelopmentStorage=true", "messages");
@@ -288,12 +264,8 @@ namespace ClassLibrary1
             return services;
         }
 
-        // TODO: explicitly add processor extensions
         public static IServiceCollection AddBlobTrackingProcessors(this IServiceCollection services)
         {
-            services.AddTransient<IRequestPreProcessor<MyRequest>, InsertEntityRequestProcessor<MyRequest>>();
-            services.AddTransient<IRequestPostProcessor<MyRequest, MyResponse>, InsertEntityResponseProcessor<MyRequest, MyResponse>>();
-
             var container = new BlobContainerClient("UseDevelopmentStorage=true", "messages");
             container.CreateIfNotExists();
 
@@ -318,7 +290,7 @@ namespace ClassLibrary1
             return services;
         }
 
-        // TODO: query example - delete me?
+        // TODO: query example - delete or add commands?
         public static IServiceCollection AddBlobTrackingBehaviors(this IServiceCollection services)
         {
             var container = new BlobContainerClient("UseDevelopmentStorage=true", "messages");
@@ -340,6 +312,7 @@ namespace ClassLibrary1
             return services;
         }
 
+        // TODO: add commands?
         public static IServiceCollection AddActivityTrackingPipeline(this IServiceCollection services)
         {
             var storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
@@ -389,6 +362,7 @@ namespace ClassLibrary1
             return services;
         }
 
+        // TODO: add commands?
         public static IServiceCollection AddMultiTrackingPipeline(this IServiceCollection services)
         {
             var storageAccount = CloudStorageAccount.DevelopmentStorageAccount;

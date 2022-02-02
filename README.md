@@ -70,7 +70,7 @@ The choice is a matter of personal taste: on one hand, using the extensions dire
 Look at the projects in the Examples folder for usage: the [ServiceCollectionExtensions](./ClassLibrary1/ServiceCollectionExtensions.cs) class contains numerous DI extension methods that use the behaviors and processes to configure different scenarios.
 
 ## Extensions
-More details about specific options and extensions can be found below:
+More details about specific extensions, commands and options can be found below:
 - [Table Extensions](./docs/TableExtensions.md)
 - [Blob Extensions](./docs/BlobExtensions.md)
 - [Queue Extensions](./docs/QueueExtensions.md)
