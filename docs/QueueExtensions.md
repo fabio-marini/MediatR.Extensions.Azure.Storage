@@ -1,7 +1,7 @@
 # Queue Extensions
 
 ## Behaviors
-This package contains the following behaviors:
+This repository contains the following behaviors:
 
 - [SendMessageRequestBehavior][1]: used to send the MediatR request to the specified queue
 - [SendMessageResponseBehavior][2]: used to send the MediatR response to the specified queue
@@ -11,7 +11,7 @@ This package contains the following behaviors:
 - [ReceiveMessageResponseBehavior][6]: used to receive the MediatR response from the specified queue
 
 ## Processors
-This package contains the following processors:
+This repository contains the following processors:
 
 - [SendMessageRequestProcessor][7]: used to send the MediatR request to the specified queue
 - [SendMessageResponseProcessor][8]: used to send the MediatR response to the specified queue

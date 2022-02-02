@@ -1,7 +1,7 @@
 # Blob Extensions
 
 ## Behaviors
-This package contains the following behaviors:
+This repository contains the following behaviors:
 
 - [UploadBlobRequestBehavior][1]: used to upload the MediatR request to the specified blob container
 - [UploadBlobResponseBehavior][2]: used to upload the MediatR response to the specified blob container
@@ -11,7 +11,7 @@ This package contains the following behaviors:
 - [DownloadBlobResponseBehavior][6]: used to download the MediatR response from the specified blob container
 
 ## Processors
-This package contains the following processors:
+This repository contains the following processors:
 
 - [UploadBlobRequestProcessor][7]: used to upload the MediatR request to the specified blob container
 - [UploadBlobResponseProcessor][8]: used to upload the MediatR response to the specified blob container

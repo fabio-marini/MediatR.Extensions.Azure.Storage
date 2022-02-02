@@ -1,7 +1,7 @@
 # Table Extensions
 
 ## Behaviors
-This package contains the following behaviors:
+This repository contains the following behaviors:
 
 - [InsertEntityRequestBehavior][1]: used to insert the MediatR request into the specified table
 - [InsertEntityResponseBehavior][2]: used to insert the MediatR response into the specified table
@@ -11,7 +11,7 @@ This package contains the following behaviors:
 - [RetrieveEntityResponseBehavior][6]: used to retrieve the MediatR response from the specified table
 
 ## Processors
-This package contains the following processors:
+This repository contains the following processors:
 
 - [InsertEntityRequestProcessor][7]: used to insert the MediatR request into the specified table
 - [InsertEntityResponseProcessor][8]: used to insert the MediatR response into the specified table
