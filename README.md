@@ -1,26 +1,25 @@
 # MediatR.Extensions.Azure.Storage
-This repository contains [MediatR](https://github.com/jbogard/MediatR) extensions to work with Azure Storage.
 
-In this context, an extension refers to a MediatR pipeline **behavior** or a request **pre/post processor**.
+## Overview
+This repository contains [MediatR](https://github.com/jbogard/MediatR) extensions to work with Azure Storage:
+- an extension refers to a MediatR pipeline **behavior** or a request **pre/post processor**
+- an extension works with a MediatR **request** or **response**, but never both
 
-An extension works with a MediatR request or response, but never both. For example:
-- an InsertEntityRequestBehavior is a *behavior* used to insert the MediatR *request* into the specified table
-- an InsertEntityResponseBehavior is a *behavior* used to insert the MediatR *response* into the specified table
-- an InsertEntityRequestProcessor is a *pre-processor* used to insert the MediatR *request* into the specified table
-- an InsertEntityResponseProcessor is a *post-processor* used to insert the MediatR *response* into the specified table
+Extensions depend on **commands**, i.e. classes that implement `ICommand<TMessage>`, as described [here](https://github.com/fabio-marini/MediatR.Extensions.Abstractions). Commands, in turn, depend on generic **option classes**, the generic type parameter being either a MediatR request or response (although this is not contrained).
 
-Extensions depend on commands, i.e. classes that implement `ICommand<TMessage>`, as described [here][1]. Commands, in turn, depend on generic option classes. The generic type parameter `TMessage` being a MediatR request or response.
+All extensions take an optional dependency on [PipelineContext](./MediatR.Extensions.Azure.Storage.Abstractions/PipelineContext.cs), which is nothing but a `Dictionary<string, object>` used to share context between behaviors/processors as described [here](https://jimmybogard.com/sharing-context-in-mediatr-pipelines/).
 
-- [TableOptions&lt;TMessage&gt;][2] are used to control table extensions
-- [QueueOptions&lt;TMessage&gt;][3] are used to control queue extensions
-- [BlobOptions&lt;TMessage&gt;][4] are used to control blob extensions
+## A Note About Naming
+All extension names follow the same pattern: `{CommandName}{Request/Response}{Behavior/Processor}`, where:
+- `{CommandName}`: matches the name of the command the extension depends on and indicates the purpose of the extension
+- `{Request/Response}`: indicates whether the extension works with a MediatR request or response
+- `{Behavior/Processor}`: indicates whether the extension is a MediatR behavior or processor (pre-processors only work with requests and post-processors only work with responses)
 
-[1]: https://github.com/fabio-marini/MediatR.Extensions.Abstractions
-[2]: ./MediatR.Extensions.Azure.Storage.Tables/Options/TableOptions.cs
-[3]: ./MediatR.Extensions.Azure.Storage.Queues/Options/QueueOptions.cs
-[4]: ./MediatR.Extensions.Azure.Storage.Blobs/Options/BlobOptions.cs
-
-All extensions take an optional dependency on [PipelineContext](./MediatR.Extensions.Azure.Storage.Abstractions/PipelineContext.cs), which is nothing but a `Dictionary<string, object>` and is used to share context with other behaviors/processors as described [here](https://jimmybogard.com/sharing-context-in-mediatr-pipelines/).
+For example:
+- an `{InsertEntity}{Request}{Behavior}` is a *behavior* used to insert the MediatR *request* into the specified storage table
+- an `{InsertEntity}{Response}{Behavior}` is a *behavior* used to insert the MediatR *response* into the specified storage table
+- an `{InsertEntity}{Request}{Processor}` is a *pre-processor* used to insert the MediatR *request* into the specified storage table
+- an `{InsertEntity}{Response}{Processor}` is a *post-processor* used to insert the MediatR *response* into the specified storage table
 
 ## How to use
 Extensions and the commands they depend on must be injected into the MediatR pipeline:
@@ -29,14 +28,14 @@ Extensions and the commands they depend on must be injected into the MediatR pip
 - behaviors are always injected explicitly because that determines the order in which they are executed 
 
 Extensions can be used directly by specifying suitable generic parameters, e.g.
-```
+```cs
 services.AddTransient<IPipelineBehavior<MyRequest, MyResponse>, InsertEntityRequestBehavior<MyRequest, MyResponse>>();
 
 services.AddTransient<IRequestPreProcessor<MyRequest>, InsertEntityRequestProcessor<MyRequest>>();
 services.AddTransient<IRequestPostProcessor<MyRequest, MyResponse>, InsertEntityResponseProcessor<MyRequest, MyResponse>>();
 ```
 or they can be inherited, which will require supplying suitable constructors, e.g.
-```
+```cs
 public class InsertFinanceReportBehavior : InsertEntityRequestBehavior<MyRequest, MyResponse>
 {
     public InsertFinanceReportBehavior(InsertEntityCommand<MyRequest> cmd, PipelineContext ctx = null, ILogger log = null) : base(cmd, ctx, log)
