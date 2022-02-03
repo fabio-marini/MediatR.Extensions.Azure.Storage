@@ -6,7 +6,9 @@ This repository contains [MediatR](https://github.com/jbogard/MediatR) extension
 
 Extensions depend on **commands**, i.e. classes that implement `ICommand<TMessage>`, as described [here](https://github.com/fabio-marini/MediatR.Extensions.Abstractions). Commands, in turn, depend on generic **option classes**, the generic type parameter being either a MediatR request or response (although this is not constrained).
 
-All extensions take an optional dependency on [PipelineContext](./MediatR.Extensions.Azure.Storage.Abstractions/PipelineContext.cs), which is nothing but a `Dictionary<string, object>` used to share context between behaviors/processors as described [here](https://jimmybogard.com/sharing-context-in-mediatr-pipelines/).
+All extensions take an optional dependency on [PipelineContext][pc], which is nothing but a `Dictionary<string, object>` used to share context between behaviors/processors as described [here](https://jimmybogard.com/sharing-context-in-mediatr-pipelines/).
+
+[pc]: https://github.com/fabio-marini/MediatR.Extensions.Abstractions/blob/master/MediatR.Extensions.Abstractions/PipelineContext.cs
 
 **Dependency injection** is described in more detail [here](./docs/DependencyInjection.md).
 
@@ -26,4 +28,4 @@ For example:
 - an `{InsertEntity}{Request}{Processor}` is a *pre-processor* used to insert the MediatR *request* into the specified storage table
 - an `{InsertEntity}{Response}{Processor}` is a *post-processor* used to insert the MediatR *response* into the specified storage table
 
-The [ServiceCollectionExtensions](./ClassLibrary1/ServiceCollectionExtensions.cs) class contains numerous examples and scenarios.
+The [ServiceCollectionExtensions](./examples/ClassLibrary1/ServiceCollectionExtensions.cs) class contains numerous examples and scenarios.

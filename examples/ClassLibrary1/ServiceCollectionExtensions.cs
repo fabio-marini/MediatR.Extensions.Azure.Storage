@@ -37,13 +37,9 @@ namespace ClassLibrary1
 
         #endregion
 
-        // TODO: rename solution file?
-
         // TODO: refactor contoso request to return a canonical customer +
         //       refactor fabrikam request as a canonical request that returns a fabrikam response?
         //       (will prove whether mapping as a behavior is a viable solution)
-
-        // TODO: move examples to own solution and use NuGet packages?
 
         // TODO: refactor demos as integration tests + use default ILogger config?
         // TODO: review all demos (both console and function apps) and add commands where required
