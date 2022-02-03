@@ -24,21 +24,26 @@ namespace ClassLibrary1
     {
         #region Examples
 
-        // 1. walk through the models, pipeline (commands/query and behaviors) and functions
-        // 2. simple pipeline (without any storage behaviors/processors)
-        // 3. table, blob and queue tracking pipelines (default/JSON and custom/XML)
-        // 4. add storage processors to track GET response
-        // 5. use storage behaviors for activity tracking (BAM)
-        // 6. use storage behaviors for activity and message tracking (named options)
-        // 7. claim check pipeline (blob and table)
-        // TODO: 8. persistence points?
-        // TODO: 9. sign/verify and encrypt/decrypt using certs?
+        //  1. walk through the models, pipeline (commands/query and behaviors) and functions
+        //  2. simple pipeline (without any storage behaviors/processors)
+        //  3. table, blob and queue tracking pipelines (default/JSON and custom/XML)
+        //  4. add storage processors to track GET response
+        //  5. use storage behaviors for activity tracking (BAM)
+        //  6. use storage behaviors for activity and message tracking (named options)
+        //  7. claim check pipeline (blob and table)
+        // TODO: persistence points to enable edit and resubmit?
+        // TODO: sign/verify and encrypt/decrypt using certs?
+        // TODO: route error messages to an error pipeline?
 
         #endregion
+
+        // TODO: rename solution file?
 
         // TODO: refactor contoso request to return a canonical customer +
         //       refactor fabrikam request as a canonical request that returns a fabrikam response?
         //       (will prove whether mapping as a behavior is a viable solution)
+
+        // TODO: move examples to own solution and use NuGet packages?
 
         // TODO: refactor demos as integration tests + use default ILogger config?
         // TODO: review all demos (both console and function apps) and add commands where required
