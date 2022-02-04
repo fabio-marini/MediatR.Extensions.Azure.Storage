@@ -24,6 +24,13 @@ namespace ClassLibrary1
     {
         #region Examples
 
+        // TODO: refactor contoso request to return a canonical customer +
+        //       refactor fabrikam request as a canonical request that returns a fabrikam response?
+        //       (will prove whether mapping as a behavior is a viable solution)
+
+        // TODO: 1. basic pipeline, 2. add blob message tracking (JSON and XML), 3. add table activity tracking (BAM)
+        //       4. add message AND activity tracking to same pipeline, 5. claim check pipeline (upload/download/delete blob)
+
         //  1. walk through the models, pipeline (commands/query and behaviors) and functions
         //  2. simple pipeline (without any storage behaviors/processors)
         //  3. table, blob and queue tracking pipelines (default/JSON and custom/XML)
@@ -37,9 +44,7 @@ namespace ClassLibrary1
 
         #endregion
 
-        // TODO: refactor contoso request to return a canonical customer +
-        //       refactor fabrikam request as a canonical request that returns a fabrikam response?
-        //       (will prove whether mapping as a behavior is a viable solution)
+        // TODO: create pipelines/tests to exercise all extensions, e.g. a pipeline to insert/retrieve/delete an entity?
 
         // TODO: refactor demos as integration tests + use default ILogger config?
         // TODO: review all demos (both console and function apps) and add commands where required
@@ -131,22 +136,37 @@ namespace ClassLibrary1
             return services;
         }
 
-        // TODO: add commands?
-        public static IServiceCollection AddBlobTrackingPipeline(this IServiceCollection services)
+        public static IServiceCollection AddContosoBlobTrackingPipeline(this IServiceCollection services)
         {
-            var container = new BlobContainerClient("UseDevelopmentStorage=true", "messages");
-            container.CreateIfNotExists();
+            services.AddOptions<BlobOptions<ContosoCustomerRequest>>().Configure<IServiceProvider>((opt, svc) =>
+            {
+                var cfg = svc.GetRequiredService<IConfiguration>();
+                var blb = svc.GetRequiredService<BlobContainerClient>();
 
-            services.AddOptions<BlobOptions<ContosoCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
-            {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
-                opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/source/{Guid.NewGuid().ToString()}.json");
+                opt.BlobClient = (req, ctx) => blb.GetBlobClient($"customers/source/{Guid.NewGuid().ToString()}.json");
             });
-            services.AddOptions<BlobOptions<FabrikamCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
+
+            services.AddTransient<UploadBlobCommand<ContosoCustomerRequest>>();
+
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, UploadBlobRequestBehavior<ContosoCustomerRequest>>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, UploadBlobRequestBehavior<ContosoCustomerRequest>>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddFabrikamBlobTrackingPipeline(this IServiceCollection services)
+        {
+            services.AddOptions<BlobOptions<FabrikamCustomerRequest>>().Configure<IServiceProvider>((opt, svc) =>
             {
+                var cfg = svc.GetRequiredService<IConfiguration>();
+                var blb = svc.GetRequiredService<BlobContainerClient>();
+
                 // use custom BlobContent to serialize only the canonical customer (as XML)
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
-                opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/target/{Guid.NewGuid().ToString()}.xml");
+                opt.BlobClient = (req, ctx) => blb.GetBlobClient($"customers/target/{Guid.NewGuid().ToString()}.xml");
                 opt.BlobContent = (req, ctx) =>
                 {
                     var xml = new XmlSerializer(req.CanonicalCustomer.GetType());
@@ -160,10 +180,7 @@ namespace ClassLibrary1
                 opt.BlobHeaders = (req, ctx) => new BlobHttpHeaders { ContentType = "application/xml" };
             });
 
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, UploadBlobRequestBehavior<ContosoCustomerRequest>>();
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, UploadBlobRequestBehavior<ContosoCustomerRequest>>();
+            services.AddTransient<UploadBlobCommand<FabrikamCustomerRequest>>();
 
             services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, UploadBlobRequestBehavior<FabrikamCustomerRequest>>();
             services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, TransformFabrikamCustomerBehavior>();
@@ -171,6 +188,14 @@ namespace ClassLibrary1
             services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, UploadBlobRequestBehavior<FabrikamCustomerRequest>>();
 
             return services;
+        }
+
+        public static IServiceCollection AddBlobTrackingPipeline(this IServiceCollection services)
+        {
+            return services
+
+                .AddContosoBlobTrackingPipeline()
+                .AddFabrikamBlobTrackingPipeline();
         }
 
         // TODO: add commands?
