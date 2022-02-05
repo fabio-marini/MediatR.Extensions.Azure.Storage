@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Microsoft.Azure.Cosmos.Table;
+using Microsoft.Extensions.Logging;
 using Polly;
 using System;
 using System.Linq;
@@ -10,9 +11,9 @@ namespace MediatR.Extensions.Azure.Storage.Examples
     public class TableFixture
     {
         private readonly CloudTable tbl;
-        private readonly ITestOutputHelper log;
+        private readonly ILogger log;
 
-        public TableFixture(CloudTable tbl, ITestOutputHelper log)
+        public TableFixture(CloudTable tbl, ILogger log = null)
         {
             this.tbl = tbl;
             this.log = log;
@@ -24,6 +25,8 @@ namespace MediatR.Extensions.Azure.Storage.Examples
 
             if (allEntities.Any() == false)
             {
+                log.LogInformation($"Table {tbl.Name} has no entities to delete");
+
                 return;
             }
 
@@ -32,6 +35,8 @@ namespace MediatR.Extensions.Azure.Storage.Examples
                 var res = tbl.Execute(TableOperation.Delete(e));
 
                 res.HttpStatusCode.Should().Be(204);
+
+                log.LogInformation($"Deleted entity {e.RowKey} from table {tbl.Name}");
             }
         }
 
@@ -45,7 +50,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples
             {
                 var res = tbl.ExecuteQuery(new TableQuery()).Count();
 
-                log.WriteLine($"Table {tbl.Name} has {res} entities");
+                log.LogInformation($"Table {tbl.Name} has {res} entities");
 
                 return res;
             });

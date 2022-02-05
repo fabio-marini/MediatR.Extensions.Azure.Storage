@@ -1,18 +1,18 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Polly;
 using System;
 using System.IO;
 using System.Linq;
-using Xunit.Abstractions;
 
 namespace MediatR.Extensions.Azure.Storage.Examples
 {
     public class FolderFixture
     {
         private readonly DirectoryInfo dir;
-        private readonly ITestOutputHelper log;
+        private readonly ILogger log;
 
-        public FolderFixture(DirectoryInfo dir, ITestOutputHelper log)
+        public FolderFixture(DirectoryInfo dir, ILogger log = null)
         {
             this.dir = dir;
             this.log = log;
@@ -24,11 +24,15 @@ namespace MediatR.Extensions.Azure.Storage.Examples
 
             if (allFiles.Any() == false)
             {
+                log.LogInformation($"Fodler {dir.Name} has no files to delete");
+
                 return;
             }
 
             foreach (var f in allFiles)
             {
+                log.LogInformation($"Deleted file {f.Name} from folder {dir.Name}");
+
                 File.Delete(f.FullName);
             }
         }
@@ -43,7 +47,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples
             {
                 var res = dir.GetFiles().Count();
 
-                log.WriteLine($"Folder {dir.Name} has {res} files");
+                log.LogInformation($"Folder {dir.Name} has {res} files");
 
                 return res;
             });

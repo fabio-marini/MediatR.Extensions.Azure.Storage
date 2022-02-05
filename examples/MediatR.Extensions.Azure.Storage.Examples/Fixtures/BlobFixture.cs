@@ -1,5 +1,6 @@
 ﻿using Azure.Storage.Blobs;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Polly;
 using System;
 using System.Linq;
@@ -10,9 +11,9 @@ namespace MediatR.Extensions.Azure.Storage.Examples
     public class BlobFixture
     {
         private readonly BlobContainerClient blb;
-        private readonly ITestOutputHelper log;
+        private readonly ILogger log;
 
-        public BlobFixture(BlobContainerClient blb, ITestOutputHelper log)
+        public BlobFixture(BlobContainerClient blb, ILogger log = null)
         {
             this.blb = blb;
             this.log = log;
@@ -24,6 +25,8 @@ namespace MediatR.Extensions.Azure.Storage.Examples
 
             if (allBlobs.Any() == false)
             {
+                log.LogInformation($"Container {blb.Name} has no blobs to delete");
+
                 return;
             }
 
@@ -32,6 +35,8 @@ namespace MediatR.Extensions.Azure.Storage.Examples
                 var res = blb.DeleteBlob(b.Name);
 
                 res.Status.Should().Be(202);
+
+                log.LogInformation($"Deleted blob {b.Name} from container {blb.Name}");
             }
         }
 
@@ -45,7 +50,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples
             {
                 var res = blb.GetBlobs().Count();
 
-                log.WriteLine($"Container {blb.Name} has {res} blobs");
+                log.LogInformation($"Container {blb.Name} has {res} blobs");
 
                 return res;
             });

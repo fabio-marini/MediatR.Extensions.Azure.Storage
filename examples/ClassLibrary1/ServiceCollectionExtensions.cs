@@ -46,10 +46,10 @@ namespace ClassLibrary1
 
         #endregion
 
-        // TODO: update fixtures to use ILogger.. :(
+        // TODO: rename blobs to include contoso and fabrikam...
+
         // TODO: rewrite multi tracking pipeline so that multiple activity records are tracked (instead of messages), e.g.
         //       track at the beginning of the pipeline and the end (and optionally in the middle)
-        // TODO: create pipelines/tests to exercise all extensions, e.g. a pipeline to insert/retrieve/delete an entity?
 
         #region TODO: Obsolete, delete!
 

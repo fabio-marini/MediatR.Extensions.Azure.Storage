@@ -1,5 +1,6 @@
 ﻿using Azure.Storage.Queues;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Polly;
 using System;
 using Xunit.Abstractions;
@@ -9,15 +10,20 @@ namespace MediatR.Extensions.Azure.Storage.Examples
     public class QueueFixture
     {
         private readonly QueueClient que;
-        private readonly ITestOutputHelper log;
+        private readonly ILogger log;
 
-        public QueueFixture(QueueClient que, ITestOutputHelper log)
+        public QueueFixture(QueueClient que, ILogger log = null)
         {
             this.que = que;
             this.log = log;
         }
 
-        public void GivenQueueIsEmpty() => que.ClearMessages();
+        public void GivenQueueIsEmpty()
+        {
+            que.ClearMessages();
+
+            log.LogInformation($"Deleted all messages from queue {que.Name}");
+        }
 
         public void ThenQueueHasMessages(int expectedCount)
         {
@@ -29,7 +35,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples
             {
                 var res = que.PeekMessages(32).Value.Length;
 
-                log.WriteLine($"Queue {que.Name} has {res} messages");
+                log.LogInformation($"Queue {que.Name} has {res} messages");
 
                 return res;
             });
