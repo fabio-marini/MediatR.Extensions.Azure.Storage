@@ -17,18 +17,20 @@ namespace ClassLibrary1
 
     public class FabrikamCustomerHandler : IRequestHandler<FabrikamCustomerRequest>
     {
+        private readonly DirectoryInfo dir;
         private readonly ILogger log;
 
-        public FabrikamCustomerHandler(ILogger log = null)
+        public FabrikamCustomerHandler(DirectoryInfo dir, ILogger log = null)
         {
+            this.dir = dir;
             this.log = log ?? NullLogger.Instance;
         }
 
         public async Task<Unit> Handle(FabrikamCustomerRequest request, CancellationToken cancellationToken)
         {
-            var json = JsonConvert.SerializeObject(request);
+            var path = Path.Combine(dir.FullName, $"{request.MessageId}.json");
 
-            await File.WriteAllTextAsync($"C:\\Repos\\Customers\\{request.MessageId}.json", json);
+            await File.WriteAllTextAsync(path, JsonConvert.SerializeObject(request));
 
             log.LogInformation("Handler {Handler} completed, returning", this.GetType().Name);
 

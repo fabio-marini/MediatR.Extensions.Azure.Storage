@@ -28,7 +28,7 @@ namespace ClassLibrary1
                 return Unit.Task;
             }
 
-            log.LogInformation("Behavior {Behavior} completed, invoking next behavior in the chain", this.GetType().Name);
+            log.LogInformation("Behavior {Behavior} completed", this.GetType().Name);
 
             return next();
         }

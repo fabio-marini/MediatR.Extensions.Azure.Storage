@@ -23,7 +23,7 @@ namespace ClassLibrary1
                 Email = request.CanonicalCustomer.Email
             };
 
-            log.LogInformation("Behavior {Behavior} completed, invoking next behavior in the chain", this.GetType().Name);
+            log.LogInformation("Behavior {Behavior} completed", this.GetType().Name);
 
             return next();
         }

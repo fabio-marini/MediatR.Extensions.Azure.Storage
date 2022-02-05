@@ -24,6 +24,8 @@ namespace ClassLibrary1
     {
         #region Examples
 
+        // TODO: update fabrikam handler to have dir info injected + remove AddCore()?
+
         // TODO: refactor contoso request to return a canonical customer +
         //       refactor fabrikam request as a canonical request that returns a fabrikam response?
         //       (will prove whether mapping as a behavior is a viable solution)
@@ -44,50 +46,12 @@ namespace ClassLibrary1
 
         #endregion
 
+        // TODO: update fixtures to use ILogger.. :(
+        // TODO: rewrite multi tracking pipeline so that multiple activity records are tracked (instead of messages), e.g.
+        //       track at the beginning of the pipeline and the end (and optionally in the middle)
         // TODO: create pipelines/tests to exercise all extensions, e.g. a pipeline to insert/retrieve/delete an entity?
 
-        // TODO: refactor demos as integration tests + use default ILogger config?
-        // TODO: review all demos (both console and function apps) and add commands where required
-        // TODO: review and remove demos that are not useful + retest + document the rest
-
-        public static IServiceCollection AddCore(this IServiceCollection services)
-        {
-            // core set of dependencies
-            services.AddSingleton<ILogger>(sp =>
-            {
-                // https://blog.stephencleary.com/2018/06/microsoft-extensions-logging-part-2-types.html
-                var loggerFactory = LoggerFactory.Create(cfg =>
-                {
-                    cfg.AddConsole();
-                    cfg.SetMinimumLevel(LogLevel.Information);
-                });
-
-                return loggerFactory.CreateLogger("ClassLibrary1");
-            });
-
-            services.AddMediatR(typeof(ServiceCollectionExtensions));
-
-            services.AddSingleton<QueueClient>(sp =>
-            {
-                var queueClient = new QueueClient("UseDevelopmentStorage=true", "customers");
-                queueClient.CreateIfNotExists();
-
-                return queueClient;
-            });
-
-            return services;
-        }
-
-        public static IServiceCollection AddSimplePipeline(this IServiceCollection services)
-        {
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
-
-            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, TransformFabrikamCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, EnrichFabrikamCustomerBehavior>();
-
-            return services;
-        }
+        #region TODO: Obsolete, delete!
 
         public static IServiceCollection AddTableTrackingPipeline(this IServiceCollection services)
         {
@@ -136,69 +100,14 @@ namespace ClassLibrary1
             return services;
         }
 
-        public static IServiceCollection AddContosoBlobTrackingPipeline(this IServiceCollection services)
-        {
-            services.AddOptions<BlobOptions<ContosoCustomerRequest>>().Configure<IServiceProvider>((opt, svc) =>
-            {
-                var cfg = svc.GetRequiredService<IConfiguration>();
-                var blb = svc.GetRequiredService<BlobContainerClient>();
-
-                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
-                opt.BlobClient = (req, ctx) => blb.GetBlobClient($"customers/source/{Guid.NewGuid().ToString()}.json");
-            });
-
-            services.AddTransient<UploadBlobCommand<ContosoCustomerRequest>>();
-
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, UploadBlobRequestBehavior<ContosoCustomerRequest>>();
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, UploadBlobRequestBehavior<ContosoCustomerRequest>>();
-
-            return services;
-        }
-
-        public static IServiceCollection AddFabrikamBlobTrackingPipeline(this IServiceCollection services)
-        {
-            services.AddOptions<BlobOptions<FabrikamCustomerRequest>>().Configure<IServiceProvider>((opt, svc) =>
-            {
-                var cfg = svc.GetRequiredService<IConfiguration>();
-                var blb = svc.GetRequiredService<BlobContainerClient>();
-
-                // use custom BlobContent to serialize only the canonical customer (as XML)
-                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
-                opt.BlobClient = (req, ctx) => blb.GetBlobClient($"customers/target/{Guid.NewGuid().ToString()}.xml");
-                opt.BlobContent = (req, ctx) =>
-                {
-                    var xml = new XmlSerializer(req.CanonicalCustomer.GetType());
-
-                    using var ms = new MemoryStream();
-
-                    xml.Serialize(ms, req.CanonicalCustomer);
-
-                    return BinaryData.FromBytes(ms.ToArray());
-                };
-                opt.BlobHeaders = (req, ctx) => new BlobHttpHeaders { ContentType = "application/xml" };
-            });
-
-            services.AddTransient<UploadBlobCommand<FabrikamCustomerRequest>>();
-
-            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, UploadBlobRequestBehavior<FabrikamCustomerRequest>>();
-            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, TransformFabrikamCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, EnrichFabrikamCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, UploadBlobRequestBehavior<FabrikamCustomerRequest>>();
-
-            return services;
-        }
-
         public static IServiceCollection AddBlobTrackingPipeline(this IServiceCollection services)
         {
             return services
 
-                .AddContosoBlobTrackingPipeline()
-                .AddFabrikamBlobTrackingPipeline();
+                .AddContosoMessageTrackingPipeline()
+                .AddFabrikamMessageTrackingPipeline();
         }
 
-        // TODO: add commands?
         public static IServiceCollection AddQueueRoutingPipeline(this IServiceCollection services)
         {
             var queueClient = new QueueClient("UseDevelopmentStorage=true", "messages");
@@ -228,6 +137,9 @@ namespace ClassLibrary1
                 };
             });
 
+            services.AddTransient<SendMessageCommand<ContosoCustomerRequest>>();
+            services.AddTransient<SendMessageCommand<FabrikamCustomerRequest>>();
+
             services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, SendMessageRequestBehavior<ContosoCustomerRequest>>();
             services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
@@ -241,8 +153,7 @@ namespace ClassLibrary1
             return services;
         }
 
-        // TODO: how to delete queue messages...
-        public static IServiceCollection AddQueueRoutingPipeline2(this IServiceCollection services)
+        public static IServiceCollection AddQueueDeletingPipeline(this IServiceCollection services)
         {
             var queueClient = new QueueClient("UseDevelopmentStorage=true", "messages");
             queueClient.CreateIfNotExists();
@@ -316,9 +227,9 @@ namespace ClassLibrary1
             return services;
         }
 
-        // TODO: query example - delete or add commands?
         public static IServiceCollection AddBlobTrackingBehaviors(this IServiceCollection services)
         {
+            // TODO: query example - delete or add commands?
             var container = new BlobContainerClient("UseDevelopmentStorage=true", "messages");
             container.CreateIfNotExists();
 
@@ -338,17 +249,173 @@ namespace ClassLibrary1
             return services;
         }
 
-        // TODO: add commands?
-        public static IServiceCollection AddActivityTrackingPipeline(this IServiceCollection services)
+        public static IServiceCollection AddTableClaimCheckPipeline(this IServiceCollection services)
         {
             var storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
-            var cloudTable = storageAccount.CreateCloudTableClient().GetTableReference("Activities");
+            var cloudTable = storageAccount.CreateCloudTableClient().GetTableReference("ClaimChecks");
             cloudTable.CreateIfNotExists();
+
+            services.AddScoped<PipelineContext>();
+
+            services.AddTransient<InsertEntityCommand<ContosoCustomerRequest>>();
+            services.AddTransient<RetrieveEntityCommand<FabrikamCustomerRequest>>();
+            services.AddTransient<DeleteEntityCommand<FabrikamCustomerRequest>>();
 
             services.AddOptions<TableOptions<ContosoCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
             {
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.CloudTable = cloudTable;
+                opt.TableEntity = (req, ctx) =>
+                {
+                    var tableEntity = new DynamicTableEntity("SourceCustomerCommand", req.MessageId);
+
+                    var canonicalCustomer = JsonConvert.SerializeObject(req.CanonicalCustomer);
+
+                    tableEntity.Properties.Add("CanonicalCustomer", EntityProperty.GeneratePropertyForString(canonicalCustomer));
+
+                    return tableEntity;
+                };
+            });
+            services.AddOptions<TableOptions<FabrikamCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
+            {
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+                opt.CloudTable = cloudTable;
+                opt.TableEntity = (req, ctx) => new DynamicTableEntity("SourceCustomerCommand", req.MessageId) { ETag = "*" };
+                opt.Retrieved = (res, ctx, req) =>
+                {
+                    var dte = res.Result as DynamicTableEntity;
+
+                    if (dte != null)
+                    {
+                        var canonicalCustomer = dte["CanonicalCustomer"].StringValue;
+
+                        req.CanonicalCustomer = JsonConvert.DeserializeObject<CanonicalCustomer>(canonicalCustomer);
+                    }
+
+                    return Task.CompletedTask;
+                };
+            });
+
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, InsertEntityRequestBehavior<ContosoCustomerRequest>>();
+
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, RetrieveEntityRequestBehavior<FabrikamCustomerRequest>>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, DeleteEntityRequestBehavior<FabrikamCustomerRequest>>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, TransformFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, EnrichFabrikamCustomerBehavior>();
+
+            return services;
+        }
+
+        #endregion
+
+        public static IServiceCollection AddCore(this IServiceCollection services)
+        {
+            // core set of dependencies
+            services.AddSingleton<ILogger>(sp =>
+            {
+                // https://blog.stephencleary.com/2018/06/microsoft-extensions-logging-part-2-types.html
+                var loggerFactory = LoggerFactory.Create(cfg =>
+                {
+                    cfg.AddConsole();
+                    cfg.SetMinimumLevel(LogLevel.Information);
+                });
+
+                return loggerFactory.CreateLogger("ClassLibrary1");
+            });
+
+            services.AddMediatR(typeof(ServiceCollectionExtensions));
+
+            // used by ContosoCustomer handler
+            services.AddSingleton<QueueClient>(sp =>
+            {
+                var queueClient = new QueueClient("UseDevelopmentStorage=true", "customers");
+                queueClient.CreateIfNotExists();
+
+                return queueClient;
+            });
+
+            // used by FabrikamCustomer handler
+            services.AddTransient<DirectoryInfo>(sp => new DirectoryInfo($"C:\\Repos\\Customers"));
+
+            return services;
+        }
+
+        public static IServiceCollection AddSimplePipeline(this IServiceCollection services)
+        {
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
+
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, TransformFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, EnrichFabrikamCustomerBehavior>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddContosoMessageTrackingPipeline(this IServiceCollection services)
+        {
+            services.AddOptions<BlobOptions<ContosoCustomerRequest>>().Configure<IServiceProvider>((opt, svc) =>
+            {
+                var cfg = svc.GetRequiredService<IConfiguration>();
+                var blb = svc.GetRequiredService<BlobContainerClient>();
+
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+                opt.BlobClient = (req, ctx) => blb.GetBlobClient($"customers/source/{Guid.NewGuid().ToString()}.json");
+            });
+
+            services.AddTransient<UploadBlobCommand<ContosoCustomerRequest>>();
+
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, UploadBlobRequestBehavior<ContosoCustomerRequest>>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, UploadBlobRequestBehavior<ContosoCustomerRequest>>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddFabrikamMessageTrackingPipeline(this IServiceCollection services)
+        {
+            services.AddOptions<BlobOptions<FabrikamCustomerRequest>>().Configure<IServiceProvider>((opt, svc) =>
+            {
+                var cfg = svc.GetRequiredService<IConfiguration>();
+                var blb = svc.GetRequiredService<BlobContainerClient>();
+
+                // use custom BlobContent to serialize only the canonical customer (as XML)
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+                opt.BlobClient = (req, ctx) => blb.GetBlobClient($"customers/target/{Guid.NewGuid().ToString()}.xml");
+                opt.BlobContent = (req, ctx) =>
+                {
+                    var xml = new XmlSerializer(req.CanonicalCustomer.GetType());
+
+                    using var ms = new MemoryStream();
+
+                    xml.Serialize(ms, req.CanonicalCustomer);
+
+                    return BinaryData.FromBytes(ms.ToArray());
+                };
+                opt.BlobHeaders = (req, ctx) => new BlobHttpHeaders { ContentType = "application/xml" };
+            });
+
+            services.AddTransient<UploadBlobCommand<FabrikamCustomerRequest>>();
+
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, UploadBlobRequestBehavior<FabrikamCustomerRequest>>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, TransformFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, EnrichFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, UploadBlobRequestBehavior<FabrikamCustomerRequest>>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddContosoActivityTrackingPipeline(this IServiceCollection services)
+        {
+            services.AddOptions<TableOptions<ContosoCustomerRequest>>().Configure<IServiceProvider>((opt, svc) =>
+            {
+                var cfg = svc.GetRequiredService<IConfiguration>();
+                var tbl = svc.GetRequiredService<CloudTable>();
+
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+                opt.CloudTable = tbl;
                 opt.TableEntity = (req, ctx) =>
                 {
                     return new CustomerActivityEntity
@@ -361,10 +428,25 @@ namespace ClassLibrary1
                     };
                 };
             });
-            services.AddOptions<TableOptions<FabrikamCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
+
+            services.AddTransient<InsertEntityCommand<ContosoCustomerRequest>>();
+
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, InsertEntityRequestBehavior<ContosoCustomerRequest>>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddFabrikamActivityTrackingPipeline(this IServiceCollection services)
+        {
+            services.AddOptions<TableOptions<FabrikamCustomerRequest>>().Configure<IServiceProvider>((opt, svc) =>
             {
+                var cfg = svc.GetRequiredService<IConfiguration>();
+                var tbl = svc.GetRequiredService<CloudTable>();
+
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
-                opt.CloudTable = cloudTable;
+                opt.CloudTable = tbl;
                 opt.TableEntity = (req, ctx) =>
                 {
                     return new CustomerActivityEntity
@@ -377,9 +459,7 @@ namespace ClassLibrary1
                 };
             });
 
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, InsertEntityRequestBehavior<ContosoCustomerRequest>>();
+            services.AddTransient<InsertEntityCommand<FabrikamCustomerRequest>>();
 
             services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, TransformFabrikamCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, EnrichFabrikamCustomerBehavior>();
@@ -388,7 +468,6 @@ namespace ClassLibrary1
             return services;
         }
 
-        // TODO: add commands?
         public static IServiceCollection AddMultiTrackingPipeline(this IServiceCollection services)
         {
             var storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
@@ -398,6 +477,9 @@ namespace ClassLibrary1
 
             var activitiesTable = storageAccount.CreateCloudTableClient().GetTableReference("Activities");
             activitiesTable.CreateIfNotExists();
+
+            services.AddTransient<InsertEntityCommand<ContosoCustomerRequest>>();
+            services.AddTransient<InsertEntityCommand<FabrikamCustomerRequest>>();
 
             services.AddOptions<TableOptions<ContosoCustomerRequest>>("Messages").Configure<IConfiguration>((opt, cfg) =>
             {
@@ -494,65 +576,6 @@ namespace ClassLibrary1
 
                 return ActivatorUtilities.CreateInstance<InsertEntityRequestBehavior<FabrikamCustomerRequest>>(sp, Options.Create(opt));
             });
-
-            return services;
-        }
-
-        public static IServiceCollection AddTableClaimCheckPipeline(this IServiceCollection services)
-        {
-            var storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
-            var cloudTable = storageAccount.CreateCloudTableClient().GetTableReference("ClaimChecks");
-            cloudTable.CreateIfNotExists();
-
-            services.AddScoped<PipelineContext>();
-
-            services.AddTransient<InsertEntityCommand<ContosoCustomerRequest>>();
-            services.AddTransient<RetrieveEntityCommand<FabrikamCustomerRequest>>();
-            services.AddTransient<DeleteEntityCommand<FabrikamCustomerRequest>>();
-
-            services.AddOptions<TableOptions<ContosoCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
-            {
-                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
-                opt.CloudTable = cloudTable;
-                opt.TableEntity = (req, ctx) =>
-                {
-                    var tableEntity = new DynamicTableEntity("SourceCustomerCommand", req.MessageId);
-
-                    var canonicalCustomer = JsonConvert.SerializeObject(req.CanonicalCustomer);
-
-                    tableEntity.Properties.Add("CanonicalCustomer", EntityProperty.GeneratePropertyForString(canonicalCustomer));
-
-                    return tableEntity;
-                };
-            });
-            services.AddOptions<TableOptions<FabrikamCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
-            {
-                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
-                opt.CloudTable = cloudTable;
-                opt.TableEntity = (req, ctx) => new DynamicTableEntity("SourceCustomerCommand", req.MessageId) { ETag = "*" };
-                opt.Retrieved = (res, ctx, req) =>
-                {
-                    var dte = res.Result as DynamicTableEntity;
-
-                    if (dte != null)
-                    {
-                        var canonicalCustomer = dte["CanonicalCustomer"].StringValue;
-
-                        req.CanonicalCustomer = JsonConvert.DeserializeObject<CanonicalCustomer>(canonicalCustomer);
-                    }
-
-                    return Task.CompletedTask;
-                };
-            });
-
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, InsertEntityRequestBehavior<ContosoCustomerRequest>>();
-
-            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, RetrieveEntityRequestBehavior<FabrikamCustomerRequest>>();
-            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, DeleteEntityRequestBehavior<FabrikamCustomerRequest>>();
-            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, TransformFabrikamCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, EnrichFabrikamCustomerBehavior>();
 
             return services;
         }

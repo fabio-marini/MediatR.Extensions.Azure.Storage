@@ -20,7 +20,7 @@ namespace ClassLibrary1
         {
             request.FabrikamCustomer.DateOfBirth = new DateTime(1970, 10, 26);
 
-            log.LogInformation("Behavior {Behavior} completed, invoking next behavior in the chain", this.GetType().Name);
+            log.LogInformation("Behavior {Behavior} completed", this.GetType().Name);
 
             return next();
         }

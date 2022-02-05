@@ -1,39 +1,43 @@
-using Azure.Storage.Blobs;
 using ClassLibrary1;
+using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace MediatR.Extensions.Azure.Storage.Examples
+namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
 {
-    [Trait("TestCategory", "Integration")]
+    [Trait("TestCategory", "Integration"), Collection("Examples")]
     [TestCaseOrderer("MediatR.Extensions.Tests.TestMethodNameOrderer", "MediatR.Extensions.Azure.Storage.Examples")]
-    public class MessageTrackingPipelineTest
+    public class ContosoPipelineTest
     {
         private readonly IServiceProvider serviceProvider;
+        private readonly TableFixture tableFixture;
         private readonly QueueFixture queueFixture;
-        private readonly BlobFixture blobFixture;
 
-        public MessageTrackingPipelineTest(ITestOutputHelper log)
+        public ContosoPipelineTest(ITestOutputHelper log)
         {
             serviceProvider = new ServiceCollection()
 
                 .AddCore()
-                .AddTransient<BlobContainerClient>(sp =>
+                .AddTransient<CloudTable>(sp =>
                 {
-                    var blobclient = new BlobContainerClient("UseDevelopmentStorage=true", "integration-tests");
-                    blobclient.CreateIfNotExists();
+                    var storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
 
-                    return blobclient;
+                    var cloudTable = storageAccount.CreateCloudTableClient().GetTableReference("IntegrationTests");
+                    cloudTable.CreateIfNotExists();
+
+                    return cloudTable;
                 })
 
                 .AddTransient<ITestOutputHelper>(sp => log)
-                .AddTransient<BlobFixture>()
+                .AddTransient<ILogger, TestOutputLogger>()
                 .AddTransient<QueueFixture>()
+                .AddTransient<TableFixture>()
 
                 .AddSingleton<IConfiguration>(sp =>
                 {
@@ -47,20 +51,20 @@ namespace MediatR.Extensions.Azure.Storage.Examples
                         .AddInMemoryCollection(appSettings)
                         .Build();
                 })
-                .AddContosoBlobTrackingPipeline()
+                .AddContosoActivityTrackingPipeline()
 
                 .BuildServiceProvider();
 
-            queueFixture = serviceProvider.GetRequiredService<QueueFixture>();
+            tableFixture = serviceProvider.GetRequiredService<TableFixture>();
 
-            blobFixture = serviceProvider.GetRequiredService<BlobFixture>();
+            queueFixture = serviceProvider.GetRequiredService<QueueFixture>();
         }
 
         [Fact(DisplayName = "01. Queue is empty")]
         public void Step01() => queueFixture.GivenQueueIsEmpty();
 
-        [Fact(DisplayName = "02. Container is empty")]
-        public void Step02() => blobFixture.GivenContainerIsEmpty();
+        [Fact(DisplayName = "02. Table is empty")]
+        public void Step02() => tableFixture.GivenTableIsEmpty();
 
         [Fact(DisplayName = "03. Contoso pipeline is executed")]
         public async Task Step03()
@@ -81,8 +85,8 @@ namespace MediatR.Extensions.Azure.Storage.Examples
             _ = await med.Send(req);
         }
 
-        [Fact(DisplayName = "04. Container has blobs")]
-        public void Step04() => blobFixture.ThenContainerHasBlobs(2);
+        [Fact(DisplayName = "04. Table has entities")]
+        public void Step04() => tableFixture.ThenTableHasEntities(1);
 
         [Fact(DisplayName = "05. Queue has messages")]
         public void Step05() => queueFixture.ThenQueueHasMessages(1);
