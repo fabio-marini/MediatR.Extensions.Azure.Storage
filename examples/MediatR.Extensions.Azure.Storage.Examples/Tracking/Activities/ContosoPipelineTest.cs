@@ -18,6 +18,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
         private readonly IServiceProvider serviceProvider;
         private readonly TableFixture tableFixture;
         private readonly QueueFixture queueFixture;
+        private readonly string correlationId;
 
         public ContosoPipelineTest(ITestOutputHelper log)
         {
@@ -58,6 +59,8 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
             tableFixture = serviceProvider.GetRequiredService<TableFixture>();
 
             queueFixture = serviceProvider.GetRequiredService<QueueFixture>();
+
+            correlationId = "b4702445-613d-4787-b91d-4461c3bd4a4e";
         }
 
         [Fact(DisplayName = "01. Queue is empty")]
@@ -73,7 +76,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
 
             var req = new ContosoCustomerRequest
             {
-                MessageId = Guid.NewGuid().ToString(),
+                MessageId = correlationId,
                 ContosoCustomer = new ContosoCustomer
                 {
                     FirstName = "Fabio",
@@ -86,9 +89,12 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
         }
 
         [Fact(DisplayName = "04. Table has entities")]
-        public void Step04() => tableFixture.ThenTableHasEntities(1);
+        public void Step04() => tableFixture.ThenTableHasEntities(2);
 
         [Fact(DisplayName = "05. Queue has messages")]
         public void Step05() => queueFixture.ThenQueueHasMessages(1);
+
+        [Fact(DisplayName = "06. Entities are merged", Skip = "Don't merge yet")]
+        public void Step06() => tableFixture.ThenEntitiesAreMerged(correlationId);
     }
 }

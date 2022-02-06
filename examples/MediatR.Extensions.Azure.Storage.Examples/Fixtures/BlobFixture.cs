@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using Polly;
 using System;
 using System.Linq;
-using Xunit.Abstractions;
 
 namespace MediatR.Extensions.Azure.Storage.Examples
 {

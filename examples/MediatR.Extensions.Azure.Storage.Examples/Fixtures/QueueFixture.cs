@@ -3,7 +3,6 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Polly;
 using System;
-using Xunit.Abstractions;
 
 namespace MediatR.Extensions.Azure.Storage.Examples
 {
