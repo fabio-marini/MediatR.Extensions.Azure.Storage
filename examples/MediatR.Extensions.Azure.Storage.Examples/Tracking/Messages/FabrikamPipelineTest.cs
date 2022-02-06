@@ -1,11 +1,6 @@
-﻿using Azure.Storage.Blobs;
-using ClassLibrary1;
-using Microsoft.Extensions.Configuration;
+﻿using ClassLibrary1;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,32 +19,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Messages
         {
             serviceProvider = new ServiceCollection()
 
-                .AddCore()
-                .AddTransient<BlobContainerClient>(sp =>
-                {
-                    var blobclient = new BlobContainerClient("UseDevelopmentStorage=true", "integration-tests");
-                    blobclient.CreateIfNotExists();
-
-                    return blobclient;
-                })
-
-                .AddTransient<ITestOutputHelper>(sp => log)
-                .AddTransient<ILogger, TestOutputLogger>()
-                .AddTransient<BlobFixture>()
-                .AddTransient<FolderFixture>()
-
-                .AddSingleton<IConfiguration>(sp =>
-                {
-                    var appSettings = new Dictionary<string, string>
-                    {
-                        { "TrackingEnabled", "true" }
-                    };
-
-                    return new ConfigurationBuilder()
-
-                        .AddInMemoryCollection(appSettings)
-                        .Build();
-                })
+                .AddCoreDependencies(log)
                 .AddFabrikamMessageTrackingPipeline()
 
                 .BuildServiceProvider();

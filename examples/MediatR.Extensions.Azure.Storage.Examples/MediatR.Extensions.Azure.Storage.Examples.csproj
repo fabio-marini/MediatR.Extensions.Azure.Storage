@@ -33,7 +33,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ClaimCheck\" />
     <Folder Include="Orderers\" />
   </ItemGroup>
 

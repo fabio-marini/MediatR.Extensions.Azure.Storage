@@ -278,11 +278,11 @@ namespace ConsoleApp1
                         .AddInMemoryCollection(appSettings)
                         .Build();
                 })
-                .AddCore()
+                //.AddCore()
 
                 //.AddSimplePipeline()
 
-                .AddTableTrackingPipeline()
+                //.AddTableTrackingPipeline()
                 //.AddBlobTrackingPipeline()
                 //.AddQueueRoutingPipeline()
                 //.AddQueueRoutingPipeline2()

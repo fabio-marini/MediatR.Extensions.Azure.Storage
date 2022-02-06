@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
+namespace MediatR.Extensions.Azure.Storage.Examples.ClaimCheck
 {
     [Trait("TestCategory", "Integration"), Collection("Examples")]
     [TestCaseOrderer("MediatR.Extensions.Tests.TestMethodNameOrderer", "MediatR.Extensions.Azure.Storage.Examples")]
@@ -13,7 +13,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
     {
         private readonly IServiceProvider serviceProvider;
         private readonly FolderFixture folderFixture;
-        private readonly TableFixture tableFixture;
+        private readonly BlobFixture blobFixture;
         private readonly string correlationId;
 
         public FabrikamPipelineTest(ITestOutputHelper log)
@@ -21,22 +21,22 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
             serviceProvider = new ServiceCollection()
 
                 .AddCoreDependencies(log)
-                .AddFabrikamActivityTrackingPipeline()
+                .AddFabrikamClaimCheckPipeline()
 
                 .BuildServiceProvider();
 
             folderFixture = serviceProvider.GetRequiredService<FolderFixture>();
 
-            tableFixture = serviceProvider.GetRequiredService<TableFixture>();
+            blobFixture = serviceProvider.GetRequiredService<BlobFixture>();
 
-            correlationId = "b4702445-613d-4787-b91d-4461c3bd4a4e";
+            correlationId = "5e6d7294-967e-4612-92e0-485aeecdde54";
         }
 
         [Fact(DisplayName = "01. Folder is empty")]
         public void Step01() => folderFixture.GivenFolderIsEmpty();
 
-        [Fact(DisplayName = "02. Table is empty", Skip = "Leave entities for merge")]
-        public void Step02() => tableFixture.GivenTableIsEmpty();
+        [Fact(DisplayName = "02. Container has blobs")]
+        public void Step02() => blobFixture.ThenContainerHasBlobs(1);
 
         [Fact(DisplayName = "03. Fabrikam pipeline is executed")]
         public async Task Step03()
@@ -45,24 +45,16 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
 
             var req = new FabrikamCustomerRequest
             {
-                MessageId = correlationId,
-                CanonicalCustomer = new CanonicalCustomer
-                {
-                    FullName = "Fabio Marini",
-                    Email = "fm@example.com"
-                }
+                MessageId = correlationId
             };
 
             _ = await med.Send(req);
         }
 
-        [Fact(DisplayName = "04. Table has entities")]
-        public void Step04() => tableFixture.ThenTableHasEntities(4);
+        [Fact(DisplayName = "04. Container is empty")]
+        public void Step04() => blobFixture.ThenContainerHasBlobs(0);
 
         [Fact(DisplayName = "05. Folder has files")]
         public void Step05() => folderFixture.ThenFolderHasFiles(1);
-
-        [Fact(DisplayName = "06. Entities are merged")]
-        public void Step06() => tableFixture.ThenEntitiesAreMerged(correlationId);
     }
 }

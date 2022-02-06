@@ -1,6 +1,5 @@
 ﻿using ClassLibrary1;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using Xunit;
@@ -16,16 +15,13 @@ namespace MediatR.Extensions.Azure.Storage.Examples
         {
             serviceProvider = new ServiceCollection()
 
-                .AddCore()
+                .AddCoreDependencies(log)
                 .AddSimplePipeline()
-
-                .AddTransient<ITestOutputHelper>(sp => log)
-                .AddTransient<ILogger, TestOutputLogger>()
 
                 .BuildServiceProvider();
         }
 
-        [Fact(DisplayName = "Simple Contoso pipeline is executed")]
+        [Fact(DisplayName = "Contoso pipeline is executed")]
         public async Task Step01()
         {
             var med = serviceProvider.GetRequiredService<IMediator>();
@@ -44,7 +40,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples
             _ = await med.Send(req);
         }
 
-        [Fact(DisplayName = "Simple Fabrikam pipeline is executed")]
+        [Fact(DisplayName = "Fabrikam pipeline is executed")]
         public async Task Step02()
         {
             var med = serviceProvider.GetRequiredService<IMediator>();

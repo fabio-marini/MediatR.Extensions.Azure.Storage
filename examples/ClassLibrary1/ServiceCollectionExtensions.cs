@@ -9,7 +9,6 @@ using MediatR.Pipeline;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
@@ -24,14 +23,9 @@ namespace ClassLibrary1
     {
         #region Examples
 
-        // TODO: update fabrikam handler to have dir info injected + remove AddCore()?
-
         // TODO: refactor contoso request to return a canonical customer +
         //       refactor fabrikam request as a canonical request that returns a fabrikam response?
         //       (will prove whether mapping as a behavior is a viable solution)
-
-        // TODO: 1. basic pipeline, 2. add blob message tracking (JSON and XML), 3. add table activity tracking (BAM)
-        //       4. add message AND activity tracking to same pipeline, 5. claim check pipeline (upload/download/delete blob)
 
         //  1. walk through the models, pipeline (commands/query and behaviors) and functions
         //  2. simple pipeline (without any storage behaviors/processors)
@@ -307,38 +301,6 @@ namespace ClassLibrary1
 
         #endregion
 
-        public static IServiceCollection AddCore(this IServiceCollection services)
-        {
-            // core set of dependencies
-            services.AddSingleton<ILogger>(sp =>
-            {
-                // https://blog.stephencleary.com/2018/06/microsoft-extensions-logging-part-2-types.html
-                var loggerFactory = LoggerFactory.Create(cfg =>
-                {
-                    cfg.AddConsole();
-                    cfg.SetMinimumLevel(LogLevel.Information);
-                });
-
-                return loggerFactory.CreateLogger("ClassLibrary1");
-            });
-
-            services.AddMediatR(typeof(ServiceCollectionExtensions));
-
-            // used by ContosoCustomer handler
-            services.AddSingleton<QueueClient>(sp =>
-            {
-                var queueClient = new QueueClient("UseDevelopmentStorage=true", "customers");
-                queueClient.CreateIfNotExists();
-
-                return queueClient;
-            });
-
-            // used by FabrikamCustomer handler
-            services.AddTransient<DirectoryInfo>(sp => new DirectoryInfo($"C:\\Repos\\Customers"));
-
-            return services;
-        }
-
         public static IServiceCollection AddSimplePipeline(this IServiceCollection services)
         {
             services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
@@ -529,21 +491,17 @@ namespace ClassLibrary1
             return services;
         }
 
-        public static IServiceCollection AddBlobClaimCheckPipeline(this IServiceCollection services)
+        public static IServiceCollection AddContosoClaimCheckPipeline(this IServiceCollection services)
         {
-            var container = new BlobContainerClient("UseDevelopmentStorage=true", "claim-checks");
-            container.CreateIfNotExists();
-
-            services.AddScoped<PipelineContext>();
-
             services.AddTransient<UploadBlobCommand<ContosoCustomerRequest>>();
-            services.AddTransient<DownloadBlobCommand<FabrikamCustomerRequest>>();
-            services.AddTransient<DeleteBlobCommand<FabrikamCustomerRequest>>();
 
-            services.AddOptions<BlobOptions<ContosoCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
+            services.AddOptions<BlobOptions<ContosoCustomerRequest>>().Configure<IServiceProvider>((opt, svc) =>
             {
+                var cfg = svc.GetRequiredService<IConfiguration>();
+                var blb = svc.GetRequiredService<BlobContainerClient>();
+
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
-                opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/canonical/{req.MessageId}.json");
+                opt.BlobClient = (req, ctx) => blb.GetBlobClient($"customers/canonical/{req.MessageId}.json");
                 opt.BlobContent = (req, ctx) =>
                 {
                     var canonicalCustomer = JsonConvert.SerializeObject(req.CanonicalCustomer);
@@ -554,10 +512,26 @@ namespace ClassLibrary1
                     return BinaryData.FromString(canonicalCustomer);
                 };
             });
-            services.AddOptions<BlobOptions<FabrikamCustomerRequest>>().Configure<IConfiguration>((opt, cfg) =>
+
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, UploadBlobRequestBehavior<ContosoCustomerRequest>>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddFabrikamClaimCheckPipeline(this IServiceCollection services)
+        {
+            services.AddTransient<DownloadBlobCommand<FabrikamCustomerRequest>>();
+            services.AddTransient<DeleteBlobCommand<FabrikamCustomerRequest>>();
+
+            services.AddOptions<BlobOptions<FabrikamCustomerRequest>>().Configure<IServiceProvider>((opt, svc) =>
             {
+                var cfg = svc.GetRequiredService<IConfiguration>();
+                var blb = svc.GetRequiredService<BlobContainerClient>();
+
                 opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
-                opt.BlobClient = (req, ctx) => container.GetBlobClient($"customers/canonical/{req.MessageId}.json");
+                opt.BlobClient = (req, ctx) => blb.GetBlobClient($"customers/canonical/{req.MessageId}.json");
                 opt.Downloaded = (res, ctx, req) =>
                 {
                     var canonicalCustomer = res.Content.ToString();
@@ -567,10 +541,6 @@ namespace ClassLibrary1
                     return Task.CompletedTask;
                 };
             });
-
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, ValidateContosoCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, TransformContosoCustomerBehavior>();
-            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, Unit>, UploadBlobRequestBehavior<ContosoCustomerRequest>>();
 
             services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, DownloadBlobRequestBehavior<FabrikamCustomerRequest>>();
             services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, Unit>, DeleteBlobRequestBehavior<FabrikamCustomerRequest>>();

@@ -15,7 +15,7 @@ namespace FunctionApp2
 
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            builder.Services.AddCore();
+            //builder.Services.AddCore();
 
             //builder.Services.AddSimplePipeline();
 
