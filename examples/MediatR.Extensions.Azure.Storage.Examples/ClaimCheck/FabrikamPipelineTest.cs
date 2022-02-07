@@ -1,4 +1,5 @@
 ﻿using ClassLibrary1;
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
@@ -32,9 +33,6 @@ namespace MediatR.Extensions.Azure.Storage.Examples.ClaimCheck
             correlationId = "5e6d7294-967e-4612-92e0-485aeecdde54";
         }
 
-        [Fact(DisplayName = "01. Folder is empty")]
-        public void Step01() => folderFixture.GivenFolderIsEmpty();
-
         [Fact(DisplayName = "02. Container has blobs")]
         public void Step02() => blobFixture.ThenContainerHasBlobs(1);
 
@@ -48,13 +46,12 @@ namespace MediatR.Extensions.Azure.Storage.Examples.ClaimCheck
                 MessageId = correlationId
             };
 
-            _ = await med.Send(req);
+            var res = await med.Send(req);
+
+            res.MessageId.Should().Be(req.MessageId);
         }
 
         [Fact(DisplayName = "04. Container is empty")]
         public void Step04() => blobFixture.ThenContainerHasBlobs(0);
-
-        [Fact(DisplayName = "05. Folder has files")]
-        public void Step05() => folderFixture.ThenFolderHasFiles(1);
     }
 }

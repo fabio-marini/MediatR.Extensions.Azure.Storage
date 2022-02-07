@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using MediatR.Extensions.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
@@ -7,18 +8,27 @@ using System.Threading.Tasks;
 
 namespace ClassLibrary1
 {
-    public class EnrichFabrikamCustomerBehavior : IPipelineBehavior<FabrikamCustomerRequest, Unit>
+    public class EnrichFabrikamCustomerBehavior : IPipelineBehavior<FabrikamCustomerRequest, FabrikamCustomerResponse>
     {
+        private readonly PipelineContext ctx;
         private readonly ILogger log;
 
-        public EnrichFabrikamCustomerBehavior(ILogger log = null)
+        public EnrichFabrikamCustomerBehavior(PipelineContext ctx, ILogger log = null)
         {
+            this.ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
             this.log = log ?? NullLogger.Instance;
         }
 
-        public Task<Unit> Handle(FabrikamCustomerRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<Unit> next)
+        public Task<FabrikamCustomerResponse> Handle(FabrikamCustomerRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<FabrikamCustomerResponse> next)
         {
-            request.FabrikamCustomer.DateOfBirth = new DateTime(1970, 10, 26);
+            if (ctx.ContainsKey("FabrikamCustomer") == false)
+            {
+                throw new Exception("No Fabrikam customer found in pipeline context");
+            }
+
+            var fabrikamCustomer = (FabrikamCustomer)ctx["FabrikamCustomer"];
+
+            fabrikamCustomer.DateOfBirth = new DateTime(1970, 10, 26);
 
             log.LogInformation("Behavior {Behavior} completed", this.GetType().Name);
 

@@ -1,4 +1,5 @@
 using ClassLibrary1;
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
@@ -13,7 +14,6 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
     {
         private readonly IServiceProvider serviceProvider;
         private readonly TableFixture tableFixture;
-        private readonly QueueFixture queueFixture;
         private readonly string correlationId;
 
         public ContosoPipelineTest(ITestOutputHelper log)
@@ -27,13 +27,8 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
 
             tableFixture = serviceProvider.GetRequiredService<TableFixture>();
 
-            queueFixture = serviceProvider.GetRequiredService<QueueFixture>();
-
             correlationId = "b4702445-613d-4787-b91d-4461c3bd4a4e";
         }
-
-        [Fact(DisplayName = "01. Queue is empty")]
-        public void Step01() => queueFixture.GivenQueueIsEmpty();
 
         [Fact(DisplayName = "02. Table is empty")]
         public void Step02() => tableFixture.GivenTableIsEmpty();
@@ -54,16 +49,12 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
                 }
             };
 
-            _ = await med.Send(req);
+            var res = await med.Send(req);
+
+            res.MessageId.Should().Be(req.MessageId);
         }
 
         [Fact(DisplayName = "04. Table has entities")]
         public void Step04() => tableFixture.ThenTableHasEntities(2);
-
-        [Fact(DisplayName = "05. Queue has messages")]
-        public void Step05() => queueFixture.ThenQueueHasMessages(1);
-
-        [Fact(DisplayName = "06. Entities are merged", Skip = "Don't merge yet")]
-        public void Step06() => tableFixture.ThenEntitiesAreMerged(correlationId);
     }
 }

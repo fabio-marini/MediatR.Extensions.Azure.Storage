@@ -1,27 +1,33 @@
 ﻿using MediatR;
+using MediatR.Extensions.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ClassLibrary1
 {
-    public class TransformContosoCustomerBehavior : IPipelineBehavior<ContosoCustomerRequest, Unit>
+    public class TransformContosoCustomerBehavior : IPipelineBehavior<ContosoCustomerRequest, ContosoCustomerResponse>
     {
+        private readonly PipelineContext ctx;
         private readonly ILogger log;
 
-        public TransformContosoCustomerBehavior(ILogger log = null)
+        public TransformContosoCustomerBehavior(PipelineContext ctx, ILogger log = null)
         {
+            this.ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
             this.log = log ?? NullLogger.Instance;
         }
 
-        public Task<Unit> Handle(ContosoCustomerRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<Unit> next)
+        public Task<ContosoCustomerResponse> Handle(ContosoCustomerRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<ContosoCustomerResponse> next)
         {
-            request.CanonicalCustomer = new CanonicalCustomer
+            var canonicalCustomer = new CanonicalCustomer
             {
                 FullName = $"{request.ContosoCustomer.FirstName} {request.ContosoCustomer.LastName}",
                 Email = request.ContosoCustomer.Email
             };
+
+            ctx.Add("CanonicalCustomer", canonicalCustomer);
 
             log.LogInformation("Behavior {Behavior} completed", this.GetType().Name);
 

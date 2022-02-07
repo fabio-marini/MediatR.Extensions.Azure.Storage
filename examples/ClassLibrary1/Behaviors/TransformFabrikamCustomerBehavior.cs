@@ -1,27 +1,33 @@
 ﻿using MediatR;
+using MediatR.Extensions.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ClassLibrary1
 {
-    public class TransformFabrikamCustomerBehavior : IPipelineBehavior<FabrikamCustomerRequest, Unit>
+    public class TransformFabrikamCustomerBehavior : IPipelineBehavior<FabrikamCustomerRequest, FabrikamCustomerResponse>
     {
+        private readonly PipelineContext ctx;
         private readonly ILogger log;
 
-        public TransformFabrikamCustomerBehavior(ILogger log = null)
+        public TransformFabrikamCustomerBehavior(PipelineContext ctx, ILogger log = null)
         {
+            this.ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
             this.log = log ?? NullLogger.Instance;
         }
 
-        public Task<Unit> Handle(FabrikamCustomerRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<Unit> next)
+        public Task<FabrikamCustomerResponse> Handle(FabrikamCustomerRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<FabrikamCustomerResponse> next)
         {
-            request.FabrikamCustomer = new FabrikamCustomer
+            var fabrikamCustomer = new FabrikamCustomer
             {
                 FullName = request.CanonicalCustomer.FullName,
                 Email = request.CanonicalCustomer.Email
             };
+
+            ctx.Add("FabrikamCustomer", fabrikamCustomer);
 
             log.LogInformation("Behavior {Behavior} completed", this.GetType().Name);
 

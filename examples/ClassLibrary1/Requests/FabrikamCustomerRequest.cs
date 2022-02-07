@@ -1,40 +1,52 @@
 ﻿using MediatR;
+using MediatR.Extensions.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Newtonsoft.Json;
-using System.IO;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ClassLibrary1
 {
-    public class FabrikamCustomerRequest : IRequest
+    public class FabrikamCustomerResponse
     {
         public string MessageId { get; set; }
-        public CanonicalCustomer CanonicalCustomer { get; set; }
         public FabrikamCustomer FabrikamCustomer { get; set; }
     }
 
-    public class FabrikamCustomerHandler : IRequestHandler<FabrikamCustomerRequest>
+    public class FabrikamCustomerRequest : IRequest<FabrikamCustomerResponse>
     {
-        private readonly DirectoryInfo dir;
+        public string MessageId { get; set; }
+        public CanonicalCustomer CanonicalCustomer { get; set; }
+    }
+
+    public class FabrikamCustomerHandler : IRequestHandler<FabrikamCustomerRequest, FabrikamCustomerResponse>
+    {
+        private readonly PipelineContext ctx;
         private readonly ILogger log;
 
-        public FabrikamCustomerHandler(DirectoryInfo dir, ILogger log = null)
+        public FabrikamCustomerHandler(PipelineContext ctx, ILogger log = null)
         {
-            this.dir = dir;
+            this.ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
             this.log = log ?? NullLogger.Instance;
         }
 
-        public async Task<Unit> Handle(FabrikamCustomerRequest request, CancellationToken cancellationToken)
+        public Task<FabrikamCustomerResponse> Handle(FabrikamCustomerRequest request, CancellationToken cancellationToken)
         {
-            var path = Path.Combine(dir.FullName, $"{request.MessageId}.json");
+            if (ctx.ContainsKey("FabrikamCustomer") == false)
+            {
+                throw new Exception("No Fabrikam customer found in pipeline context");
+            }
 
-            await File.WriteAllTextAsync(path, JsonConvert.SerializeObject(request));
+            var res = new FabrikamCustomerResponse
+            {
+                MessageId = request.MessageId,
+                FabrikamCustomer = (FabrikamCustomer)ctx["FabrikamCustomer"]
+            };
 
             log.LogInformation("Handler {Handler} completed, returning", this.GetType().Name);
 
-            return Unit.Value;
+            return Task.FromResult(res);
         }
     }
 }

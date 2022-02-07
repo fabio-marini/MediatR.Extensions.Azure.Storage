@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ClassLibrary1
 {
-    public class ValidateContosoCustomerBehavior : IPipelineBehavior<ContosoCustomerRequest, Unit>
+    public class ValidateContosoCustomerBehavior : IPipelineBehavior<ContosoCustomerRequest, ContosoCustomerResponse>
     {
         private readonly ILogger log;
 
@@ -15,7 +15,7 @@ namespace ClassLibrary1
             this.log = log ?? NullLogger.Instance;
         }
 
-        public Task<Unit> Handle(ContosoCustomerRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<Unit> next)
+        public Task<ContosoCustomerResponse> Handle(ContosoCustomerRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<ContosoCustomerResponse> next)
         {
             if (string.IsNullOrEmpty(request.MessageId))
             {
@@ -25,7 +25,7 @@ namespace ClassLibrary1
                 log.LogError("MessageId is required! :(");
 
                 // short-circuit by not calling the next behavior
-                return Unit.Task;
+                return default;
             }
 
             log.LogInformation("Behavior {Behavior} completed", this.GetType().Name);

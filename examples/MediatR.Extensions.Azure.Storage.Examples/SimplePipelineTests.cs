@@ -1,4 +1,5 @@
 ﻿using ClassLibrary1;
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
@@ -37,7 +38,13 @@ namespace MediatR.Extensions.Azure.Storage.Examples
                 }
             };
 
-            _ = await med.Send(req);
+            var res = await med.Send(req);
+
+            res.MessageId.Should().Be(req.MessageId);
+
+            res.CanonicalCustomer.Should().NotBeNull();
+            res.CanonicalCustomer.FullName.Should().Be("Fabio Marini");
+            res.CanonicalCustomer.Email.Should().Be("fm@example.com");
         }
 
         [Fact(DisplayName = "Fabrikam pipeline is executed")]
@@ -55,7 +62,14 @@ namespace MediatR.Extensions.Azure.Storage.Examples
                 }
             };
 
-            _ = await med.Send(req);
+            var res = await med.Send(req);
+
+            res.MessageId.Should().Be(req.MessageId);
+
+            res.FabrikamCustomer.Should().NotBeNull();
+            res.FabrikamCustomer.FullName.Should().Be("Fabio Marini");
+            res.FabrikamCustomer.Email.Should().Be("fm@example.com");
+            res.FabrikamCustomer.DateOfBirth.Should().Be(new DateTime(1970, 10, 26));
         }
     }
 }

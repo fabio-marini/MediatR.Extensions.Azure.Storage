@@ -1,4 +1,5 @@
 ﻿using ClassLibrary1;
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
@@ -32,9 +33,6 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
             correlationId = "b4702445-613d-4787-b91d-4461c3bd4a4e";
         }
 
-        [Fact(DisplayName = "01. Folder is empty")]
-        public void Step01() => folderFixture.GivenFolderIsEmpty();
-
         [Fact(DisplayName = "02. Table is empty", Skip = "Leave entities for merge")]
         public void Step02() => tableFixture.GivenTableIsEmpty();
 
@@ -53,14 +51,13 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
                 }
             };
 
-            _ = await med.Send(req);
+            var res = await med.Send(req);
+
+            res.MessageId.Should().Be(req.MessageId);
         }
 
         [Fact(DisplayName = "04. Table has entities")]
         public void Step04() => tableFixture.ThenTableHasEntities(4);
-
-        [Fact(DisplayName = "05. Folder has files")]
-        public void Step05() => folderFixture.ThenFolderHasFiles(1);
 
         [Fact(DisplayName = "06. Entities are merged")]
         public void Step06() => tableFixture.ThenEntitiesAreMerged(correlationId);

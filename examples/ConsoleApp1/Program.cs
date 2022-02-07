@@ -225,16 +225,16 @@ namespace ConsoleApp1
             _ = await mediator.Send(cmd2);
         }
 
-        private static async Task RunCustomerQueryDemo(IMediator mediator)
-        {
-            var activityId = "c6fcc080-d812-4822-97ce-1bfb5e883158";
+        //private static async Task RunCustomerQueryDemo(IMediator mediator)
+        //{
+        //    var activityId = "c6fcc080-d812-4822-97ce-1bfb5e883158";
 
-            var qry = new RetrieveCustomerRequest { MessageId = activityId };
+        //    var qry = new RetrieveCustomerRequest { MessageId = activityId };
 
-            var res = await mediator.Send(qry);
+        //    var res = await mediator.Send(qry);
 
-            Console.WriteLine(JsonConvert.SerializeObject(res, Formatting.Indented));
-        }
+        //    Console.WriteLine(JsonConvert.SerializeObject(res, Formatting.Indented));
+        //}
 
         private static async Task RunClaimCheckDemo(IMediator mediator)
         {

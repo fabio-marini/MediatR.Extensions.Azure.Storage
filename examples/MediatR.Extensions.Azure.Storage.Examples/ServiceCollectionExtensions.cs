@@ -1,5 +1,5 @@
 ﻿using Azure.Storage.Blobs;
-using Azure.Storage.Queues;
+using MediatR.Extensions.Abstractions;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,14 +35,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples
                 .AddTransient<ILogger, TestOutputLogger>()
 
                 // used by ContosoCustomerHandler
-                .AddSingleton<QueueClient>(sp =>
-                {
-                    var queueClient = new QueueClient("UseDevelopmentStorage=true", "customers");
-                    queueClient.CreateIfNotExists();
-
-                    return queueClient;
-                })
-                .AddTransient<QueueFixture>()
+                .AddScoped<PipelineContext>()
 
                 // used by FabrikamCustomerHandler
                 .AddTransient<DirectoryInfo>(sp => new DirectoryInfo($"C:\\Repos\\Customers"))

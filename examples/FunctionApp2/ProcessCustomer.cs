@@ -43,7 +43,7 @@ namespace FunctionApp2
             {
                 // this is used to correlate source and target commands
                 MessageId = msg.MessageId,
-                CanonicalCustomer = msg.CanonicalCustomer
+                //CanonicalCustomer = msg.CanonicalCustomer
             };
 
             _ = await mediator.Send(cmd);
@@ -53,23 +53,24 @@ namespace FunctionApp2
         public async Task<IActionResult> HttpTargetCustomer(
             [HttpTrigger(AuthorizationLevel.Function, "GET", Route = "customers/{messageId}")]HttpRequest req, string messageId)
         {
-            var qry = new RetrieveCustomerRequest
-            {
-                MessageId = messageId,
-            };
+            throw new Exception("Removed RetrieveCustomerRequest! :)");
+            //var qry = new RetrieveCustomerRequest
+            //{
+            //    MessageId = messageId,
+            //};
 
-            try
-            {
-                //var src = new CancellationTokenSource(500);
+            //try
+            //{
+            //    //var src = new CancellationTokenSource(500);
 
-                var res = await mediator.Send(qry);
+            //    var res = await mediator.Send(qry);
 
-                return new OkObjectResult(res);
-            }
-            catch (OperationCanceledException)
-            {
-                return new StatusCodeResult(408);
-            }
+            //    return new OkObjectResult(res);
+            //}
+            //catch (OperationCanceledException)
+            //{
+            //    return new StatusCodeResult(408);
+            //}
         }
     }
 }

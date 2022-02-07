@@ -1,4 +1,5 @@
 using ClassLibrary1;
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
@@ -12,7 +13,6 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Messages
     public class ContosoPipelineTest
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly QueueFixture queueFixture;
         private readonly BlobFixture blobFixture;
 
         public ContosoPipelineTest(ITestOutputHelper log)
@@ -24,13 +24,8 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Messages
 
                 .BuildServiceProvider();
 
-            queueFixture = serviceProvider.GetRequiredService<QueueFixture>();
-
             blobFixture = serviceProvider.GetRequiredService<BlobFixture>();
         }
-
-        [Fact(DisplayName = "01. Queue is empty")]
-        public void Step01() => queueFixture.GivenQueueIsEmpty();
 
         [Fact(DisplayName = "02. Container is empty")]
         public void Step02() => blobFixture.GivenContainerIsEmpty();
@@ -51,13 +46,12 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Messages
                 }
             };
 
-            _ = await med.Send(req);
+            var res = await med.Send(req);
+
+            res.MessageId.Should().Be(req.MessageId);
         }
 
         [Fact(DisplayName = "04. Container has blobs")]
         public void Step04() => blobFixture.ThenContainerHasBlobs(2);
-
-        [Fact(DisplayName = "05. Queue has messages")]
-        public void Step05() => queueFixture.ThenQueueHasMessages(1);
     }
 }

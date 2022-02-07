@@ -7,9 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClassLibrary1", "ClassLibra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{9EC99EB4-2CF7-452E-85D6-E959B132EABF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FunctionApp2", "FunctionApp2\FunctionApp2.csproj", "{4FF40FA7-0A55-4C49-8725-BAC52C38B487}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediatR.Extensions.Azure.Storage.Examples", "MediatR.Extensions.Azure.Storage.Examples\MediatR.Extensions.Azure.Storage.Examples.csproj", "{E29FC9FC-8E76-457A-B193-AEBC4D5AF58B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediatR.Extensions.Azure.Storage.Examples", "MediatR.Extensions.Azure.Storage.Examples\MediatR.Extensions.Azure.Storage.Examples.csproj", "{E29FC9FC-8E76-457A-B193-AEBC4D5AF58B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,10 +23,6 @@ Global
 		{9EC99EB4-2CF7-452E-85D6-E959B132EABF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9EC99EB4-2CF7-452E-85D6-E959B132EABF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9EC99EB4-2CF7-452E-85D6-E959B132EABF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4FF40FA7-0A55-4C49-8725-BAC52C38B487}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4FF40FA7-0A55-4C49-8725-BAC52C38B487}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4FF40FA7-0A55-4C49-8725-BAC52C38B487}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4FF40FA7-0A55-4C49-8725-BAC52C38B487}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E29FC9FC-8E76-457A-B193-AEBC4D5AF58B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E29FC9FC-8E76-457A-B193-AEBC4D5AF58B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E29FC9FC-8E76-457A-B193-AEBC4D5AF58B}.Release|Any CPU.ActiveCfg = Release|Any CPU
