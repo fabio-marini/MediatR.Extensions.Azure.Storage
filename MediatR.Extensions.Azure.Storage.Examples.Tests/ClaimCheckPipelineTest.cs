@@ -5,28 +5,32 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Messages
+namespace MediatR.Extensions.Azure.Storage.Examples
 {
     [Trait("TestCategory", "Integration"), Collection("Examples")]
     [TestCaseOrderer("MediatR.Extensions.Tests.TestMethodNameOrderer", "MediatR.Extensions.Azure.Storage.Examples.Tests")]
-    public class ContosoPipelineTest
+    public class ClaimCheckPipelineTest
     {
         private readonly IServiceProvider serviceProvider;
         private readonly BlobFixture blobFixture;
+        private readonly string correlationId;
 
-        public ContosoPipelineTest(ITestOutputHelper log)
+        public ClaimCheckPipelineTest(ITestOutputHelper log)
         {
             serviceProvider = new ServiceCollection()
 
                 .AddCoreDependencies(log)
-                .AddContosoMessageTrackingPipeline()
+                .AddContosoClaimCheckPipeline()
+                .AddFabrikamClaimCheckPipeline()
 
                 .BuildServiceProvider();
 
             blobFixture = serviceProvider.GetRequiredService<BlobFixture>();
+
+            correlationId = "5e6d7294-967e-4612-92e0-485aeecdde54";
         }
 
-        [Fact(DisplayName = "01. Messages container is empty")]
+        [Fact(DisplayName = "01. Claim checks container is empty")]
         public void Step01() => blobFixture.GivenContainerIsEmpty();
 
         [Fact(DisplayName = "02. Contoso pipeline is executed")]
@@ -36,7 +40,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Messages
 
             var req = new ContosoCustomerRequest
             {
-                MessageId = Guid.NewGuid().ToString(),
+                MessageId = correlationId,
                 ContosoCustomer = new ContosoCustomer
                 {
                     FirstName = "Fabio",
@@ -50,7 +54,25 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Messages
             res.MessageId.Should().Be(req.MessageId);
         }
 
-        [Fact(DisplayName = "03. Messages container has blobs")]
-        public void Step03() => blobFixture.ThenContainerHasBlobs(2);
+        [Fact(DisplayName = "03. Claim checks container has blobs")]
+        public void Step03() => blobFixture.ThenContainerHasBlobs(1);
+
+        [Fact(DisplayName = "04. Fabrikam pipeline is executed")]
+        public async Task Step04()
+        {
+            var med = serviceProvider.GetRequiredService<IMediator>();
+
+            var req = new FabrikamCustomerRequest
+            {
+                MessageId = correlationId
+            };
+
+            var res = await med.Send(req);
+
+            res.MessageId.Should().Be(req.MessageId);
+        }
+
+        [Fact(DisplayName = "05. Claim checks container is empty")]
+        public void Step05() => blobFixture.ThenContainerHasBlobs(0);
     }
 }

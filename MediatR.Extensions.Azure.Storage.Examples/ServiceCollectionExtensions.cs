@@ -18,8 +18,6 @@ namespace MediatR.Extensions.Azure.Storage.Examples
     {
         #region Examples
 
-        // TODO: extract "Entities are merged" test?
-
         //  1. walk through the models and simple pipeline
         //  2. blob message tracking pipeline (JSON and XML)
         //  3. table activity tracking pipeline (JSON and XML)
