@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\MediatR.Extensions.Azure.Storage.Tests\Integration\Orderers\FactDisplayNameOrderer.cs" Link="Orderers\FactDisplayNameOrderer.cs" />
-    <Compile Include="..\..\MediatR.Extensions.Azure.Storage.Tests\Integration\Orderers\TestMethodNameOrderer.cs" Link="Orderers\TestMethodNameOrderer.cs" />
+    <Compile Include="..\MediatR.Extensions.Azure.Storage.Tests\Integration\Orderers\FactDisplayNameOrderer.cs" Link="Orderers\FactDisplayNameOrderer.cs" />
+    <Compile Include="..\MediatR.Extensions.Azure.Storage.Tests\Integration\Orderers\TestMethodNameOrderer.cs" Link="Orderers\TestMethodNameOrderer.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,7 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ClassLibrary1\ClassLibrary1.csproj" />
+    <ProjectReference Include="..\MediatR.Extensions.Azure.Storage.Examples\MediatR.Extensions.Azure.Storage.Examples.csproj" />
   </ItemGroup>
 
 </Project>

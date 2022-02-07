@@ -6,28 +6,25 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace MediatR.Extensions.Azure.Storage.Examples.ClaimCheck
+namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Messages
 {
     [Trait("TestCategory", "Integration"), Collection("Examples")]
-    [TestCaseOrderer("MediatR.Extensions.Tests.TestMethodNameOrderer", "MediatR.Extensions.Azure.Storage.Examples")]
+    [TestCaseOrderer("MediatR.Extensions.Tests.TestMethodNameOrderer", "MediatR.Extensions.Azure.Storage.Examples.Tests")]
     public class ContosoPipelineTest
     {
         private readonly IServiceProvider serviceProvider;
         private readonly BlobFixture blobFixture;
-        private readonly string correlationId;
 
         public ContosoPipelineTest(ITestOutputHelper log)
         {
             serviceProvider = new ServiceCollection()
 
                 .AddCoreDependencies(log)
-                .AddContosoClaimCheckPipeline()
+                .AddContosoMessageTrackingPipeline()
 
                 .BuildServiceProvider();
 
             blobFixture = serviceProvider.GetRequiredService<BlobFixture>();
-
-            correlationId = "5e6d7294-967e-4612-92e0-485aeecdde54";
         }
 
         [Fact(DisplayName = "02. Container is empty")]
@@ -40,7 +37,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples.ClaimCheck
 
             var req = new ContosoCustomerRequest
             {
-                MessageId = correlationId,
+                MessageId = Guid.NewGuid().ToString(),
                 ContosoCustomer = new ContosoCustomer
                 {
                     FirstName = "Fabio",
@@ -55,6 +52,6 @@ namespace MediatR.Extensions.Azure.Storage.Examples.ClaimCheck
         }
 
         [Fact(DisplayName = "04. Container has blobs")]
-        public void Step04() => blobFixture.ThenContainerHasBlobs(1);
+        public void Step04() => blobFixture.ThenContainerHasBlobs(2);
     }
 }

@@ -21,7 +21,7 @@ namespace ClassLibrary1
         // TODO: update tests display names
         // TODO: refactor pipeline context keys in own const file...
         // TODO: test activity pipeline using contextId instead of correlationId?
-        // TODO: rewrite mediator 101 to use only EchoRequest and EchoResponse + delete console/function apps
+        // TODO: rewrite mediator 101 to use only EchoRequest and EchoResponse + move to integration patterns solution?
         // TODO: rename class library (MediatR.Extensions.Azure.Storage.Examples) and test project (MEAS.Examples.Tests)
 
         //  1. walk through the models and simple pipeline

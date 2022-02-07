@@ -1,4 +1,4 @@
-﻿using ClassLibrary1;
+using ClassLibrary1;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -9,44 +9,42 @@ using Xunit.Abstractions;
 namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
 {
     [Trait("TestCategory", "Integration"), Collection("Examples")]
-    [TestCaseOrderer("MediatR.Extensions.Tests.TestMethodNameOrderer", "MediatR.Extensions.Azure.Storage.Examples")]
-    public class FabrikamPipelineTest
+    [TestCaseOrderer("MediatR.Extensions.Tests.TestMethodNameOrderer", "MediatR.Extensions.Azure.Storage.Examples.Tests")]
+    public class ContosoPipelineTest
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly FolderFixture folderFixture;
         private readonly TableFixture tableFixture;
         private readonly string correlationId;
 
-        public FabrikamPipelineTest(ITestOutputHelper log)
+        public ContosoPipelineTest(ITestOutputHelper log)
         {
             serviceProvider = new ServiceCollection()
 
                 .AddCoreDependencies(log)
-                .AddFabrikamActivityTrackingPipeline()
+                .AddContosoActivityTrackingPipeline()
 
                 .BuildServiceProvider();
-
-            folderFixture = serviceProvider.GetRequiredService<FolderFixture>();
 
             tableFixture = serviceProvider.GetRequiredService<TableFixture>();
 
             correlationId = "b4702445-613d-4787-b91d-4461c3bd4a4e";
         }
 
-        [Fact(DisplayName = "02. Table is empty", Skip = "Leave entities for merge")]
+        [Fact(DisplayName = "02. Table is empty")]
         public void Step02() => tableFixture.GivenTableIsEmpty();
 
-        [Fact(DisplayName = "03. Fabrikam pipeline is executed")]
+        [Fact(DisplayName = "03. Contoso pipeline is executed")]
         public async Task Step03()
         {
             var med = serviceProvider.GetRequiredService<IMediator>();
 
-            var req = new FabrikamCustomerRequest
+            var req = new ContosoCustomerRequest
             {
                 MessageId = correlationId,
-                CanonicalCustomer = new CanonicalCustomer
+                ContosoCustomer = new ContosoCustomer
                 {
-                    FullName = "Fabio Marini",
+                    FirstName = "Fabio",
+                    LastName = "Marini",
                     Email = "fm@example.com"
                 }
             };
@@ -57,9 +55,6 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
         }
 
         [Fact(DisplayName = "04. Table has entities")]
-        public void Step04() => tableFixture.ThenTableHasEntities(4);
-
-        [Fact(DisplayName = "06. Entities are merged")]
-        public void Step06() => tableFixture.ThenEntitiesAreMerged(correlationId);
+        public void Step04() => tableFixture.ThenTableHasEntities(2);
     }
 }

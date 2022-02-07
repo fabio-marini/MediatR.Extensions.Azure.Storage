@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
+namespace MediatR.Extensions.Azure.Storage.Examples.ClaimCheck
 {
     [Trait("TestCategory", "Integration"), Collection("Examples")]
-    [TestCaseOrderer("MediatR.Extensions.Tests.TestMethodNameOrderer", "MediatR.Extensions.Azure.Storage.Examples")]
+    [TestCaseOrderer("MediatR.Extensions.Tests.TestMethodNameOrderer", "MediatR.Extensions.Azure.Storage.Examples.Tests")]
     public class ContosoPipelineTest
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly TableFixture tableFixture;
+        private readonly BlobFixture blobFixture;
         private readonly string correlationId;
 
         public ContosoPipelineTest(ITestOutputHelper log)
@@ -21,17 +21,17 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
             serviceProvider = new ServiceCollection()
 
                 .AddCoreDependencies(log)
-                .AddContosoActivityTrackingPipeline()
+                .AddContosoClaimCheckPipeline()
 
                 .BuildServiceProvider();
 
-            tableFixture = serviceProvider.GetRequiredService<TableFixture>();
+            blobFixture = serviceProvider.GetRequiredService<BlobFixture>();
 
-            correlationId = "b4702445-613d-4787-b91d-4461c3bd4a4e";
+            correlationId = "5e6d7294-967e-4612-92e0-485aeecdde54";
         }
 
-        [Fact(DisplayName = "02. Table is empty")]
-        public void Step02() => tableFixture.GivenTableIsEmpty();
+        [Fact(DisplayName = "02. Container is empty")]
+        public void Step02() => blobFixture.GivenContainerIsEmpty();
 
         [Fact(DisplayName = "03. Contoso pipeline is executed")]
         public async Task Step03()
@@ -54,7 +54,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
             res.MessageId.Should().Be(req.MessageId);
         }
 
-        [Fact(DisplayName = "04. Table has entities")]
-        public void Step04() => tableFixture.ThenTableHasEntities(2);
+        [Fact(DisplayName = "04. Container has blobs")]
+        public void Step04() => blobFixture.ThenContainerHasBlobs(1);
     }
 }
