@@ -1,12 +1,11 @@
-﻿using MediatR;
-using MediatR.Extensions.Abstractions;
+﻿using MediatR.Extensions.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ClassLibrary1
+namespace MediatR.Extensions.Azure.Storage.Examples
 {
     public class FabrikamCustomerResponse
     {
@@ -33,7 +32,7 @@ namespace ClassLibrary1
 
         public Task<FabrikamCustomerResponse> Handle(FabrikamCustomerRequest request, CancellationToken cancellationToken)
         {
-            if (ctx.ContainsKey("FabrikamCustomer") == false)
+            if (ctx.ContainsKey(ContextKeys.FabrikamCustomer) == false)
             {
                 throw new Exception("No Fabrikam customer found in pipeline context");
             }
@@ -41,7 +40,7 @@ namespace ClassLibrary1
             var res = new FabrikamCustomerResponse
             {
                 MessageId = request.MessageId,
-                FabrikamCustomer = (FabrikamCustomer)ctx["FabrikamCustomer"]
+                FabrikamCustomer = (FabrikamCustomer)ctx[ContextKeys.FabrikamCustomer]
             };
 
             log.LogInformation("Handler {Handler} completed, returning", this.GetType().Name);

@@ -1,4 +1,3 @@
-using ClassLibrary1;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -30,11 +29,11 @@ namespace MediatR.Extensions.Azure.Storage.Examples.ClaimCheck
             correlationId = "5e6d7294-967e-4612-92e0-485aeecdde54";
         }
 
-        [Fact(DisplayName = "02. Container is empty")]
-        public void Step02() => blobFixture.GivenContainerIsEmpty();
+        [Fact(DisplayName = "01. Claim checks container is empty")]
+        public void Step01() => blobFixture.GivenContainerIsEmpty();
 
-        [Fact(DisplayName = "03. Contoso pipeline is executed")]
-        public async Task Step03()
+        [Fact(DisplayName = "02. Contoso pipeline is executed")]
+        public async Task Step02()
         {
             var med = serviceProvider.GetRequiredService<IMediator>();
 
@@ -54,7 +53,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples.ClaimCheck
             res.MessageId.Should().Be(req.MessageId);
         }
 
-        [Fact(DisplayName = "04. Container has blobs")]
-        public void Step04() => blobFixture.ThenContainerHasBlobs(1);
+        [Fact(DisplayName = "03. Claim checks container has blobs")]
+        public void Step03() => blobFixture.ThenContainerHasBlobs(1);
     }
 }

@@ -1,10 +1,9 @@
-﻿using MediatR;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ClassLibrary1
+namespace MediatR.Extensions.Azure.Storage.Examples
 {
     public class ValidateContosoCustomerBehavior : IPipelineBehavior<ContosoCustomerRequest, ContosoCustomerResponse>
     {

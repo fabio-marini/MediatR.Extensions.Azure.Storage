@@ -1,4 +1,3 @@
-using ClassLibrary1;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -27,11 +26,11 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Messages
             blobFixture = serviceProvider.GetRequiredService<BlobFixture>();
         }
 
-        [Fact(DisplayName = "02. Container is empty")]
-        public void Step02() => blobFixture.GivenContainerIsEmpty();
+        [Fact(DisplayName = "01. Messages container is empty")]
+        public void Step01() => blobFixture.GivenContainerIsEmpty();
 
-        [Fact(DisplayName = "03. Contoso pipeline is executed")]
-        public async Task Step03()
+        [Fact(DisplayName = "02. Contoso pipeline is executed")]
+        public async Task Step02()
         {
             var med = serviceProvider.GetRequiredService<IMediator>();
 
@@ -51,7 +50,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Messages
             res.MessageId.Should().Be(req.MessageId);
         }
 
-        [Fact(DisplayName = "04. Container has blobs")]
-        public void Step04() => blobFixture.ThenContainerHasBlobs(2);
+        [Fact(DisplayName = "03. Messages container has blobs")]
+        public void Step03() => blobFixture.ThenContainerHasBlobs(2);
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 using System;
 
-namespace ClassLibrary1
+namespace MediatR.Extensions.Azure.Storage.Examples
 {
     public class CustomerActivityEntity : TableEntity
     {

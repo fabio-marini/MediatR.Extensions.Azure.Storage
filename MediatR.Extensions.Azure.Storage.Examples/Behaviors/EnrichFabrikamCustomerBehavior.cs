@@ -1,12 +1,11 @@
-﻿using MediatR;
-using MediatR.Extensions.Abstractions;
+﻿using MediatR.Extensions.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ClassLibrary1
+namespace MediatR.Extensions.Azure.Storage.Examples
 {
     public class EnrichFabrikamCustomerBehavior : IPipelineBehavior<FabrikamCustomerRequest, FabrikamCustomerResponse>
     {
@@ -21,12 +20,12 @@ namespace ClassLibrary1
 
         public Task<FabrikamCustomerResponse> Handle(FabrikamCustomerRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<FabrikamCustomerResponse> next)
         {
-            if (ctx.ContainsKey("FabrikamCustomer") == false)
+            if (ctx.ContainsKey(ContextKeys.FabrikamCustomer) == false)
             {
                 throw new Exception("No Fabrikam customer found in pipeline context");
             }
 
-            var fabrikamCustomer = (FabrikamCustomer)ctx["FabrikamCustomer"];
+            var fabrikamCustomer = (FabrikamCustomer)ctx[ContextKeys.FabrikamCustomer];
 
             fabrikamCustomer.DateOfBirth = new DateTime(1970, 10, 26);
 

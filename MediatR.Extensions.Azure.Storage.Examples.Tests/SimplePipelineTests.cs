@@ -1,5 +1,4 @@
-﻿using ClassLibrary1;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
@@ -22,7 +21,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples
                 .BuildServiceProvider();
         }
 
-        [Fact(DisplayName = "Contoso pipeline is executed")]
+        [Fact(DisplayName = "01. Contoso pipeline is executed")]
         public async Task Step01()
         {
             var med = serviceProvider.GetRequiredService<IMediator>();
@@ -47,7 +46,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples
             res.CanonicalCustomer.Email.Should().Be("fm@example.com");
         }
 
-        [Fact(DisplayName = "Fabrikam pipeline is executed")]
+        [Fact(DisplayName = "02. Fabrikam pipeline is executed")]
         public async Task Step02()
         {
             var med = serviceProvider.GetRequiredService<IMediator>();

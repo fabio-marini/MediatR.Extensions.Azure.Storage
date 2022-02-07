@@ -1,5 +1,4 @@
-﻿using ClassLibrary1;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
@@ -13,7 +12,6 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
     public class FabrikamPipelineTest
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly FolderFixture folderFixture;
         private readonly TableFixture tableFixture;
         private readonly string correlationId;
 
@@ -26,18 +24,16 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
 
                 .BuildServiceProvider();
 
-            folderFixture = serviceProvider.GetRequiredService<FolderFixture>();
-
             tableFixture = serviceProvider.GetRequiredService<TableFixture>();
 
             correlationId = "b4702445-613d-4787-b91d-4461c3bd4a4e";
         }
 
-        [Fact(DisplayName = "02. Table is empty", Skip = "Leave entities for merge")]
-        public void Step02() => tableFixture.GivenTableIsEmpty();
+        [Fact(DisplayName = "01. Activities table has entities")]
+        public void Step01() => tableFixture.ThenTableHasEntities(2);
 
-        [Fact(DisplayName = "03. Fabrikam pipeline is executed")]
-        public async Task Step03()
+        [Fact(DisplayName = "02. Fabrikam pipeline is executed")]
+        public async Task Step02()
         {
             var med = serviceProvider.GetRequiredService<IMediator>();
 
@@ -56,10 +52,10 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
             res.MessageId.Should().Be(req.MessageId);
         }
 
-        [Fact(DisplayName = "04. Table has entities")]
-        public void Step04() => tableFixture.ThenTableHasEntities(4);
+        [Fact(DisplayName = "03. Table has entities")]
+        public void Step03() => tableFixture.ThenTableHasEntities(4);
 
-        [Fact(DisplayName = "06. Entities are merged")]
-        public void Step06() => tableFixture.ThenEntitiesAreMerged(correlationId);
+        [Fact(DisplayName = "04. Entities are merged")]
+        public void Step04() => tableFixture.ThenEntitiesAreMerged(correlationId);
     }
 }

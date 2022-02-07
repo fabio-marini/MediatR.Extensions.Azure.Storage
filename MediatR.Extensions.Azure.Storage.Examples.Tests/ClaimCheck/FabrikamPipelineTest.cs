@@ -1,5 +1,4 @@
-﻿using ClassLibrary1;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
@@ -13,7 +12,6 @@ namespace MediatR.Extensions.Azure.Storage.Examples.ClaimCheck
     public class FabrikamPipelineTest
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly FolderFixture folderFixture;
         private readonly BlobFixture blobFixture;
         private readonly string correlationId;
 
@@ -26,18 +24,16 @@ namespace MediatR.Extensions.Azure.Storage.Examples.ClaimCheck
 
                 .BuildServiceProvider();
 
-            folderFixture = serviceProvider.GetRequiredService<FolderFixture>();
-
             blobFixture = serviceProvider.GetRequiredService<BlobFixture>();
 
             correlationId = "5e6d7294-967e-4612-92e0-485aeecdde54";
         }
 
-        [Fact(DisplayName = "02. Container has blobs")]
-        public void Step02() => blobFixture.ThenContainerHasBlobs(1);
+        [Fact(DisplayName = "01. Claim checks container has blobs")]
+        public void Step01() => blobFixture.ThenContainerHasBlobs(1);
 
-        [Fact(DisplayName = "03. Fabrikam pipeline is executed")]
-        public async Task Step03()
+        [Fact(DisplayName = "02. Fabrikam pipeline is executed")]
+        public async Task Step02()
         {
             var med = serviceProvider.GetRequiredService<IMediator>();
 
@@ -51,7 +47,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples.ClaimCheck
             res.MessageId.Should().Be(req.MessageId);
         }
 
-        [Fact(DisplayName = "04. Container is empty")]
-        public void Step04() => blobFixture.ThenContainerHasBlobs(0);
+        [Fact(DisplayName = "03. Claim checks container is empty")]
+        public void Step03() => blobFixture.ThenContainerHasBlobs(0);
     }
 }

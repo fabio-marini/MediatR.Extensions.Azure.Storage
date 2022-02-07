@@ -16,7 +16,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples
         {
             return services
 
-                .AddMediatR(typeof(ClassLibrary1.ServiceCollectionExtensions))
+                .AddMediatR(typeof(CanonicalCustomer))
 
                 .AddSingleton<IConfiguration>(sp =>
                 {
@@ -34,12 +34,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples
                 .AddTransient<ITestOutputHelper>(sp => log)
                 .AddTransient<ILogger, TestOutputLogger>()
 
-                // used by ContosoCustomerHandler
                 .AddScoped<PipelineContext>()
-
-                // used by FabrikamCustomerHandler
-                .AddTransient<DirectoryInfo>(sp => new DirectoryInfo($"C:\\Repos\\Customers"))
-                .AddTransient<FolderFixture>()
 
                 // used for message tracking and claim checks
                 .AddTransient<BlobContainerClient>(sp =>

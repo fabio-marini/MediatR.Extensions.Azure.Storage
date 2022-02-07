@@ -1,7 +1,6 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using MediatR;
-using MediatR.Extensions.Azure.Storage;
+using MediatR.Extensions.Abstractions;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,17 +11,14 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace ClassLibrary1
+namespace MediatR.Extensions.Azure.Storage.Examples
 {
+
     public static class ServiceCollectionExtensions
     {
         #region Examples
 
-        // TODO: update tests display names
-        // TODO: refactor pipeline context keys in own const file...
-        // TODO: test activity pipeline using contextId instead of correlationId?
-        // TODO: rewrite mediator 101 to use only EchoRequest and EchoResponse + move to integration patterns solution?
-        // TODO: rename class library (MediatR.Extensions.Azure.Storage.Examples) and test project (MEAS.Examples.Tests)
+        // TODO: extract "Entities are merged" test?
 
         //  1. walk through the models and simple pipeline
         //  2. blob message tracking pipeline (JSON and XML)

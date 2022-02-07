@@ -1,5 +1,4 @@
-﻿using ClassLibrary1;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;

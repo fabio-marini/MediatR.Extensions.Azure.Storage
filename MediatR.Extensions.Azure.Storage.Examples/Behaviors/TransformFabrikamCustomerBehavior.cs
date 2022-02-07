@@ -1,12 +1,11 @@
-﻿using MediatR;
-using MediatR.Extensions.Abstractions;
+﻿using MediatR.Extensions.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ClassLibrary1
+namespace MediatR.Extensions.Azure.Storage.Examples
 {
     public class TransformFabrikamCustomerBehavior : IPipelineBehavior<FabrikamCustomerRequest, FabrikamCustomerResponse>
     {
@@ -27,7 +26,7 @@ namespace ClassLibrary1
                 Email = request.CanonicalCustomer.Email
             };
 
-            ctx.Add("FabrikamCustomer", fabrikamCustomer);
+            ctx.Add(ContextKeys.FabrikamCustomer, fabrikamCustomer);
 
             log.LogInformation("Behavior {Behavior} completed", this.GetType().Name);
 

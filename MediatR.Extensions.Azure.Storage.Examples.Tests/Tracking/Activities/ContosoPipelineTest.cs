@@ -1,4 +1,3 @@
-using ClassLibrary1;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -30,11 +29,11 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
             correlationId = "b4702445-613d-4787-b91d-4461c3bd4a4e";
         }
 
-        [Fact(DisplayName = "02. Table is empty")]
-        public void Step02() => tableFixture.GivenTableIsEmpty();
+        [Fact(DisplayName = "01. Activities table is empty")]
+        public void Step01() => tableFixture.GivenTableIsEmpty();
 
-        [Fact(DisplayName = "03. Contoso pipeline is executed")]
-        public async Task Step03()
+        [Fact(DisplayName = "02. Contoso pipeline is executed")]
+        public async Task Step02()
         {
             var med = serviceProvider.GetRequiredService<IMediator>();
 
@@ -54,7 +53,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples.Tracking.Activities
             res.MessageId.Should().Be(req.MessageId);
         }
 
-        [Fact(DisplayName = "04. Table has entities")]
-        public void Step04() => tableFixture.ThenTableHasEntities(2);
+        [Fact(DisplayName = "03. Activities table has entities")]
+        public void Step03() => tableFixture.ThenTableHasEntities(2);
     }
 }
