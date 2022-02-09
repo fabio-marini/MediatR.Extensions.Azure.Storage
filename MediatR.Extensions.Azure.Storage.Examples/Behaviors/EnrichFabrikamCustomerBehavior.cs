@@ -20,6 +20,13 @@ namespace MediatR.Extensions.Azure.Storage.Examples
 
         public Task<FabrikamCustomerResponse> Handle(FabrikamCustomerRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<FabrikamCustomerResponse> next)
         {
+            if (string.IsNullOrEmpty(request.MessageId))
+            {
+                log.LogError("MessageId is required! :(");
+
+                throw new ArgumentException("MessageId is required! :(");
+            }
+
             if (ctx.ContainsKey(ContextKeys.FabrikamCustomer) == false)
             {
                 throw new Exception("No Fabrikam customer found in pipeline context");

@@ -1,6 +1,5 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using MediatR.Extensions.Abstractions;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,7 +23,8 @@ namespace MediatR.Extensions.Azure.Storage.Examples
         //  4. blob claim check pipeline
         // TODO: persistence points to enable edit and resubmit?
         // TODO: sign/verify and encrypt/decrypt using certs?
-        // TODO: route error messages to an error pipeline?
+        // TODO: add to docs - extensions don't throw exceptions, only log errors
+        // TODO: add integration tests for error pipelines
 
         #endregion
 
@@ -35,6 +35,82 @@ namespace MediatR.Extensions.Azure.Storage.Examples
 
             services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, FabrikamCustomerResponse>, TransformFabrikamCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, FabrikamCustomerResponse>, EnrichFabrikamCustomerBehavior>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddContosoErrorPipeline(this IServiceCollection services)
+        {
+            services.AddOptions<BlobOptions<ContosoExceptionRequest>>().Configure<IServiceProvider>((opt, svc) =>
+            {
+                var cfg = svc.GetRequiredService<IConfiguration>();
+                var blb = svc.GetRequiredService<BlobContainerClient>();
+
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+                opt.BlobClient = (req, ctx) =>
+                {
+                    var blobClient = blb.GetBlobClient($"exceptions/{Guid.NewGuid().ToString()}.json");
+
+                    // store blob client in context so it can be accessed by table options...
+                    ctx.Add("BlobClient", blobClient);
+
+                    return blobClient;
+                };
+                opt.BlobContent = (req, ctx) => BinaryData.FromString(JsonConvert.SerializeObject(req.Request));
+            });
+            services.AddOptions<TableOptions<ContosoExceptionRequest>>().Configure<IServiceProvider>((opt, svc) =>
+            {
+                var cfg = svc.GetRequiredService<IConfiguration>();
+                var tbl = svc.GetRequiredService<CloudTable>();
+
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+                opt.CloudTable = tbl;
+                opt.TableEntity = (req, ctx) => RequestExceptionEntity.Create(req, ctx, req.Exception);
+            });
+
+            services.AddTransient<UploadBlobCommand<ContosoExceptionRequest>>();
+            services.AddTransient<InsertEntityCommand<ContosoExceptionRequest>>();
+
+            services.AddTransient<IPipelineBehavior<ContosoExceptionRequest, Unit>, UploadBlobRequestBehavior<ContosoExceptionRequest>>();
+            services.AddTransient<IPipelineBehavior<ContosoExceptionRequest, Unit>, InsertEntityRequestBehavior<ContosoExceptionRequest>>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddFabrikamErrorPipeline(this IServiceCollection services)
+        {
+            services.AddOptions<BlobOptions<FabrikamExceptionRequest>>().Configure<IServiceProvider>((opt, svc) =>
+            {
+                var cfg = svc.GetRequiredService<IConfiguration>();
+                var blb = svc.GetRequiredService<BlobContainerClient>();
+
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+                opt.BlobClient = (req, ctx) =>
+                {
+                    var blobClient = blb.GetBlobClient($"exceptions/{Guid.NewGuid().ToString()}.json");
+
+                    // store blob client in context so it can be accessed by table options...
+                    ctx.Add("BlobClient", blobClient);
+
+                    return blobClient;
+                };
+                opt.BlobContent = (req, ctx) => BinaryData.FromString(JsonConvert.SerializeObject(req.Request));
+            });
+            services.AddOptions<TableOptions<FabrikamExceptionRequest>>().Configure<IServiceProvider>((opt, svc) =>
+            {
+                var cfg = svc.GetRequiredService<IConfiguration>();
+                var tbl = svc.GetRequiredService<CloudTable>();
+
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+                opt.CloudTable = tbl;
+                opt.TableEntity = (req, ctx) => RequestExceptionEntity.Create(req, ctx, req.Exception);
+            });
+
+            services.AddTransient<UploadBlobCommand<FabrikamExceptionRequest>>();
+            services.AddTransient<InsertEntityCommand<FabrikamExceptionRequest>>();
+
+            services.AddTransient<IPipelineBehavior<FabrikamExceptionRequest, Unit>, UploadBlobRequestBehavior<FabrikamExceptionRequest>>();
+            services.AddTransient<IPipelineBehavior<FabrikamExceptionRequest, Unit>, InsertEntityRequestBehavior<FabrikamExceptionRequest>>();
 
             return services;
         }
@@ -67,8 +143,8 @@ namespace MediatR.Extensions.Azure.Storage.Examples
                 var cfg = svc.GetRequiredService<IConfiguration>();
                 var blb = svc.GetRequiredService<BlobContainerClient>();
 
-                // use custom BlobContent to serialize only the canonical customer (as XML)
-                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+        // use custom BlobContent to serialize only the canonical customer (as XML)
+        opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
                 opt.BlobClient = (req, ctx) => blb.GetBlobClient($"fabrikam/{Guid.NewGuid().ToString()}.xml");
                 opt.BlobContent = (req, ctx) =>
                 {
@@ -231,8 +307,8 @@ namespace MediatR.Extensions.Azure.Storage.Examples
                 opt.BlobClient = (req, ctx) => blb.GetBlobClient($"canonical/{req.MessageId}.json");
                 opt.BlobContent = (req, ctx) =>
                 {
-                    // leave only the messageId
-                    req.ContosoCustomer = null;
+            // leave only the messageId
+            req.ContosoCustomer = null;
 
                     return BinaryData.FromString(JsonConvert.SerializeObject(req));
                 };

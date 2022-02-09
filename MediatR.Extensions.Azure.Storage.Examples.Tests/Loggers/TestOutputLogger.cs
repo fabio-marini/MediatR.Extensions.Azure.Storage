@@ -1,21 +1,29 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using Xunit.Abstractions;
 
 namespace MediatR.Extensions.Azure.Storage.Examples
 {
+    public class TestOutputLoggerOptions
+    {
+        public LogLevel MinimumLogLevel { get; set; }
+    }
+
     public class TestOutputLogger : ILogger
     {
-        private readonly ITestOutputHelper logger;
+        private readonly ITestOutputHelper log;
+        private readonly TestOutputLoggerOptions opt;
 
-        public TestOutputLogger(ITestOutputHelper logger)
+        public TestOutputLogger(ITestOutputHelper log, IOptions<TestOutputLoggerOptions> opt)
         {
-            this.logger = logger;
+            this.log = log;
+            this.opt = opt.Value;
         }
 
-        public IDisposable BeginScope<TState>(TState state) => default;
+        public IDisposable BeginScope<TState>(TState state) => throw new NotImplementedException("Scopes are not supported");
 
-        public bool IsEnabled(LogLevel logLevel) => logLevel == LogLevel.Information;
+        public bool IsEnabled(LogLevel logLevel) => logLevel >= opt.MinimumLogLevel;
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
@@ -24,7 +32,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples
                 return;
             }
 
-            logger.WriteLine(formatter(state, exception));
+            log.WriteLine($"[{logLevel,-11}]: {formatter(state, exception)}");
         }
     }
 }

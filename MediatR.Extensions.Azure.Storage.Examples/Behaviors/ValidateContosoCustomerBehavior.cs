@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,13 +19,13 @@ namespace MediatR.Extensions.Azure.Storage.Examples
         {
             if (string.IsNullOrEmpty(request.MessageId))
             {
-                // short-circuit by throwing an exception
-                //throw new ArgumentException("MessageId is required! :(");
-
                 log.LogError("MessageId is required! :(");
 
+                // short-circuit by throwing an exception
+                throw new ArgumentException("MessageId is required! :(");
+
                 // short-circuit by not calling the next behavior
-                return default;
+                //return default;
             }
 
             log.LogInformation("Behavior {Behavior} completed", this.GetType().Name);
