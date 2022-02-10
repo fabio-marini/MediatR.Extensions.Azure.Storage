@@ -1,6 +1,5 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using Xunit;
@@ -8,36 +7,45 @@ using Xunit.Abstractions;
 
 namespace MediatR.Extensions.Azure.Storage.Examples
 {
-    [Trait("TestCategory", "Integration"), Collection("Examples")]
-    public class SimplePipelineTests
+    [Collection("Examples")]
+    [TestCaseOrderer("MediatR.Extensions.Tests.TestMethodNameOrderer", "MediatR.Extensions.Azure.Storage.Examples.Tests")]
+    public class ExceptionHandlingPipelineTest
     {
         private readonly IServiceProvider serviceProvider;
+        private readonly TableFixture tableFixture;
+        private readonly BlobFixture blobFixture;
 
-        public SimplePipelineTests(ITestOutputHelper log)
+        public ExceptionHandlingPipelineTest(ITestOutputHelper log)
         {
             serviceProvider = new ServiceCollection()
 
-                .AddOptions<TestOutputLoggerOptions>().Configure(opt => opt.MinimumLogLevel = LogLevel.Warning)
-                .Services
-
                 .AddCoreDependencies(log)
-                .AddSimplePipeline()
-                .AddContosoErrorPipeline()
-                .AddFabrikamErrorPipeline()
+
+                .AddContosoRequestPipeline()
+                .AddContosoExceptionPipeline()
+
+                .AddFabrikamRequestPipeline()
+                .AddFabrikamExceptionPipeline()
 
                 .BuildServiceProvider();
+
+            tableFixture = serviceProvider.GetRequiredService<TableFixture>();
+            blobFixture = serviceProvider.GetRequiredService<BlobFixture>();
         }
 
-        [Theory(DisplayName = "Contoso pipeline is executed")]
-        [InlineData("cbefba6e-e51e-4b3a-9d4f-4eae5824d06a")]
-        [InlineData(null)]
-        public async Task Test01(string messageId)
+        [Fact(DisplayName = "01. Exceptions table is empty")]
+        public void Step01() => tableFixture.GivenTableIsEmpty();
+
+        [Fact(DisplayName = "02. Messages container is empty")]
+        public void Step02() => blobFixture.GivenContainerIsEmpty();
+
+        [Fact(DisplayName = "03. Contoso pipeline is executed")]
+        public async Task Step03()
         {
             var med = serviceProvider.GetRequiredService<IMediator>();
 
             var req = new ContosoCustomerRequest
             {
-                MessageId = messageId,
                 ContosoCustomer = new ContosoCustomer
                 {
                     FirstName = "Fabio",
@@ -49,12 +57,6 @@ namespace MediatR.Extensions.Azure.Storage.Examples
             try
             {
                 var res = await med.Send(req);
-
-                res.MessageId.Should().Be(req.MessageId);
-
-                res.CanonicalCustomer.Should().NotBeNull();
-                res.CanonicalCustomer.FullName.Should().Be("Fabio Marini");
-                res.CanonicalCustomer.Email.Should().Be("fm@example.com");
             }
             catch (Exception ex)
             {
@@ -68,16 +70,19 @@ namespace MediatR.Extensions.Azure.Storage.Examples
             }
         }
 
-        [Theory(DisplayName = "Fabrikam pipeline is executed")]
-        [InlineData("cbefba6e-e51e-4b3a-9d4f-4eae5824d06a")]
-        [InlineData(null)]
-        public async Task Test02(string messageId)
+        [Fact(DisplayName = "04. Exceptions table has entities")]
+        public void Step04() => tableFixture.ThenTableHasEntities(1);
+
+        [Fact(DisplayName = "05. Messages container has blobs")]
+        public void Step05() => blobFixture.ThenContainerHasBlobs(1);
+
+        [Fact(DisplayName = "06. Fabrikam pipeline is executed")]
+        public async Task Step06()
         {
             var med = serviceProvider.GetRequiredService<IMediator>();
 
             var req = new FabrikamCustomerRequest
             {
-                MessageId = messageId,
                 CanonicalCustomer = new CanonicalCustomer
                 {
                     FullName = "Fabio Marini",
@@ -88,13 +93,6 @@ namespace MediatR.Extensions.Azure.Storage.Examples
             try
             {
                 var res = await med.Send(req);
-
-                res.MessageId.Should().Be(req.MessageId);
-
-                res.FabrikamCustomer.Should().NotBeNull();
-                res.FabrikamCustomer.FullName.Should().Be("Fabio Marini");
-                res.FabrikamCustomer.Email.Should().Be("fm@example.com");
-                res.FabrikamCustomer.DateOfBirth.Should().Be(new DateTime(1970, 10, 26));
             }
             catch (Exception ex)
             {
@@ -107,5 +105,11 @@ namespace MediatR.Extensions.Azure.Storage.Examples
                 _ = await med.Send(err);
             }
         }
+
+        [Fact(DisplayName = "07. Exceptions table has entities")]
+        public void Step07() => tableFixture.ThenTableHasEntities(2);
+
+        [Fact(DisplayName = "08. Messages container has blobs")]
+        public void Step08() => blobFixture.ThenContainerHasBlobs(2);
     }
 }

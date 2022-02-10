@@ -15,31 +15,34 @@ namespace MediatR.Extensions.Azure.Storage.Examples
 
     public static class ServiceCollectionExtensions
     {
-        #region Examples
+        // TODO: refactor for automation (get connection string and log level from config)?
 
-        //  1. walk through the models and simple pipeline
-        //  2. blob message tracking pipeline (JSON and XML)
-        //  3. table activity tracking pipeline (JSON and XML)
-        //  4. blob claim check pipeline
+        // 1. PipelineExecutionOnlyTests - models and pipelines
+        // 2. MessageTrackingPipelineTest - blob message tracking pipeline (JSON and XML)
+        // 3. ActivityTrackingPipelineTest - table activity tracking pipeline (JSON and XML)
+        // 4. MessageClaimCheckPipelineTest - blob claim check pipeline
+        // 5. ExceptionHandlingPipelineTest - error pipelines
+
         // TODO: persistence points to enable edit and resubmit?
         // TODO: sign/verify and encrypt/decrypt using certs?
-        // TODO: add to docs - extensions don't throw exceptions, only log errors
-        // TODO: add integration tests for error pipelines
 
-        #endregion
-
-        public static IServiceCollection AddSimplePipeline(this IServiceCollection services)
+        public static IServiceCollection AddContosoRequestPipeline(this IServiceCollection services)
         {
             services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, ContosoCustomerResponse>, ValidateContosoCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, ContosoCustomerResponse>, TransformContosoCustomerBehavior>();
 
+            return services;
+        }
+
+        public static IServiceCollection AddFabrikamRequestPipeline(this IServiceCollection services)
+        {
             services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, FabrikamCustomerResponse>, TransformFabrikamCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, FabrikamCustomerResponse>, EnrichFabrikamCustomerBehavior>();
 
             return services;
         }
 
-        public static IServiceCollection AddContosoErrorPipeline(this IServiceCollection services)
+        public static IServiceCollection AddContosoExceptionPipeline(this IServiceCollection services)
         {
             services.AddOptions<BlobOptions<ContosoExceptionRequest>>().Configure<IServiceProvider>((opt, svc) =>
             {
@@ -77,7 +80,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples
             return services;
         }
 
-        public static IServiceCollection AddFabrikamErrorPipeline(this IServiceCollection services)
+        public static IServiceCollection AddFabrikamExceptionPipeline(this IServiceCollection services)
         {
             services.AddOptions<BlobOptions<FabrikamExceptionRequest>>().Configure<IServiceProvider>((opt, svc) =>
             {

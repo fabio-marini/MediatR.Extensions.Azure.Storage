@@ -31,6 +31,9 @@ namespace MediatR.Extensions.Azure.Storage.Examples
                         .Build();
                 })
 
+                .AddOptions<TestOutputLoggerOptions>().Configure(opt => opt.MinimumLogLevel = LogLevel.Information)
+                .Services
+
                 .AddTransient<ITestOutputHelper>(sp => log)
                 .AddTransient<ILogger, TestOutputLogger>()
 

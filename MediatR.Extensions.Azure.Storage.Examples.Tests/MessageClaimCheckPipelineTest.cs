@@ -7,15 +7,15 @@ using Xunit.Abstractions;
 
 namespace MediatR.Extensions.Azure.Storage.Examples
 {
-    [Trait("TestCategory", "Integration"), Collection("Examples")]
+    [Collection("Examples")]
     [TestCaseOrderer("MediatR.Extensions.Tests.TestMethodNameOrderer", "MediatR.Extensions.Azure.Storage.Examples.Tests")]
-    public class ClaimCheckPipelineTest
+    public class MessageClaimCheckPipelineTest
     {
         private readonly IServiceProvider serviceProvider;
         private readonly BlobFixture blobFixture;
         private readonly string correlationId;
 
-        public ClaimCheckPipelineTest(ITestOutputHelper log)
+        public MessageClaimCheckPipelineTest(ITestOutputHelper log)
         {
             serviceProvider = new ServiceCollection()
 
