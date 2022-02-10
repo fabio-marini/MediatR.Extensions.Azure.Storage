@@ -7,7 +7,7 @@ using Xunit.Abstractions;
 
 namespace MediatR.Extensions.Azure.Storage.Examples
 {
-    [Collection("Examples")]
+    [Trait("TestCategory", "Integration"), Collection("Examples")]
     [TestCaseOrderer("MediatR.Extensions.Tests.TestMethodNameOrderer", "MediatR.Extensions.Azure.Storage.Examples.Tests")]
     public class MessageClaimCheckPipelineTest
     {

@@ -7,7 +7,7 @@ using Xunit.Abstractions;
 
 namespace MediatR.Extensions.Azure.Storage.Examples
 {
-    [Collection("Examples")]
+    [Trait("TestCategory", "Integration"), Collection("Examples")]
     public class PipelineExecutionOnlyTests
     {
         private readonly IServiceProvider serviceProvider;

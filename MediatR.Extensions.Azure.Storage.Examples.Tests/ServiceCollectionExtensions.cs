@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using System.IO;
 using Xunit.Abstractions;
 
 namespace MediatR.Extensions.Azure.Storage.Examples
