@@ -7,11 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\MediatR.Extensions.Azure.Storage.Tests\Integration\Orderers\FactDisplayNameOrderer.cs" Link="Orderers\FactDisplayNameOrderer.cs" />
-    <Compile Include="..\MediatR.Extensions.Azure.Storage.Tests\Integration\Orderers\TestMethodNameOrderer.cs" Link="Orderers\TestMethodNameOrderer.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" Version="12.10.0" />
     <PackageReference Include="Azure.Storage.Queues" Version="12.8.0" />
     <PackageReference Include="Microsoft.Azure.Cosmos.Table" Version="1.0.8" />
@@ -19,7 +14,8 @@
     <PackageReference Include="FluentAssertions" Version="6.2.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.20" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
+    <PackageReference Include="Timeless.Testing.Xunit" Version="1.0.0-ci.20220210.5" />
     <PackageReference Include="Polly" Version="7.2.3" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
@@ -30,10 +26,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Orderers\" />
   </ItemGroup>
 
   <ItemGroup>

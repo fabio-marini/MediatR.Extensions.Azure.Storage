@@ -8,7 +8,7 @@ using Xunit.Abstractions;
 namespace MediatR.Extensions.Azure.Storage.Examples
 {
     [Trait("TestCategory", "Integration"), Collection("Examples")]
-    [TestCaseOrderer("MediatR.Extensions.Tests.TestMethodNameOrderer", "MediatR.Extensions.Azure.Storage.Examples.Tests")]
+    [TestCaseOrderer("MediatR.Extensions.Tests.TestMethodNameOrderer", "Timeless.Testing.Xunit")]
     public class MessageTrackingPipelineTest
     {
         private readonly IServiceProvider serviceProvider;

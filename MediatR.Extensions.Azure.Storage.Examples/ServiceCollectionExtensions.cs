@@ -12,7 +12,6 @@ using System.Xml.Serialization;
 
 namespace MediatR.Extensions.Azure.Storage.Examples
 {
-
     public static class ServiceCollectionExtensions
     {
         // TODO: refactor for automation (get connection string and log level from config)?
@@ -23,6 +22,7 @@ namespace MediatR.Extensions.Azure.Storage.Examples
         // 4. MessageClaimCheckPipelineTest - blob claim check pipeline
         // 5. ExceptionHandlingPipelineTest - error pipelines
 
+        // TODO: service bus examples
         // TODO: persistence points to enable edit and resubmit?
         // TODO: sign/verify and encrypt/decrypt using certs?
 
