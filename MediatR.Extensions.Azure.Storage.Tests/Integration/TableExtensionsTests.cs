@@ -5,6 +5,7 @@ using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 {
@@ -13,10 +14,12 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
     public class TableExtensionsTests : IClassFixture<TableFixture>
     {
         private readonly TableFixture tableFixture;
+        private readonly ITestOutputHelper log;
 
-        public TableExtensionsTests(TableFixture tableFixture)
+        public TableExtensionsTests(TableFixture tableFixture, ITestOutputHelper log)
         {
             this.tableFixture = tableFixture;
+            this.log = log;
         }
 
         [Fact(DisplayName = "01. Table is empty")]
@@ -29,16 +32,17 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 
                 .AddMediatR(this.GetType())
                 .AddTransient<CloudTable>(sp => tableFixture.CloudTable)
-                .AddTableOptions<TestQuery, TestResult>()
-                .AddInsertEntityExtensions<TestQuery, TestResult>()
+                .AddTransient<ITestOutputHelper>(sp => log)
+                .AddTableOptions<EchoRequest, EchoResponse>()
+                .AddInsertEntityExtensions<EchoRequest, EchoResponse>()
 
                 .BuildServiceProvider();
 
             var med = serviceProvider.GetRequiredService<IMediator>();
 
-            var res = await med.Send(TestQuery.Default);
+            var res = await med.Send(EchoRequest.Default);
 
-            res.Length.Should().Be(TestQuery.Default.Message.Length);
+            res.Message.Should().Be(EchoRequest.Default.Message);
         }
 
         [Fact(DisplayName = "03. Table has entities")]
@@ -51,17 +55,18 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 
                 .AddMediatR(this.GetType())
                 .AddTransient<CloudTable>(sp => tableFixture.CloudTable)
-                .AddTableOptions<TestQuery, TestResult>()
-                .AddRetrieveEntityExtensions<TestQuery, TestResult>()
+                .AddTransient<ITestOutputHelper>(sp => log)
+                .AddTableOptions<EchoRequest, EchoResponse>()
+                .AddRetrieveEntityExtensions<EchoRequest, EchoResponse>()
                 .AddSingleton<PipelineContext>()
 
                 .BuildServiceProvider();
 
             var med = serviceProvider.GetRequiredService<IMediator>();
 
-            var res = await med.Send(TestQuery.Default);
+            var res = await med.Send(EchoRequest.Default);
 
-            res.Length.Should().Be(TestQuery.Default.Message.Length);
+            res.Message.Should().Be(EchoRequest.Default.Message);
 
             var ctx = serviceProvider.GetRequiredService<PipelineContext>();
 
@@ -75,16 +80,17 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 
                 .AddMediatR(this.GetType())
                 .AddTransient<CloudTable>(sp => tableFixture.CloudTable)
-                .AddTableOptions<TestQuery, TestResult>()
-                .AddDeleteEntityExtensions<TestQuery, TestResult>()
+                .AddTransient<ITestOutputHelper>(sp => log)
+                .AddTableOptions<EchoRequest, EchoResponse>()
+                .AddDeleteEntityExtensions<EchoRequest, EchoResponse>()
 
                 .BuildServiceProvider();
 
             var med = serviceProvider.GetRequiredService<IMediator>();
 
-            var res = await med.Send(TestQuery.Default);
+            var res = await med.Send(EchoRequest.Default);
 
-            res.Length.Should().Be(TestQuery.Default.Message.Length);
+            res.Message.Should().Be(EchoRequest.Default.Message);
         }
 
         [Fact(DisplayName = "06. Table is empty")]

@@ -4,6 +4,7 @@ using MediatR.Extensions.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 {
@@ -12,10 +13,12 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
     public class BlobExtensionsTests : IClassFixture<BlobFixture>
     {
         private readonly BlobFixture blobFixture;
+        private readonly ITestOutputHelper log;
 
-        public BlobExtensionsTests(BlobFixture blobFixture)
+        public BlobExtensionsTests(BlobFixture blobFixture, ITestOutputHelper log)
         {
             this.blobFixture = blobFixture;
+            this.log = log;
         }
 
         [Fact(DisplayName = "01. Container is empty")]
@@ -28,16 +31,17 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 
                 .AddMediatR(this.GetType())
                 .AddTransient<BlobContainerClient>(sp => blobFixture.Container)
-                .AddBlobOptions<TestQuery, TestResult>()
-                .AddUploadBlobExtensions<TestQuery, TestResult>()
+                .AddTransient<ITestOutputHelper>(sp => log)
+                .AddBlobOptions<EchoRequest, EchoResponse>()
+                .AddUploadBlobExtensions<EchoRequest, EchoResponse>()
 
                 .BuildServiceProvider();
 
             var med = serviceProvider.GetRequiredService<IMediator>();
 
-            var res = await med.Send(TestQuery.Default);
+            var res = await med.Send(EchoRequest.Default);
 
-            res.Length.Should().Be(TestQuery.Default.Message.Length);
+            res.Message.Should().Be(EchoRequest.Default.Message);
         }
 
         [Fact(DisplayName = "03. Container has blobs")]
@@ -50,17 +54,18 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 
                 .AddMediatR(this.GetType())
                 .AddTransient<BlobContainerClient>(sp => blobFixture.Container)
-                .AddBlobOptions<TestQuery, TestResult>()
-                .AddDownloadBlobExtensions<TestQuery, TestResult>()
+                .AddTransient<ITestOutputHelper>(sp => log)
+                .AddBlobOptions<EchoRequest, EchoResponse>()
+                .AddDownloadBlobExtensions<EchoRequest, EchoResponse>()
                 .AddSingleton<PipelineContext>()
 
                 .BuildServiceProvider();
 
             var med = serviceProvider.GetRequiredService<IMediator>();
 
-            var res = await med.Send(TestQuery.Default);
+            var res = await med.Send(EchoRequest.Default);
 
-            res.Length.Should().Be(TestQuery.Default.Message.Length);
+            res.Message.Should().Be(EchoRequest.Default.Message);
 
             var ctx = serviceProvider.GetRequiredService<PipelineContext>();
 
@@ -74,16 +79,17 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 
                 .AddMediatR(this.GetType())
                 .AddTransient<BlobContainerClient>(sp => blobFixture.Container)
-                .AddBlobOptions<TestQuery, TestResult>()
-                .AddDeleteBlobExtensions<TestQuery, TestResult>()
+                .AddTransient<ITestOutputHelper>(sp => log)
+                .AddBlobOptions<EchoRequest, EchoResponse>()
+                .AddDeleteBlobExtensions<EchoRequest, EchoResponse>()
 
                 .BuildServiceProvider();
 
             var med = serviceProvider.GetRequiredService<IMediator>();
 
-            var res = await med.Send(TestQuery.Default);
+            var res = await med.Send(EchoRequest.Default);
 
-            res.Length.Should().Be(TestQuery.Default.Message.Length);
+            res.Message.Should().Be(EchoRequest.Default.Message);
         }
 
         [Fact(DisplayName = "06. Container is empty")]

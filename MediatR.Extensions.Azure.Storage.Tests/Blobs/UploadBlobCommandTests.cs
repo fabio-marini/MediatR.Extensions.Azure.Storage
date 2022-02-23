@@ -17,30 +17,30 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Blobs
     public class UploadBlobCommandTests
     {
         private readonly IServiceProvider svc;
-        private readonly Mock<BlobOptions<TestMessage>> opt;
+        private readonly Mock<BlobOptions<EchoRequest>> opt;
         private readonly Mock<BlobClient> blb;
 
-        private readonly UploadBlobCommand<TestMessage> cmd;
+        private readonly UploadBlobCommand<EchoRequest> cmd;
 
         public UploadBlobCommandTests()
         {
-            opt = new Mock<BlobOptions<TestMessage>>();
+            opt = new Mock<BlobOptions<EchoRequest>>();
             blb = new Mock<BlobClient>("UseDevelopmentStorage=true", "container1", "blob1.txt");
 
             svc = new ServiceCollection()
 
-                .AddTransient<UploadBlobCommand<TestMessage>>()
-                .AddTransient<IOptions<BlobOptions<TestMessage>>>(sp => Options.Create(opt.Object))
+                .AddTransient<UploadBlobCommand<EchoRequest>>()
+                .AddTransient<IOptions<BlobOptions<EchoRequest>>>(sp => Options.Create(opt.Object))
 
                 .BuildServiceProvider();
 
-            cmd = svc.GetRequiredService<UploadBlobCommand<TestMessage>>();
+            cmd = svc.GetRequiredService<UploadBlobCommand<EchoRequest>>();
         }
 
         [Fact(DisplayName = "Command is disabled")]
         public async Task Test1()
         {
-            await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            await cmd.ExecuteAsync(EchoRequest.Default, CancellationToken.None);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.BlobClient, Times.Never);
@@ -54,7 +54,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Blobs
         {
             var src = new CancellationTokenSource(0);
 
-            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, src.Token);
+            Func<Task> act = async () => await cmd.ExecuteAsync(EchoRequest.Default, src.Token);
 
             await act.Should().ThrowAsync<OperationCanceledException>();
 
@@ -66,7 +66,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Blobs
         {
             opt.SetupProperty(m => m.IsEnabled, true);
 
-            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            Func<Task> act = async () => await cmd.ExecuteAsync(EchoRequest.Default, CancellationToken.None);
 
             await act.Should().ThrowAsync<ArgumentNullException>();
 
@@ -92,7 +92,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Blobs
             blb.Setup(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None))
                 .ReturnsAsync(Response.FromValue<BlobContentInfo>(default, res.Object));
 
-            await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            await cmd.ExecuteAsync(EchoRequest.Default, CancellationToken.None);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.BlobClient, Times.Exactly(2));
@@ -100,8 +100,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Blobs
             opt.VerifyGet(m => m.BlobContent, Times.Exactly(2));
             opt.VerifyGet(m => m.BlobHeaders, Times.Exactly(3));
 
-            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<TestMessage, PipelineContext, BinaryData>>(), Times.Once);
-            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<TestMessage, PipelineContext, BlobHttpHeaders>>(), Times.Once);
+            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<EchoRequest, PipelineContext, BinaryData>>(), Times.Once);
+            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<EchoRequest, PipelineContext, BlobHttpHeaders>>(), Times.Once);
 
             blb.Verify(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None), Times.Once);
             blb.Verify(m => m.SetHttpHeadersAsync(It.IsAny<BlobHttpHeaders>(), null, CancellationToken.None), Times.Once);
@@ -120,7 +120,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Blobs
             blb.Setup(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None))
                 .ThrowsAsync(new ArgumentNullException());
 
-            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            Func<Task> act = async () => await cmd.ExecuteAsync(EchoRequest.Default, CancellationToken.None);
 
             await act.Should().ThrowAsync<CommandException>();
 
@@ -130,8 +130,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Blobs
             opt.VerifyGet(m => m.BlobContent, Times.Exactly(2));
             opt.VerifyGet(m => m.BlobHeaders, Times.Exactly(1));
 
-            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<TestMessage, PipelineContext, BinaryData>>(), Times.Once);
-            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<TestMessage, PipelineContext, BlobHttpHeaders>>(), Times.Once);
+            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<EchoRequest, PipelineContext, BinaryData>>(), Times.Once);
+            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<EchoRequest, PipelineContext, BlobHttpHeaders>>(), Times.Once);
 
             blb.Verify(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None), Times.Once);
             blb.Verify(m => m.SetHttpHeadersAsync(It.IsAny<BlobHttpHeaders>(), null, CancellationToken.None), Times.Never);
@@ -153,7 +153,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Blobs
             blb.Setup(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None))
                 .ReturnsAsync(Response.FromValue<BlobContentInfo>(default, res.Object));
 
-            await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            await cmd.ExecuteAsync(EchoRequest.Default, CancellationToken.None);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.BlobClient, Times.Exactly(2));
@@ -161,8 +161,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Blobs
             opt.VerifyGet(m => m.BlobContent, Times.Exactly(2));
             opt.VerifyGet(m => m.BlobHeaders, Times.Exactly(1));
 
-            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<TestMessage, PipelineContext, BinaryData>>(), Times.Never);
-            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<TestMessage, PipelineContext, BlobHttpHeaders>>(), Times.Never);
+            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<EchoRequest, PipelineContext, BinaryData>>(), Times.Never);
+            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<EchoRequest, PipelineContext, BlobHttpHeaders>>(), Times.Never);
 
             blb.Verify(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None), Times.Once);
             blb.Verify(m => m.SetHttpHeadersAsync(It.IsAny<BlobHttpHeaders>(), null, CancellationToken.None), Times.Never);
@@ -184,7 +184,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Blobs
             blb.Setup(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None))
                 .ReturnsAsync(Response.FromValue<BlobContentInfo>(default, res.Object));
 
-            await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            await cmd.ExecuteAsync(EchoRequest.Default, CancellationToken.None);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.BlobClient, Times.Exactly(2));
@@ -192,8 +192,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Blobs
             opt.VerifyGet(m => m.BlobContent, Times.Exactly(2));
             opt.VerifyGet(m => m.BlobHeaders, Times.Exactly(3));
 
-            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<TestMessage, PipelineContext, BinaryData>>(), Times.Once);
-            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<TestMessage, PipelineContext, BlobHttpHeaders>>(), Times.Never);
+            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<EchoRequest, PipelineContext, BinaryData>>(), Times.Once);
+            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<EchoRequest, PipelineContext, BlobHttpHeaders>>(), Times.Never);
 
             blb.Verify(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None), Times.Once);
             blb.Verify(m => m.SetHttpHeadersAsync(It.IsAny<BlobHttpHeaders>(), null, CancellationToken.None), Times.Once);
@@ -215,7 +215,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Blobs
             blb.Setup(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None))
                 .ReturnsAsync(Response.FromValue<BlobContentInfo>(default, res.Object));
 
-            await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            await cmd.ExecuteAsync(EchoRequest.Default, CancellationToken.None);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.BlobClient, Times.Exactly(2));
@@ -223,8 +223,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Blobs
             opt.VerifyGet(m => m.BlobContent, Times.Exactly(2));
             opt.VerifyGet(m => m.BlobHeaders, Times.Exactly(2));
 
-            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<TestMessage, PipelineContext, BinaryData>>(), Times.Never);
-            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<TestMessage, PipelineContext, BlobHttpHeaders>>(), Times.Never);
+            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<EchoRequest, PipelineContext, BinaryData>>(), Times.Never);
+            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<EchoRequest, PipelineContext, BlobHttpHeaders>>(), Times.Never);
 
             blb.Verify(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None), Times.Once);
             blb.Verify(m => m.SetHttpHeadersAsync(It.IsAny<BlobHttpHeaders>(), null, CancellationToken.None), Times.Once);
@@ -246,7 +246,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Blobs
             blb.Setup(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None))
                 .ReturnsAsync(Response.FromValue<BlobContentInfo>(default, res.Object));
 
-            await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            await cmd.ExecuteAsync(EchoRequest.Default, CancellationToken.None);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.BlobClient, Times.Exactly(2));
@@ -254,8 +254,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Blobs
             opt.VerifyGet(m => m.BlobContent, Times.Exactly(2));
             opt.VerifyGet(m => m.BlobHeaders, Times.Exactly(2));
 
-            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<TestMessage, PipelineContext, BinaryData>>(), Times.Never);
-            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<TestMessage, PipelineContext, BlobHttpHeaders>>(), Times.Never);
+            opt.VerifySet(m => m.BlobContent = It.IsAny<Func<EchoRequest, PipelineContext, BinaryData>>(), Times.Never);
+            opt.VerifySet(m => m.BlobHeaders = It.IsAny<Func<EchoRequest, PipelineContext, BlobHttpHeaders>>(), Times.Never);
 
             blb.Verify(m => m.UploadAsync(It.IsAny<BinaryData>(), CancellationToken.None), Times.Once);
             blb.Verify(m => m.SetHttpHeadersAsync(It.IsAny<BlobHttpHeaders>(), null, CancellationToken.None), Times.Once);

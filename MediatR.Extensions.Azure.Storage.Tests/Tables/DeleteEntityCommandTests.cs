@@ -16,30 +16,30 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Tables
     public class DeleteEntityCommandTests
     {
         private readonly IServiceProvider svc;
-        private readonly Mock<TableOptions<TestMessage>> opt;
+        private readonly Mock<TableOptions<EchoRequest>> opt;
         private readonly Mock<CloudTable> tbl;
 
-        private readonly DeleteEntityCommand<TestMessage> cmd;
+        private readonly DeleteEntityCommand<EchoRequest> cmd;
 
         public DeleteEntityCommandTests()
         {
-            opt = new Mock<TableOptions<TestMessage>>();
+            opt = new Mock<TableOptions<EchoRequest>>();
             tbl = new Mock<CloudTable>(new Uri("http://127.0.0.1:10002/devstoreaccount1/table1"), null);
 
             svc = new ServiceCollection()
 
-                .AddTransient<DeleteEntityCommand<TestMessage>>()
-                .AddTransient<IOptions<TableOptions<TestMessage>>>(sp => Options.Create(opt.Object))
+                .AddTransient<DeleteEntityCommand<EchoRequest>>()
+                .AddTransient<IOptions<TableOptions<EchoRequest>>>(sp => Options.Create(opt.Object))
 
                 .BuildServiceProvider();
 
-            cmd = svc.GetRequiredService<DeleteEntityCommand<TestMessage>>();
+            cmd = svc.GetRequiredService<DeleteEntityCommand<EchoRequest>>();
         }
 
         [Fact(DisplayName = "Command is disabled")]
         public async Task Test1()
         {
-            await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            await cmd.ExecuteAsync(EchoRequest.Default, CancellationToken.None);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.CloudTable, Times.Never);
@@ -51,7 +51,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Tables
         {
             var src = new CancellationTokenSource(0);
 
-            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, src.Token);
+            Func<Task> act = async () => await cmd.ExecuteAsync(EchoRequest.Default, src.Token);
 
             await act.Should().ThrowAsync<OperationCanceledException>();
 
@@ -63,7 +63,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Tables
         {
             opt.SetupProperty(m => m.IsEnabled, true);
 
-            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            Func<Task> act = async () => await cmd.ExecuteAsync(EchoRequest.Default, CancellationToken.None);
 
             await act.Should().ThrowAsync<ArgumentNullException>();
 
@@ -79,7 +79,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Tables
             opt.SetupProperty(m => m.CloudTable, tbl.Object);
             opt.SetupProperty(m => m.TableEntity, null);
 
-            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            Func<Task> act = async () => await cmd.ExecuteAsync(EchoRequest.Default, CancellationToken.None);
 
             await act.Should().ThrowAsync<ArgumentNullException>();
 
@@ -98,7 +98,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Tables
             tbl.Setup(m => m.ExecuteAsync(It.IsAny<TableOperation>(), CancellationToken.None))
                 .ThrowsAsync(new ArgumentNullException());
 
-            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            Func<Task> act = async () => await cmd.ExecuteAsync(EchoRequest.Default, CancellationToken.None);
 
             await act.Should().ThrowAsync<CommandException>();
 
@@ -126,7 +126,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Tables
             tbl.Setup(m => m.ExecuteAsync(It.IsAny<TableOperation>(), CancellationToken.None))
                 .ReturnsAsync(res);
 
-            await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            await cmd.ExecuteAsync(EchoRequest.Default, CancellationToken.None);
 
             var tableOperations = new List<TableOperation>();
 

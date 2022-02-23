@@ -16,30 +16,30 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Queues
     public class DeleteMessageCommandTests
     {
         private readonly IServiceProvider svc;
-        private readonly Mock<QueueOptions<TestMessage>> opt;
+        private readonly Mock<QueueOptions<EchoRequest>> opt;
         private readonly Mock<QueueClient> que;
 
-        private readonly DeleteMessageCommand<TestMessage> cmd;
+        private readonly DeleteMessageCommand<EchoRequest> cmd;
 
         public DeleteMessageCommandTests()
         {
-            opt = new Mock<QueueOptions<TestMessage>>();
+            opt = new Mock<QueueOptions<EchoRequest>>();
             que = new Mock<QueueClient>("UseDevelopmentStorage=true", "queue1");
 
             svc = new ServiceCollection()
 
-                .AddTransient<DeleteMessageCommand<TestMessage>>()
-                .AddTransient<IOptions<QueueOptions<TestMessage>>>(sp => Options.Create(opt.Object))
+                .AddTransient<DeleteMessageCommand<EchoRequest>>()
+                .AddTransient<IOptions<QueueOptions<EchoRequest>>>(sp => Options.Create(opt.Object))
 
                 .BuildServiceProvider();
 
-            cmd = svc.GetRequiredService<DeleteMessageCommand<TestMessage>>();
+            cmd = svc.GetRequiredService<DeleteMessageCommand<EchoRequest>>();
         }
 
         [Fact(DisplayName = "Command is disabled")]
         public async Task Test1()
         {
-            await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            await cmd.ExecuteAsync(EchoRequest.Default, CancellationToken.None);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.QueueClient, Times.Never);
@@ -51,7 +51,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Queues
         {
             var src = new CancellationTokenSource(0);
 
-            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, src.Token);
+            Func<Task> act = async () => await cmd.ExecuteAsync(EchoRequest.Default, src.Token);
 
             await act.Should().ThrowAsync<OperationCanceledException>();
 
@@ -63,7 +63,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Queues
         {
             opt.SetupProperty(m => m.IsEnabled, true);
 
-            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            Func<Task> act = async () => await cmd.ExecuteAsync(EchoRequest.Default, CancellationToken.None);
 
             await act.Should().ThrowAsync<ArgumentNullException>();
 
@@ -78,7 +78,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Queues
             opt.SetupProperty(m => m.IsEnabled, true);
             opt.SetupProperty(m => m.QueueClient, que.Object);
 
-            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            Func<Task> act = async () => await cmd.ExecuteAsync(EchoRequest.Default, CancellationToken.None);
 
             await act.Should().ThrowAsync<ArgumentNullException>();
 
@@ -97,7 +97,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Queues
             que.Setup(m => m.DeleteMessageAsync(It.IsAny<string>(), It.IsAny<string>(), CancellationToken.None))
                 .ThrowsAsync(new ArgumentNullException());
 
-            Func<Task> act = async () => await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            Func<Task> act = async () => await cmd.ExecuteAsync(EchoRequest.Default, CancellationToken.None);
 
             await act.Should().ThrowAsync<CommandException>();
 
@@ -119,7 +119,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands.Queues
             que.Setup(m => m.DeleteMessageAsync(It.IsAny<string>(), It.IsAny<string>(), CancellationToken.None))
                 .ReturnsAsync(res.Object);
 
-            await cmd.ExecuteAsync(TestMessage.Default, CancellationToken.None);
+            await cmd.ExecuteAsync(EchoRequest.Default, CancellationToken.None);
 
             opt.VerifyGet(m => m.IsEnabled, Times.Once);
             opt.VerifyGet(m => m.QueueClient, Times.Exactly(2));

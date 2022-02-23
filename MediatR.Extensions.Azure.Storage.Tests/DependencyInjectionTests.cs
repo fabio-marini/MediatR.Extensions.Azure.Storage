@@ -9,8 +9,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Commands
     {
         public static IEnumerable<object[]> TestData()
         {
-            yield return new object[] { TestCommand.Default, Unit.Value };
-            yield return new object[] { TestQuery.Default, TestResult.Default };
+            yield return new object[] { EchoRequest.Default, EchoResponse.Default };
         }
 
         #region Blob Tests

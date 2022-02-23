@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 {
@@ -13,10 +14,12 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
     public class QueueExtensionsTests : IClassFixture<QueueFixture>
     {
         private readonly QueueFixture queueFixture;
+        private readonly ITestOutputHelper log;
 
-        public QueueExtensionsTests(QueueFixture queueFixture)
+        public QueueExtensionsTests(QueueFixture queueFixture, ITestOutputHelper log)
         {
             this.queueFixture = queueFixture;
+            this.log = log;
         }
 
         [Fact(DisplayName = "01. Queue is empty")]
@@ -29,17 +32,18 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 
                 .AddMediatR(this.GetType())
                 .AddTransient<QueueClient>(sp => queueFixture.QueueClient)
-                .AddQueueOptions<TestQuery, TestResult>()
-                .AddSendMessageExtensions<TestQuery, TestResult>()
+                .AddTransient<ITestOutputHelper>(sp => log)
+                .AddQueueOptions<EchoRequest, EchoResponse>()
+                .AddSendMessageExtensions<EchoRequest, EchoResponse>()
                 .AddSingleton<Queue<QueueMessage>>(sp => queueFixture.Messages)
 
                 .BuildServiceProvider();
 
             var med = serviceProvider.GetRequiredService<IMediator>();
 
-            var res = await med.Send(TestQuery.Default);
+            var res = await med.Send(EchoRequest.Default);
 
-            res.Length.Should().Be(TestQuery.Default.Message.Length);
+            res.Message.Should().Be(EchoRequest.Default.Message);
         }
 
         [Fact(DisplayName = "03. Queue has messages")]
@@ -52,17 +56,18 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 
                 .AddMediatR(this.GetType())
                 .AddTransient<QueueClient>(sp => queueFixture.QueueClient)
-                .AddQueueOptions<TestQuery, TestResult>()
-                .AddReceiveMessageExtensions<TestQuery, TestResult>()
+                .AddTransient<ITestOutputHelper>(sp => log)
+                .AddQueueOptions<EchoRequest, EchoResponse>()
+                .AddReceiveMessageExtensions<EchoRequest, EchoResponse>()
                 .AddSingleton<Queue<QueueMessage>>(sp => queueFixture.Messages)
 
                 .BuildServiceProvider();
 
             var med = serviceProvider.GetRequiredService<IMediator>();
 
-            var res = await med.Send(TestQuery.Default);
+            var res = await med.Send(EchoRequest.Default);
 
-            res.Length.Should().Be(TestQuery.Default.Message.Length);
+            res.Message.Should().Be(EchoRequest.Default.Message);
 
             var ctx = serviceProvider.GetRequiredService<Queue<QueueMessage>>();
 
@@ -76,17 +81,18 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 
                 .AddMediatR(this.GetType())
                 .AddTransient<QueueClient>(sp => queueFixture.QueueClient)
-                .AddQueueOptions<TestQuery, TestResult>()
-                .AddDeleteMessageExtensions<TestQuery, TestResult>()
+                .AddTransient<ITestOutputHelper>(sp => log)
+                .AddQueueOptions<EchoRequest, EchoResponse>()
+                .AddDeleteMessageExtensions<EchoRequest, EchoResponse>()
                 .AddSingleton<Queue<QueueMessage>>(sp => queueFixture.Messages)
 
                 .BuildServiceProvider();
 
             var med = serviceProvider.GetRequiredService<IMediator>();
 
-            var res = await med.Send(TestQuery.Default);
+            var res = await med.Send(EchoRequest.Default);
 
-            res.Length.Should().Be(TestQuery.Default.Message.Length);
+            res.Message.Should().Be(EchoRequest.Default.Message);
 
             var ctx = serviceProvider.GetRequiredService<Queue<QueueMessage>>();
 
