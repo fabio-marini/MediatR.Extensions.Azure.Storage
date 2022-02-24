@@ -11,7 +11,15 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 {
     public static class TableFixtureExtensions
     {
-        public static IServiceCollection AddTableOptions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
+        public static IServiceCollection AddTableOptions(this IServiceCollection services) => services.AddTableOptions<EchoRequest, EchoResponse>();
+
+        public static IServiceCollection AddInsertEntityExtensions(this IServiceCollection services) => services.AddInsertEntityExtensions<EchoRequest, EchoResponse>();
+
+        public static IServiceCollection AddRetrieveEntityExtensions(this IServiceCollection services) => services.AddRetrieveEntityExtensions<EchoRequest, EchoResponse>();
+
+        public static IServiceCollection AddDeleteEntityExtensions(this IServiceCollection services) => services.AddDeleteEntityExtensions<EchoRequest, EchoResponse>();
+
+        private static IServiceCollection AddTableOptions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
         {
             return services
 
@@ -138,7 +146,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 ;
         }
 
-        public static IServiceCollection AddInsertEntityExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
+        private static IServiceCollection AddInsertEntityExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
         {
             return services
 
@@ -178,7 +186,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 ;
         }
 
-        public static IServiceCollection AddRetrieveEntityExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
+        private static IServiceCollection AddRetrieveEntityExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
         {
             return services
 
@@ -218,7 +226,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 ;
         }
 
-        public static IServiceCollection AddDeleteEntityExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
+        private static IServiceCollection AddDeleteEntityExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
         {
             return services
 

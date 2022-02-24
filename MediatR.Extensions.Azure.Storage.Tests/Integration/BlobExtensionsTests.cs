@@ -32,8 +32,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 .AddMediatR(this.GetType())
                 .AddTransient<BlobContainerClient>(sp => blobFixture.Container)
                 .AddTransient<ITestOutputHelper>(sp => log)
-                .AddBlobOptions<EchoRequest, EchoResponse>()
-                .AddUploadBlobExtensions<EchoRequest, EchoResponse>()
+                .AddBlobOptions()
+                .AddUploadBlobExtensions()
 
                 .BuildServiceProvider();
 
@@ -55,8 +55,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 .AddMediatR(this.GetType())
                 .AddTransient<BlobContainerClient>(sp => blobFixture.Container)
                 .AddTransient<ITestOutputHelper>(sp => log)
-                .AddBlobOptions<EchoRequest, EchoResponse>()
-                .AddDownloadBlobExtensions<EchoRequest, EchoResponse>()
+                .AddBlobOptions()
+                .AddDownloadBlobExtensions()
                 .AddSingleton<PipelineContext>()
 
                 .BuildServiceProvider();
@@ -80,8 +80,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 .AddMediatR(this.GetType())
                 .AddTransient<BlobContainerClient>(sp => blobFixture.Container)
                 .AddTransient<ITestOutputHelper>(sp => log)
-                .AddBlobOptions<EchoRequest, EchoResponse>()
-                .AddDeleteBlobExtensions<EchoRequest, EchoResponse>()
+                .AddBlobOptions()
+                .AddDeleteBlobExtensions()
 
                 .BuildServiceProvider();
 

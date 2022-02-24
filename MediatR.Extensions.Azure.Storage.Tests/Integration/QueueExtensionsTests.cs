@@ -33,8 +33,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 .AddMediatR(this.GetType())
                 .AddTransient<QueueClient>(sp => queueFixture.QueueClient)
                 .AddTransient<ITestOutputHelper>(sp => log)
-                .AddQueueOptions<EchoRequest, EchoResponse>()
-                .AddSendMessageExtensions<EchoRequest, EchoResponse>()
+                .AddQueueOptions()
+                .AddSendMessageExtensions()
                 .AddSingleton<Queue<QueueMessage>>(sp => queueFixture.Messages)
 
                 .BuildServiceProvider();
@@ -57,8 +57,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 .AddMediatR(this.GetType())
                 .AddTransient<QueueClient>(sp => queueFixture.QueueClient)
                 .AddTransient<ITestOutputHelper>(sp => log)
-                .AddQueueOptions<EchoRequest, EchoResponse>()
-                .AddReceiveMessageExtensions<EchoRequest, EchoResponse>()
+                .AddQueueOptions()
+                .AddReceiveMessageExtensions()
                 .AddSingleton<Queue<QueueMessage>>(sp => queueFixture.Messages)
 
                 .BuildServiceProvider();
@@ -82,8 +82,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 .AddMediatR(this.GetType())
                 .AddTransient<QueueClient>(sp => queueFixture.QueueClient)
                 .AddTransient<ITestOutputHelper>(sp => log)
-                .AddQueueOptions<EchoRequest, EchoResponse>()
-                .AddDeleteMessageExtensions<EchoRequest, EchoResponse>()
+                .AddQueueOptions()
+                .AddDeleteMessageExtensions()
                 .AddSingleton<Queue<QueueMessage>>(sp => queueFixture.Messages)
 
                 .BuildServiceProvider();

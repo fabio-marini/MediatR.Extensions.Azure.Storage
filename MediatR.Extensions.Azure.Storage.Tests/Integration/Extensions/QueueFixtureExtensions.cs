@@ -13,7 +13,15 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 {
     public static class QueueFixtureExtensions
     {
-        public static IServiceCollection AddQueueOptions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
+        public static IServiceCollection AddQueueOptions(this IServiceCollection services) => services.AddQueueOptions<EchoRequest, EchoResponse>();
+
+        public static IServiceCollection AddSendMessageExtensions(this IServiceCollection services) => services.AddSendMessageExtensions<EchoRequest, EchoResponse>();
+
+        public static IServiceCollection AddReceiveMessageExtensions(this IServiceCollection services) => services.AddReceiveMessageExtensions<EchoRequest, EchoResponse>();
+
+        public static IServiceCollection AddDeleteMessageExtensions(this IServiceCollection services) => services.AddDeleteMessageExtensions<EchoRequest, EchoResponse>();
+
+        private static IServiceCollection AddQueueOptions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
         {
             return services
 
@@ -104,7 +112,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 ;
         }
 
-        public static IServiceCollection AddSendMessageExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
+        private static IServiceCollection AddSendMessageExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
         {
             return services
 
@@ -144,7 +152,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 ;
         }
 
-        public static IServiceCollection AddReceiveMessageExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
+        private static IServiceCollection AddReceiveMessageExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
         {
             return services
 
@@ -184,7 +192,7 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 ;
         }
 
-        public static IServiceCollection AddDeleteMessageExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
+        private static IServiceCollection AddDeleteMessageExtensions<TRequest, TResponse>(this IServiceCollection services) where TRequest : IRequest<TResponse>
         {
             return services
 

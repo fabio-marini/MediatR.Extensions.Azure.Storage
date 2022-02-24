@@ -33,8 +33,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 .AddMediatR(this.GetType())
                 .AddTransient<CloudTable>(sp => tableFixture.CloudTable)
                 .AddTransient<ITestOutputHelper>(sp => log)
-                .AddTableOptions<EchoRequest, EchoResponse>()
-                .AddInsertEntityExtensions<EchoRequest, EchoResponse>()
+                .AddTableOptions()
+                .AddInsertEntityExtensions()
 
                 .BuildServiceProvider();
 
@@ -56,8 +56,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 .AddMediatR(this.GetType())
                 .AddTransient<CloudTable>(sp => tableFixture.CloudTable)
                 .AddTransient<ITestOutputHelper>(sp => log)
-                .AddTableOptions<EchoRequest, EchoResponse>()
-                .AddRetrieveEntityExtensions<EchoRequest, EchoResponse>()
+                .AddTableOptions()
+                .AddRetrieveEntityExtensions()
                 .AddSingleton<PipelineContext>()
 
                 .BuildServiceProvider();
@@ -81,8 +81,8 @@ namespace MediatR.Extensions.Azure.Storage.Tests.Integration
                 .AddMediatR(this.GetType())
                 .AddTransient<CloudTable>(sp => tableFixture.CloudTable)
                 .AddTransient<ITestOutputHelper>(sp => log)
-                .AddTableOptions<EchoRequest, EchoResponse>()
-                .AddDeleteEntityExtensions<EchoRequest, EchoResponse>()
+                .AddTableOptions()
+                .AddDeleteEntityExtensions()
 
                 .BuildServiceProvider();
 
