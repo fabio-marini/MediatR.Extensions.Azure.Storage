@@ -13,8 +13,6 @@ namespace MediatR.Extensions.Azure.Storage.Tests
 
     public class EchoResponse
     {
-        public static EchoResponse Default => new EchoResponse { Message = "Hello world!" };
-
         public string Message { get; set; }
     }
 
