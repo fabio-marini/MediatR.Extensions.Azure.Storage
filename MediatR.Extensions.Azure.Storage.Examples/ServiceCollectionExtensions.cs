@@ -1,5 +1,7 @@
-﻿using Azure.Storage.Blobs;
+﻿using Azure.Messaging.ServiceBus;
+using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using MediatR.Extensions.Azure.ServiceBus;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,17 +16,25 @@ namespace MediatR.Extensions.Azure.Storage.Examples
 {
     public static class ServiceCollectionExtensions
     {
-        // TODO: refactor for automation (get connection string and log level from config)?
+        // TODO: move to own repo + refactor for automation (get connection string and log level from config)?
 
         // 1. PipelineExecutionOnlyTests - models and pipelines
         // 2. MessageTrackingPipelineTest - blob message tracking pipeline (JSON and XML)
         // 3. ActivityTrackingPipelineTest - table activity tracking pipeline (JSON and XML)
         // 4. MessageClaimCheckPipelineTest - blob claim check pipeline
         // 5. ExceptionHandlingPipelineTest - error pipelines
+        // 6. ServiceBusQueuePipelineTest - send/receive using a SB queue
+        // 7. ServiceBusTopicPipelineTest - send/receive using a SB topic/subscription
 
-        // TODO: service bus examples
         // TODO: persistence points to enable edit and resubmit?
         // TODO: sign/verify and encrypt/decrypt using certs?
+
+        // TODO: process expired message from DLQ + batching?
+
+        // TODO: manage the list of messages to be cancelled (i.e. seq numbers) using separate components in the pipeline
+        //       - scenario 1: schedule and cancel in the same pipeline - can use context
+        //       - scenario 2: schedule and cancel in different pipelines - use persistence
+        //       - scenario 3: cancel scheduled messages based on request (delete from persistence store or cancel message)
 
         public static IServiceCollection AddContosoRequestPipeline(this IServiceCollection services)
         {
@@ -348,6 +358,52 @@ namespace MediatR.Extensions.Azure.Storage.Examples
 
             services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, FabrikamCustomerResponse>, DownloadBlobRequestBehavior<FabrikamCustomerRequest, FabrikamCustomerResponse>>();
             services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, FabrikamCustomerResponse>, DeleteBlobRequestBehavior<FabrikamCustomerRequest, FabrikamCustomerResponse>>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, FabrikamCustomerResponse>, TransformFabrikamCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, FabrikamCustomerResponse>, EnrichFabrikamCustomerBehavior>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddContosoSenderPipeline(this IServiceCollection services)
+        {
+            // contoso puts a canonical message on a queue/topic and fabrikam receives it
+            services.AddTransient<ServiceBus.SendMessageCommand<ContosoCustomerResponse>>();
+
+            services.AddOptions<MessageOptions<ContosoCustomerResponse>>().Configure<IServiceProvider>((opt, svc) =>
+            {
+                var cfg = svc.GetRequiredService<IConfiguration>();
+
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+                opt.Sender = svc.GetRequiredService<ServiceBusSender>();
+                opt.Message = (req, ctx) => new ServiceBusMessage(JsonConvert.SerializeObject(req.CanonicalCustomer));
+            });
+
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, ContosoCustomerResponse>, ValidateContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, ContosoCustomerResponse>, TransformContosoCustomerBehavior>();
+            services.AddTransient<IPipelineBehavior<ContosoCustomerRequest, ContosoCustomerResponse>, ServiceBus.SendMessageResponseBehavior<ContosoCustomerRequest, ContosoCustomerResponse>>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddFabrikamReceiverPipeline(this IServiceCollection services)
+        {
+            services.AddTransient<ServiceBus.ReceiveMessageCommand<FabrikamCustomerRequest>>();
+
+            services.AddOptions<MessageOptions<FabrikamCustomerRequest>>().Configure<IServiceProvider>((opt, svc) =>
+            {
+                var cfg = svc.GetRequiredService<IConfiguration>();
+
+                opt.IsEnabled = cfg.GetValue<bool>("TrackingEnabled");
+                opt.Receiver = svc.GetRequiredService<ServiceBusReceiver>();
+                opt.Received = (msg, ctx, req) =>
+                {
+                    req.CanonicalCustomer = JsonConvert.DeserializeObject<CanonicalCustomer>(msg.Body.ToString());
+
+                    return Task.CompletedTask;
+                };
+            });
+
+            services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, FabrikamCustomerResponse>, ServiceBus.ReceiveMessageRequestBehavior<FabrikamCustomerRequest, FabrikamCustomerResponse>>();
             services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, FabrikamCustomerResponse>, TransformFabrikamCustomerBehavior>();
             services.AddTransient<IPipelineBehavior<FabrikamCustomerRequest, FabrikamCustomerResponse>, EnrichFabrikamCustomerBehavior>();
 

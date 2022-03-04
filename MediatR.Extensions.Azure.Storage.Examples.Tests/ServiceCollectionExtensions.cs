@@ -1,10 +1,13 @@
-﻿using Azure.Storage.Blobs;
+﻿using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus.Administration;
+using Azure.Storage.Blobs;
 using MediatR.Extensions.Abstractions;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Reflection;
 using Xunit.Abstractions;
 
 namespace MediatR.Extensions.Azure.Storage.Examples
@@ -27,6 +30,8 @@ namespace MediatR.Extensions.Azure.Storage.Examples
                     return new ConfigurationBuilder()
 
                         .AddInMemoryCollection(appSettings)
+                        .AddUserSecrets(Assembly.GetExecutingAssembly())
+
                         .Build();
                 })
 
@@ -59,6 +64,23 @@ namespace MediatR.Extensions.Azure.Storage.Examples
                     return cloudTable;
                 })
                 .AddTransient<TableFixture>()
+
+                // admin client to create/delete topics/queues
+                .AddTransient<ServiceBusAdministrationClient>(sp =>
+                {
+                    var cfg = sp.GetRequiredService<IConfiguration>();
+
+                    return new ServiceBusAdministrationClient(cfg.GetValue<string>("AzureWebJobsServiceBus"));
+                })
+                .AddTransient<ManagementFixture>()
+
+                // messaging client used by senders/receivers
+                .AddTransient<ServiceBusClient>(sp =>
+                {
+                    var cfg = sp.GetRequiredService<IConfiguration>();
+
+                    return new ServiceBusClient(cfg.GetValue<string>("AzureWebJobsServiceBus"));
+                })
 
                 ;
         }
