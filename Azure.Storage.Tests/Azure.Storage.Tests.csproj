@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-
     <IsPackable>false</IsPackable>
     <NoWarn>xUnit1026</NoWarn>
   </PropertyGroup>
@@ -24,9 +23,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MediatR.Extensions.Azure.Storage.Blobs\MediatR.Extensions.Azure.Storage.Blobs.csproj" />
-    <ProjectReference Include="..\MediatR.Extensions.Azure.Storage.Queues\MediatR.Extensions.Azure.Storage.Queues.csproj" />
-    <ProjectReference Include="..\MediatR.Extensions.Azure.Storage.Tables\MediatR.Extensions.Azure.Storage.Tables.csproj" />
+    <ProjectReference Include="..\Azure.Storage.Blobs\Azure.Storage.Blobs.csproj" />
+    <ProjectReference Include="..\Azure.Storage.Queues\Azure.Storage.Queues.csproj" />
+    <ProjectReference Include="..\Azure.Storage.Tables\Azure.Storage.Tables.csproj" />
   </ItemGroup>
 
 </Project>

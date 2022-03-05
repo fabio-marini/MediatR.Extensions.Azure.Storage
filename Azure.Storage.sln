@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediatR.Extensions.Azure.Storage.Tests", "MediatR.Extensions.Azure.Storage.Tests\MediatR.Extensions.Azure.Storage.Tests.csproj", "{678083D7-1CE2-4C8A-8573-D04062B965E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Storage.Tests", "Azure.Storage.Tests\Azure.Storage.Tests.csproj", "{678083D7-1CE2-4C8A-8573-D04062B965E6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{7ED0046B-574B-4121-8482-7F1B3583EE5A}"
 	ProjectSection(SolutionItems) = preProject
@@ -14,11 +14,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{7ED0046B-5
 		docs\TableExtensions.md = docs\TableExtensions.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediatR.Extensions.Azure.Storage.Blobs", "MediatR.Extensions.Azure.Storage.Blobs\MediatR.Extensions.Azure.Storage.Blobs.csproj", "{2DB021A9-D06D-4183-9588-383D629A1354}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Storage.Blobs", "Azure.Storage.Blobs\Azure.Storage.Blobs.csproj", "{2DB021A9-D06D-4183-9588-383D629A1354}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediatR.Extensions.Azure.Storage.Queues", "MediatR.Extensions.Azure.Storage.Queues\MediatR.Extensions.Azure.Storage.Queues.csproj", "{CAB65138-6442-4033-AC1F-1DCAE3FD7278}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Storage.Queues", "Azure.Storage.Queues\Azure.Storage.Queues.csproj", "{CAB65138-6442-4033-AC1F-1DCAE3FD7278}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediatR.Extensions.Azure.Storage.Tables", "MediatR.Extensions.Azure.Storage.Tables\MediatR.Extensions.Azure.Storage.Tables.csproj", "{24B9AA35-7E7D-4833-B4CB-254499AA88EC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Storage.Tables", "Azure.Storage.Tables\Azure.Storage.Tables.csproj", "{24B9AA35-7E7D-4833-B4CB-254499AA88EC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

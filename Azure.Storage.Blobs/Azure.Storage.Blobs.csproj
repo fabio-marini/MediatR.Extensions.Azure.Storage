@@ -7,6 +7,8 @@
     <PackageVersion>1.0.0</PackageVersion>
     <PackageProjectUrl>https://github.com/fabio-marini/MediatR.Extensions.Azure.Storage</PackageProjectUrl>
     <RepositoryUrl>https://github.com/fabio-marini/MediatR.Extensions.Azure.Storage</RepositoryUrl>
+    <AssemblyName>MediatR.Extensions.Azure.Storage.Blobs</AssemblyName>
+    <RootNamespace>MediatR.Extensions.Azure.Storage.Blobs</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

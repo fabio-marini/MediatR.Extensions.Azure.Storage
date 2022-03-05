@@ -3,15 +3,16 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Authors>Fabio Marini</Authors>
-    <Description>MediatR extensions for Azure queue storage</Description>
+    <Description>MediatR extensions for Azure table storage</Description>
     <PackageVersion>1.0.0</PackageVersion>
     <PackageProjectUrl>https://github.com/fabio-marini/MediatR.Extensions.Azure.Storage</PackageProjectUrl>
     <RepositoryUrl>https://github.com/fabio-marini/MediatR.Extensions.Azure.Storage</RepositoryUrl>
+    <AssemblyName>MediatR.Extensions.Azure.Storage.Tables</AssemblyName>
+    <RootNamespace>MediatR.Extensions.Azure.Storage.Tables</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Storage.Queues" Version="12.8.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Microsoft.Azure.Cosmos.Table" Version="1.0.8" />
     <PackageReference Include="MediatR.Extensions.Abstractions" Version="1.0.0" />
   </ItemGroup>
 
