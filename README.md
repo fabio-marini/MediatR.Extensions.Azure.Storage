@@ -1,4 +1,4 @@
-# MediatR.Extensions.Azure.Storage
+# MediatR Extensions for Azure Storage
 
 This repository contains [MediatR](https://github.com/jbogard/MediatR) extensions to work with Azure Storage:
 - an extension refers to a MediatR pipeline **behavior** or a request **pre/post processor**
@@ -28,4 +28,4 @@ For example:
 - an `{InsertEntity}{Request}{Processor}` is a *pre-processor* used to insert the MediatR *request* into the specified storage table
 - an `{InsertEntity}{Response}{Processor}` is a *post-processor* used to insert the MediatR *response* into the specified storage table
 
-The [ServiceCollectionExtensions](./examples/ClassLibrary1/ServiceCollectionExtensions.cs) class contains numerous examples and scenarios.
+The [Examples repository](https://github.com/fabio-marini/MediatR.Extensions.Examples) contains numerous examples and scenarios.
