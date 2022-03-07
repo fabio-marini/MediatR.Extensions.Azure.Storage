@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 namespace MediatR.Extensions.Azure.Storage.Tests.Integration
 {
     [Trait("TestCategory", "Integration")]
-    [TestCaseOrderer("MediatR.Extensions.Tests.TestMethodNameOrderer", "MediatR.Extensions.Azure.Storage.Tests")]
+    [TestCaseOrderer("Timeless.Testing.Xunit.TestMethodNameOrderer", "Timeless.Testing.Xunit")]
     public class BlobExtensionsTests : IClassFixture<BlobFixture>
     {
         private readonly BlobFixture blobFixture;
